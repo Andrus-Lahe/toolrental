@@ -63,6 +63,8 @@ Hoiab kasutaja süsteemset rolli.
 | `id` | `serial` | PK |
 | `role_name` | `varchar(20)` | NOT NULL, UNIQUE |
 
+
+
 ### `city`
 
 Linnade loend.
