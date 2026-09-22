@@ -1,164 +1,85 @@
--- Created by Vertabelo (http://vertabelo.com)
--- Last modification date: 2024-03-28 12:01:59.87
-
--- tables
--- Table: city
-CREATE TABLE city (
-                      id serial  NOT NULL,
-                      name varchar(255)  NOT NULL,
-                      CONSTRAINT city_pk PRIMARY KEY (id)
-);
-
--- Table: location
-CREATE TABLE location (
-                          id serial  NOT NULL,
-                          city_id int  NOT NULL,
-                          name varchar(255)  NOT NULL,
-                          number_of_atms int  NOT NULL,
-                          status char(1)  NOT NULL,
-                          lng numeric(10,7),
-                          lat numeric(10,7),
-                          CONSTRAINT location_pk PRIMARY KEY (id)
-);
-
--- Table: profile
-CREATE TABLE profile (
-                                id serial  NOT NULL,
-                                user_id int  NOT NULL,
-                                address varchar(255)  NOT NULL,
-                                phone_number varchar(255)  NOT NULL,
-                                CONSTRAINT profile_pk PRIMARY KEY (id)
-);
-
-
--- Table: location_image
-CREATE TABLE location_image (
-                                id serial  NOT NULL,
-                                location_id int  NOT NULL,
-                                data bytea  NOT NULL,
-                                CONSTRAINT location_image_pk PRIMARY KEY (id)
-);
-
--- Table: location_transaction_type
-CREATE TABLE location_transaction_type (
-                                           id serial  NOT NULL,
-                                           location_id int  NOT NULL,
-                                           transaction_type_id int  NOT NULL,
-                                           CONSTRAINT location_transaction_type_pk PRIMARY KEY (id)
-);
-
--- Table: role
 CREATE TABLE role (
-                      id serial  NOT NULL,
-                      name varchar(255)  NOT NULL,
-                      CONSTRAINT role_ak_1 UNIQUE (name) NOT DEFERRABLE  INITIALLY IMMEDIATE,
-                      CONSTRAINT role_pk PRIMARY KEY (id)
+    id serial PRIMARY KEY,
+    role_name varchar(20) NOT NULL UNIQUE
 );
 
--- Table: transaction_type
-CREATE TABLE transaction_type (
-                                  id serial  NOT NULL,
-                                  name varchar(255)  NOT NULL,
-                                  CONSTRAINT transaction_type_pk PRIMARY KEY (id)
+CREATE TABLE app_user (
+    id serial PRIMARY KEY,
+    role_id integer NOT NULL REFERENCES role (id),
+    first_name varchar(100) NOT NULL,
+    last_name varchar(100) NOT NULL,
+    google_sub varchar(255) NOT NULL UNIQUE,
+    status char(1) NOT NULL DEFAULT 'A' CHECK (status IN ('A', 'B'))
 );
 
--- Table: user
-CREATE TABLE "user" (
-                        id serial  NOT NULL,
-                        role_id int  NOT NULL,
-                        username varchar(255)  NOT NULL,
-                        password varchar(255)  NOT NULL,
-                        status char(1)  NOT NULL,
-                        CONSTRAINT user_ak_1 UNIQUE (username) NOT DEFERRABLE  INITIALLY IMMEDIATE,
-                        CONSTRAINT user_pk PRIMARY KEY (id)
+CREATE TABLE city (
+    id serial PRIMARY KEY,
+    city_name varchar(100) NOT NULL UNIQUE
 );
 
--- Table: user_image
-CREATE TABLE user_image (
-                            id serial  NOT NULL,
-                            user_id int  NOT NULL,
-                            data bytea  NOT NULL,
-                            CONSTRAINT user_image_pk PRIMARY KEY (id)
+CREATE TABLE district (
+    id serial PRIMARY KEY,
+    city_id integer NOT NULL REFERENCES city (id),
+    district_name varchar(100) NOT NULL,
+    CONSTRAINT district_city_name_unique UNIQUE (city_id, district_name)
 );
 
--- foreign keys
--- Reference: location_city (table: location)
-ALTER TABLE location ADD CONSTRAINT location_city
-    FOREIGN KEY (city_id)
-        REFERENCES city (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
+CREATE TABLE location (
+    id serial PRIMARY KEY,
+    district_id integer NOT NULL REFERENCES district (id),
+    street_name varchar(150) NOT NULL,
+    house_number varchar(20) NOT NULL,
+    apartment_number varchar(20),
+    lng decimal(10, 7),
+    lat decimal(10, 7)
+);
 
--- Reference: location_image_location (table: location_image)
-ALTER TABLE location_image ADD CONSTRAINT location_image_location
-    FOREIGN KEY (location_id)
-        REFERENCES location (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
+CREATE TABLE profile (
+    id serial PRIMARY KEY,
+    user_id integer NOT NULL UNIQUE REFERENCES app_user (id),
+    location_id integer NOT NULL REFERENCES location (id),
+    email varchar(254) NOT NULL UNIQUE,
+    phone varchar(32) NOT NULL,
+    created_at timestamp NOT NULL DEFAULT current_timestamp,
+    updated_at timestamp NOT NULL DEFAULT current_timestamp
+);
 
--- Reference: location_transaction_type_location (table: location_transaction_type)
-ALTER TABLE location_transaction_type ADD CONSTRAINT location_transaction_type_location
-    FOREIGN KEY (location_id)
-        REFERENCES location (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
+CREATE TABLE category (
+    id serial PRIMARY KEY,
+    category_name varchar(100) NOT NULL UNIQUE
+);
 
--- Reference: location_transaction_type_transaction_type (table: location_transaction_type)
-ALTER TABLE location_transaction_type ADD CONSTRAINT location_transaction_type_transaction_type
-    FOREIGN KEY (transaction_type_id)
-        REFERENCES transaction_type (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
+CREATE TABLE tool (
+    id serial PRIMARY KEY,
+    owner_id integer NOT NULL REFERENCES app_user (id),
+    category_id integer NOT NULL REFERENCES category (id),
+    name varchar(150) NOT NULL,
+    description varchar(2000),
+    status char(1) NOT NULL DEFAULT 'A' CHECK (status IN ('A', 'U')),
+    created_at timestamp NOT NULL DEFAULT current_timestamp,
+    updated_at timestamp NOT NULL DEFAULT current_timestamp
+);
 
--- Reference: user_image_user (table: user_image)
-ALTER TABLE user_image ADD CONSTRAINT user_image_user
-    FOREIGN KEY (user_id)
-        REFERENCES "user" (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
+CREATE TABLE tool_image (
+    id serial PRIMARY KEY,
+    tool_id integer NOT NULL REFERENCES tool (id) ON DELETE CASCADE,
+    image_data bytea NOT NULL,
+    is_main boolean NOT NULL DEFAULT false,
+    CONSTRAINT tool_image_data_unique UNIQUE (tool_id, image_data)
+);
 
--- Reference: profile_user (table: profile)
-ALTER TABLE profile ADD CONSTRAINT profile_user
-    FOREIGN KEY (user_id)
-        REFERENCES "user" (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
+CREATE UNIQUE INDEX tool_image_one_main_unique ON tool_image (tool_id) WHERE is_main = true;
 
--- Reference: user_role (table: user)
-ALTER TABLE "user" ADD CONSTRAINT user_role
-    FOREIGN KEY (role_id)
-        REFERENCES role (id)
-        NOT DEFERRABLE
-            INITIALLY IMMEDIATE
-;
-
--- views
--- View: location_transaction_type_view
--- Kasutusel /api/v2/atm/locations teenuses (õppise eesmärgil) - kombineerib city, location ja
--- transaction_type andmed ühte lamedasse ritta, näidates ka tehingutüübid, mida asukohas ei pakuta
--- (is_available = false).
-CREATE VIEW location_transaction_type_view AS
-SELECT c.id       AS city_id,
-       c.name     AS city_name,
-       l.id       AS location_id,
-       l.name     AS location_name,
-       l.status   AS location_status,
-       l.lng      AS lng,
-       l.lat      AS lat,
-       tt.id      AS transaction_type_id,
-       tt.name    AS transaction_type_name,
-       (ltt.id IS NOT NULL) AS is_available
-FROM location l
-         JOIN city c ON c.id = l.city_id
-         CROSS JOIN transaction_type tt
-         LEFT JOIN location_transaction_type ltt
-                   ON ltt.location_id = l.id AND ltt.transaction_type_id = tt.id;
-
--- End of file.
-
+CREATE TABLE booking (
+    id serial PRIMARY KEY,
+    tool_id integer NOT NULL REFERENCES tool (id),
+    renter_id integer NOT NULL REFERENCES app_user (id),
+    start_date date NOT NULL,
+    end_date date NOT NULL,
+    status char(1) NOT NULL DEFAULT 'P' CHECK (status IN ('P', 'C', 'R')),
+    owner_message varchar(500),
+    google_event_id varchar(255) UNIQUE,
+    created_at timestamp NOT NULL DEFAULT current_timestamp,
+    updated_at timestamp NOT NULL DEFAULT current_timestamp,
+    CONSTRAINT booking_period_check CHECK (start_date <= end_date)
+);
