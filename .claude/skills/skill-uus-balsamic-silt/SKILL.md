@@ -5,7 +5,7 @@ description: Pane olemasolevatest andmetest kokku Balsamiq mockup'i selgitav mä
 
 # Loo uus Balsamiq märkme-silt
 
-**Taust:** Seda skilli kasutavad õpilased oma tiimiprojekti **planeerimisfaasis** — pärast seda, kui nad on toorikprojektist loonud oma projekti (vt `skill-uus-projekt`), aga **enne** kui domeeni `controller`/`service` klasse on kirjutatud. Sel hetkel on olemas ainult toorikprojekti baasstruktuur (sh `infrastructure/` kaust) ja andmebaasi skeem/näidisandmed — äriloogika kood tuleb alles hiljem. Nende märkmete täpsus kandub otse edasi: need on üks kolmest omavahel süncis peetavast allikast (Balsamiq mockup, Jira task, OpenAPI spec — vt struktuuridokumendi kokkuvõtet) ning on hiljem sisendiks task-failide (`skill-loo-backend-task`) ja koodi kirjutamise (`skill-rain-ai-backend`) faasile.
+**Taust:** Seda skilli kasutavad õpilased oma tiimiprojekti **planeerimisfaasis** — pärast seda, kui nad on toorikprojektist loonud oma projekti (vt `skill-uus-projekt`), aga **enne** kui domeeni `controller`/`service` klasse on kirjutatud. Sel hetkel on olemas ainult toorikprojekti baasstruktuur (sh `infrastructure/` kaust) ja andmebaasi skeem/näidisandmed — äriloogika kood tuleb alles hiljem. Nende märkmete täpsus kandub otse edasi: need on üks kolmest omavahelasyncis peetavast allikast (Balsamiq mockup, Jira task, OpenAPI spec — vt struktuuridokumendi kokkuvõtet) ning on hiljem sisendiks task-failide (`skill-loo-backend-task`) ja koodi kirjutamise (`skill-rain-ai-backend`) faasile.
 
 Eesmärk: panna olemasolevatest andmetest (andmebaasi skeem, näidisandmed, kasutaja antud info) kokku mockup vaate juurde käiv selgitav silt — kas **Vaate märkmed** või **API märkmed** — täpselt struktuuris, mis on kokku lepitud failis `docs/balsamic/notes/balsamiq-markmete-struktuur.md`.
 
@@ -47,7 +47,7 @@ Kui kasutaja on juba andnud konkreetse JSON näidise (nt tekstina või pildilt),
 
 Kui planeeritava API kutsega seotud DTO/entity `.java` failid **juba eksisteerivad** koodibaasis (nt varasema taski käigus loodud, või mockup-faasis juba ette kirjutatud) — otsi need üles (nt `backend/src/main/java/**/dto/`, `backend/src/main/java/**/persistence/`) ja kasuta neist täpseid väljanimesid, tüüpe ja DTO klassinime, mitte ära tuleta neid ainult SQL-tabelinimedest. Kui vastavaid faile veel pole (tavaline olukord planeerimisfaasis, vt taustalõik üleval), tuleta väljanimed ja DTO klassinimi `2_create.sql` struktuurist ja kasutaja antud infost, järgides projekti olemasolevat DTO nimetamise stiili (nt `<Subjekt>Dto.java`, `<Subjekt>CreateRequestDto.java` — vaata mõnda olemasolevat DTO-t mujalt koodibaasist eeskujuks, kui vähegi mõni on).
 
-Kui kasutaja ei ole täpset API path'i/HTTP meetodit andnud, kontrolli seda kõigepealt olemasolevast controller-klassist (kui vastav endpoint juba eksisteerib). Kui controllerit veel pole, otsi vastavus `docs/stoplight_io_openAPI.json` (OpenAPI spec) või Jira taski failist (`docs/jira-updates/*.md`, kui olemas) — struktuuridokumendi kokkuvõte defineerib need kolm allikat (Balsamiq, Jira, OpenAPI) kui omavahel süncis olevad kirjeldused samast asjast. Kui ka need puuduvad, tugine kasutaja kirjeldusele ja pane path/meetod paika koos temaga, järgides projekti olemasolevat REST konventsiooni (nt `/api/...` baastee, ressursinimed mitmuses).
+Kui kasutaja ei ole täpset API path'i/HTTP meetodit andnud, kontrolli seda kõigepealt olemasolevast controller-klassist (kui vastav endpoint juba eksisteerib). Kui controllerit veel pole, otsi vastavus `docs/stoplight_io_openAPI.json` (OpenAPI spec) või Jira taski failist (`docs/jira-updates/*.md`, kui olemas) — struktuuridokumendi kokkuvõte defineerib need kolm allikat (Balsamiq, Jira, OpenAPI) kui omavahelasyncis olevad kirjeldused samast asjast. Kui ka need puuduvad, tugine kasutaja kirjeldusele ja pane path/meetod paika koos temaga, järgides projekti olemasolevat REST konventsiooni (nt `/api/...` baastee, ressursinimed mitmuses).
 
 ## 5. API märgete veateated — tuleta reaalsest error-infrastruktuurist
 
@@ -79,17 +79,47 @@ Kõik JSON näidistes esinevad primary key / foreign key väljad peavad sisaldam
 
 See kehtib nii Vaate märkmete sees mainitud andmete kui API märkmete request/response JSON näidiste kohta.
 
-## 7. Koosta sisu struktuuridokumendi järgi
+## 7. JSON massiivide (array) reegel näidistes
+
+Kui JSON näidises on massiiv (array / `List`), pane näidisesse **vaid üks array element**, mille järel on koma ja uuel real `...` (kolm punkti), mis viitab sellele, et massiivis võib olla veel elemente.
+
+Näide response listi puhul:
+```json
+[
+  {
+    "categoryId": 1,
+    "categoryName": "Aiatööd"
+  },
+  ...
+]
+```
+
+Näide objekti sees oleva listi puhul:
+```json
+{
+  "locationId": 2,
+  "transactionTypes": [
+    {
+      "transactionTypeId": 1,
+      "transactionTypeName": "raha sisse",
+      "isAvailable": true
+    },
+    ...
+  ]
+}
+```
+
+## 8. Koosta sisu struktuuridokumendi järgi
 
 Järgi täpselt `docs/balsamic/notes/balsamiq-markmete-struktuur.md` struktuuri ja reegleid vastava märkme tüübi jaoks (Vaate märkmed või API märkmed) — väljade järjekord, tühjade ridade paigutus, `—` kasutamine kui lisainfot pole, DTO nime paiknemine vahetult body ploki kohal, veateadete kolmerealine formaat jne.
 
 Kui koostad mitut API märget sama vaate jaoks, koosta iga API kutse kohta eraldi plokk.
 
-## 8. Vorminda copy-paste jaoks
+## 9. Vorminda copy-paste jaoks
 
 Kogu lõplik märkme tekst (Vaate märkmed plokk ja/või iga API märkmete plokk) peab olema esitatud eraldi Markdown koodiblokina (` ```text ` piiritlejatega), täpselt nagu struktuuridokumendi näidetes — nii saab kasutaja sisu otse Balsamiq kollasesse/valgesse kasti copy-pastida.
 
-## 9. Salvesta fail
+## 10. Salvesta fail
 
 Salvesta tulemus `.md` failina kausta `docs/balsamic/notes/`.
 
@@ -102,7 +132,7 @@ Salvesta tulemus `.md` failina kausta `docs/balsamic/notes/`.
 
 Kui samasse faili tuleb nii vaate märkmed kui mitu API märget (nt kui kasutaja soovib kogu vaate kohta korraga kõik sildid), pane need üksteise järele samas failis, iga plokk oma pealkirja all (nt `## Vaate märkmed`, `## API märkmed — POST /api/atm/locations`).
 
-## 10. Teavita kasutajat
+## 11. Teavita kasutajat
 
 Näita:
 - Loodud/uuendatud faili path
@@ -114,5 +144,6 @@ Näita:
 - Suhtle kasutajaga eesti keeles.
 - Ära leiuta andmeid — kasuta alati kasutaja antud materjali, `docs/database/` failide reaalset sisu, olemasolevaid DTO/entity `.java` faile (kui eksisteerivad) ja backendi error-infrastruktuuri (`infrastructure/` kaust).
 - ID-väljad JSON näidistes olgu alati subjektiga (nt `locationId`, mitte `id`).
+- JSON massiivides esita vaid 1 element, koma ja `...` uuel real.
 - Kui struktuuridokumendi mõni reegel ja kasutaja soov lähevad vastuollu, järgi struktuuridokumenti ja too see kasutajale välja.
 - Kui vajalik controller/service kood veel ei eksisteeri (tavaline planeerimisfaasis, vt taustalõik üleval), ära oleta ega väljamõtle — otsi analoogiat mujalt koodibaasist või küsi kasutajalt täpsustust.

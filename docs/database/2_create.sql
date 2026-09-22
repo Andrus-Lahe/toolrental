@@ -46,7 +46,15 @@ CREATE TABLE profile (
 
 CREATE TABLE category (
     id serial PRIMARY KEY,
-    category_name varchar(100) NOT NULL UNIQUE
+    category_name varchar(100) NOT NULL UNIQUE,
+    description varchar(255),
+    sequence integer NOT NULL
+);
+
+CREATE TABLE category_image (
+    id serial PRIMARY KEY,
+    category_id integer NOT NULL UNIQUE REFERENCES category (id),
+    image_data bytea NOT NULL
 );
 
 CREATE TABLE tool (
