@@ -42,3 +42,69 @@ Query parameetrid categoryId, cityId, districtId ja status on valikulised (0 tä
 
 Veateated: —
 ```
+
+## API märkmed — GET /api/categories
+
+```text
+API: GET /api/categories
+
+CategoryDto.java
+Response (200):
+[
+  {
+    "categoryId": 1,
+    "categoryName": "Aiatööd"
+  },
+  ...
+]
+
+API teenuse lisainfo:
+Tagastab kõigi kategooriate nimekirja filtri rippmenüü täitmiseks, sordituna sequence välja järgi kasvavalt.
+
+Veateated: —
+```
+
+## API märkmed — GET /api/cities
+
+```text
+API: GET /api/cities
+
+CityDto.java
+Response (200):
+[
+  {
+    "cityId": 1,
+    "cityName": "Tallinn"
+  },
+  ...
+]
+
+API teenuse lisainfo:
+Tagastab kõigi linnade nimekirja linna rippmenüü täitmiseks.
+
+Veateated: —
+```
+
+## API märkmed — GET /api/cities/{cityId}/districts
+
+```text
+API: GET /api/cities/{cityId}/districts
+
+DistrictDto.java
+Response (200):
+[
+  {
+    "districtId": 1,
+    "districtName": "Kristiine"
+  },
+  ...
+]
+
+API teenuse lisainfo:
+Tagastab ainult valitud linna (cityId) linnaosad linnaosa rippmenüü täitmiseks.
+
+Veateated:
+HTTP: 404
+errorCode: PRIMARY_KEY_NOT_FOUND
+message: "Ei leidnud primary keyd 'cityId' väärtusega: 123"
+```
