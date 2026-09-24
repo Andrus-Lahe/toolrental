@@ -1,12 +1,18 @@
 # Community Tool Rental — lahtised küsimused ja vastuolud
 
-Koostatud: 18.09.2026
+Uuendatud: 24.09.2026
 
-Alus: [CODEX_PROJECT_CONTEXT.md](../../../../Desktop/Tool_Rental/CODEX_PROJECT_CONTEXT.md) ja senised kasutajaga sõlmitud kokkulepped.
+Analüüs põhineb praegusel töökoopial, sh olemasolevatel commit’imata Git-muudatustel dokumentides. Kontrollitud allikad:
 
-Dokument koondab 75 varem tuvastatud küsimust kategooriate ja prioriteedi järgi. Küsimuste ID-d vastavad varasema loendi numbritele; need on jälgitavuse jaoks säilitatud, kuigi järjekord on muutunud.
+- [SQL skeem](../database/2_create.sql), [algandmed](../database/3_import.sql) ja [lähtestamine](../database/1_reset_database.sql).
+- [Backend](../../backend/src/main/java/ee/toolrental), [seadistus](../../backend/src/main/resources/application.properties), [build](../../backend/build.gradle) ja [juhised](../../backend/CLAUDE.md).
+- [Frontend](../../frontend/src), [router](../../frontend/src/router/index.js) ja [Vite seadistus](../../frontend/vite.config.js).
+- [Avalehe](../balsamic/notes/HomeView-markmed.md), [otsingu](../balsamic/notes/ToolsView-markmed.md), [minu tööriistade](../balsamic/notes/MyToolsView-markmed.md) ja [taotluse kinnituse](../balsamic/notes/BookingConfirmationView-markmed.md) märkmed.
+- [Praeguse maketi PDF](../balsamic/notes/Laenukas.pdf), 14 lehekülge.
 
-Kirjelduse puudumine ei tähenda, et lahendus puudub koodist. Selle analüüsi käigus ei kontrollitud rakenduse koodi ega kehtivat SQL-faili. Küsimused ei ole kinnitatud muudatusettepanekud ega luba skeemi või äriloogikat muuta.
+Backendis on käivitusklass ja veakäsitluse infrastruktuur, kuid puuduvad domeeni controller'id, service'id, Entityd, repository'd ja mapperid. Frontendis on toorikvaated `/` ja `/test`. Balsamiqi API kirjeldused ei ole töötavad endpoint'id; `MyToolsView` märkmetes on suur osa lepingust sõnaselgelt ettepanek.
+
+Lahendatud küsimused on eemaldatud. Osaliselt lahendatud küsimustes on alles ainult lahtine osa või tegelik allikate vastuolu. Varasemad ID-d on säilitatud, uued leiud algavad Q76-st. Puuduv teostus üksi ei tähenda lahtist tooteotsust. See nimekiri ei anna luba muuta skeemi ega äriloogikat.
 
 ## Prioriteedid
 
@@ -19,184 +25,140 @@ P1 ei tähenda, et küsimuse võib ignoreerida. Kõigi punktide lahendamine ei n
 
 ## Kõige olulisemad otsused
 
-1. Viia Entity/DTO kirjeldus kooskõlla kasutaja mapperi piiri reegliga.
-2. Kontrollida lõpliku SQL-i teadaolevaid vastuolusid ja kooskõlastada vajalikud parandused.
-3. Fikseerida kuupäevade piirid, ühepäevase rendi tähendus ja blokeerivad staatused.
-4. Määrata `PENDING` aegumine ning tagastuse ja lõpetamise staatused.
-5. Tagada, et samaaegsed päringud ei loo kattuvaid aktiivseid broneeringuid.
-6. Määrata kinnitamise käitumine Calendar API, e-maili või andmebaasi osalise tõrke korral.
-7. Kirjeldada esmane registreerimine, kohustusliku profiili täitmine ja rakenduse sessioon.
-8. Valida Google Calendari sihtkalender ja juurdepääsu korraldus.
+1. Täpsustada praeguse SQL-i ja makettide põhjal staatuste tähendus ja kuupäevapiirid.
+2. Määrata blokeerivad staatused, ootel taotluse aegumine ja samaaegsete päringute kaitse.
+3. Täpsustada Google'iga autentimise, registreerimise ja rakenduse sessiooni turvaline seos.
+4. Otsustada kalendriintegratsiooni ja kasutajateavituste ulatus ning tõrgete käsitlus.
+5. Otsustada makettides nähtavate sõnumite, hinna ja tööriista saadavusperioodi MVP ulatus.
+6. Ühtlustada andmebaasi skeemi valik skriptides, rakenduses ja käivitusjuhises.
 
 ## P0 — esmalt lahendatavad küsimused
 
-### A. Arhitektuur ja dokumentide vastuolud
-
-Seotud kontekstifaili peatükid: 3, 5, 21, 33, 38 ja 39.
-
-| ID | Teema | Vastuolu või vajalik täpsustus |
-|---|---|---|
-| Q01 | Entity/DTO piir | Peatükk 3 lubab Entity kasutamist Service-kihis, kuid kasutaja otsene reegel nõuab mapperi piirist väljaspool DTO-sid. Dokument tuleb selle reegliga kooskõlla viia. |
-| Q04 | Lõpliku SQL-i toimivus | Skeem on kuulutatud lõplikuks, kuid märgitud on võimalikud vead: staatuste vaikeväärtuste tähesuurus, `char(1)` pikkade staatuste jaoks ning CHECK-viited puuduvatele väljadele. Kontrollimata on nende esinemine kehtivas failis ja kooskõlastatud parandus. |
-| Q02 | `PENDING` blokeerib perioodi | Kontekstifailis blokeerib `PENDING` kuupäevad. Varasemas kuupäevavaliku dokumentatsioonis pakuti vastupidist. Praeguse konteksti järgi kehtib blokeerimine; varasem dokumentatsioon tuleb sellega kooskõlla viia. |
-| Q03 | Ühepäevane rent | Kontekstifail nõuab `start_date < end_date`. Varasem, kinnitamata ettepanek lubas võrdseid kuupäevi. Dokumentide vastuolu tuleb lahendada koos perioodi piiride tähendusega. |
-
 ### B. Rendiperioodi ja saadavuse põhireeglid
-
-Seotud peatükid: 21 ja 33.
 
 | ID | Teema | Vajalik otsus |
 |---|---|---|
 | Q05 | Lõppkuupäev | Kas see kuulub rendiperioodi sisse? Kas samal päeval võib alata järgmine rent? |
 | Q06 | Kestuse arvutamine | Kas 21.–23. september tähendab kahte või kolme päeva? Reegel peab vastama perioodi piiridele. |
-| Q10 | Blokeerivate staatuste täpne loend | „Vähemalt `PENDING`, `CONFIRMED`, `RETURN_PENDING`” ei ole täielik reegel. Määrata kõigi kuue staatuse mõju saadavusele. |
+| Q10 | Staatuste tähendus ja blokeerimine | SQL lubab ainult `P`, `C`, `R`; PDF lk 4 määrab `P` ootel ja `C` kinnitatud, `MyToolsView` ettepanek tõlgendab `R` tagasilükkamisena. PDF lk 4 jätab kattuvuse piirangu eraldi kokkuleppeks. Kinnitada staatuste tähendused ja mõju saadavusele. |
 | Q07 | Tänane päev ja minevik | Kas rent võib alata täna? Kas minevikus algav rent on selgesõnaliselt keelatud? |
-| Q08 | Ajavöönd | Millise ajavööndi järgi määratakse tänane päev ja tähtaja möödumine? |
+| Q08 | Ajavöönd | `Europe/Tallinn` on `MyToolsView` märkmetes alles ettepanek. Kinnitada kogu rakenduse tänase päeva, aegumise ja ajatemplite ajavöönd. |
 | Q11 | Korduskontroll kinnitamisel | Mida kontrollida uuesti, kui tööriista saadavus või kasutaja staatus muutus või rendi alguskuupäev saabus? |
-| Q12 | Hilinenud tagastus | Kas blokeeritakse ainult algne periood või ka järgnevad päevad? Mis saab järgmisest kinnitatud rendist? |
 
 ### C. Broneeringu elutsükkel
 
-Seotud peatükid: 20–25.
-
 | ID | Teema | Vajalik otsus |
 |---|---|---|
-| Q13 | `PENDING` kehtivusaeg | Kui kaua võib omanik vastamata jätta? Praegune kirjeldus võimaldab kuupäevi määramata ajaks kinni hoida. |
-| Q14 | `EXPIRED` | Millised taotlused aeguvad, millal ja milline mehhanism staatust muudab? |
+| Q13 | Ootel taotluse kehtivusaeg | Kui kaua võib `P` taotlus vastuseta jääda? Kui Q10 otsusega blokeerib see kuupäevi, tuleb määrata ka blokeeringu vabastamise reegel. |
 | Q15 | Vastuseta taotlus rendi alguses | Kas seda võib veel kinnitada või suletakse see automaatselt? |
-| Q16 | `RETURN_PENDING` | Mida staatus tähendab ja milline tegevus viib broneeringu sellesse olekusse? |
-| Q17 | `COMPLETED` | Kes kinnitab lõpetamise: omanik, rentnik või süsteem? Kas lõppkuupäeva saabumisest piisab? |
-| Q24 | Täielik üleminekute skeem | Kirjeldatud on ainult `PENDING → CONFIRMED` ja `PENDING → CANCELLED`. Määrata ülejäänud lubatud üleminekud ning nende käivitajad. |
-| Q74 | MVP piir staatuste osas | Kas tagastus ja aegumine tuleb praegu teostada või säilitatakse staatuseväärtused tuleviku jaoks? Otsus peab sobima `PENDING` kuupäevade blokeerimise reegliga. |
+| Q24 | Lubatud staatusemuutused | PDF kirjeldab `P → C`; tagasilükkamise `R` tõlgendus on märkmetes ettepanek. Kinnitada lubatud üleminekud, otsustajad ning korduva otsuse vastus koos Q10-ga. |
 
 ### D. Samaaegsed tegevused ja osalised tõrked
 
-Seotud peatükid: 21, 24–26 ja 31.
-
 | ID | Teema | Vajalik otsus |
 |---|---|---|
-| Q25 | Kaks samaaegset taotlust | Milline mehhanism takistab kahel päringul korraga vaba perioodi kontrollida ja kattuvaid `PENDING` kirjeid luua? |
+| Q25 | Kaks samaaegset taotlust | Kui kattuvad broneeringud keelatakse, milline mehhanism tagab selle samaaegsel loomisel ja kinnitamisel? Blokeerivad staatused sõltuvad Q10 otsusest. |
 | Q26 | Samaaegne kinnitamine ja tagasilükkamine | Kuidas töödeldakse otsuseid kahest vahekaardist või korduvat otsusepäringut? |
 | Q27 | Kordussaatmine pärast vastuse kadumist | Kui taotlus loodi, kuid vastus ei jõudnud brauserisse, kuidas eristada korduspäringut uuest taotlusest? |
 | Q28 | Tehingu piirid | Millised muudatused salvestatakse koos ja millal loetakse toiming lõpetatuks? |
-| Q29 | `CONFIRMED`, kuid sündmus puudub | Mis juhtub, kui staatus salvestati, kuid Calendar sündmust ei loodud? |
-| Q30 | Sündmus loodud, ID salvestamata | Kuidas taastada seos ja vältida korduskatsel teise sündmuse loomist? |
-| Q31 | E-mail jäi saatmata | Kas broneering säilib, kes kordab saatmist ja mida näeb kasutaja? |
+| Q31 | Teavituse saatmise tõrge | Kinnituse märkmed lubavad kasutajat otsusest teavitada, kuid kanal vajab täpsustamist (Q70). Mis juhtub saatmise tõrkel: kas broneering säilib, kes kordab saatmist ja mida näeb kasutaja? |
 | Q32 | Backendi taaskäivitumine | Kuidas avastatakse sammude vahel pooleli jäänud toimingud ja jätkatakse neid? |
 
 ### E. Registreerimise ja autentimise põhiprotsess
 
-Seotud peatükid: 8–10 ja 13.
+| ID | Teema | Vajalik otsus |
+|---|---|---|
+| Q41 | Lõpetamata registreerimine | PDF lk 3 näeb ette `app_user` ja `profile` loomise ühes tehingus pärast vormi täitmist. Lahtine on Google'iga autenditud, kuid registreerimata kasutaja ajutine olek ning käitumine olemasoleva profiilita `app_user` korral; SQL lubab sellist kirjet. |
+| Q42 | Rakenduse sessioon | PDF lk 3 kirjeldab `userId` ja `roleName` salvestamist `sessionStorage`-isse, kuid see ei kirjelda serveri kontrollitavat autentimist. Puuduvad sessiooni või tokeni leping, kehtivusaeg ja väljalogimise mehhanism; ka koodis pole autentimiskihti. |
+
+### F. Kalendriintegratsiooni ulatus
 
 | ID | Teema | Vajalik otsus |
 |---|---|---|
-| Q40 | Esmane registreerimine | Millal sisestab kasutaja profiili jaoks vajaliku telefoni ja kohustusliku aadressi? Google Sign-In flow jätab selle sammu vahele. |
-| Q41 | Lõpetamata profiil | Kas `app_user` võib eksisteerida ilma `profile` kirjeta ja mida kasutaja sel ajal teha tohib? `profile.user_id` unikaalsus ei taga profiili olemasolu igal kasutajal. |
-| Q42 | Rakenduse sessioon | Kuidas säilitatakse pärast Google tokeni kontrolli sisselogitud olek, kui kaua see kehtib ja kuidas toimub väljalogimine? |
-
-### F. Google Calendari ühendamise eeldused
-
-Seotud peatükid: 24 ja 27.
-
-| ID | Teema | Vajalik otsus |
-|---|---|---|
-| Q33 | Sihtkalender | Kas sündmused luuakse rakenduse ühises kalendris, omaniku kalendris või rentniku kalendris? |
-| Q34 | Calendar API juurdepääs | Kuidas saab backend vajalikud õigused ja autentimisandmed? Kuidas on see seotud Google Sign-In protsessiga? |
-| Q35 | Juurdepääsu puudumine | Kas rentimine toimib ühendatud kalendrita? Mis juhtub juurdepääsust keeldumise või selle tühistamise korral? |
-| Q37 | Perioodi esitamine sündmuses | Kas sündmus on kogupäevane või sisaldab üleandmise ja tagastamise kellaaega? Kuidas teisendatakse rendiperiood sündmuse alguseks ja lõpuks? |
+| Q33 | Kalendriintegratsiooni ulatus | SQL-is on `booking.google_event_id`, kuid praegune rakenduskood ega vaadete märkmed ei määra selle kasutamist. Kas Google Calendar kuulub MVP-sse? Kui jah, tuleb kirjeldada sündmuse loomise hetk, sihtkalender, õigused ja tõrgete käsitlus. |
 
 ## P1 — täpsustused vastavate MVP ülesannete jaoks
 
 ### G. Renditaotluse lisareeglid
 
-Seotud peatükid: 20–25, 32 ja 33.
-
 | ID | Teema | Vajalik otsus |
 |---|---|---|
 | Q09 | Perioodi piirangud | Kas kehtib minimaalne või maksimaalne kestus ja kui kaugele ette võib broneerida? Ka piirangute puudumine tuleb fikseerida. |
-| Q18 | Rentniku tühistamine | Kas võib tagasi võtta `PENDING` taotluse või tühistada `CONFIRMED` broneeringu? Milliste piirangutega? |
+| Q18 | Rentniku tühistamine | Kas võib tagasi võtta `P` taotluse või tühistada `C` broneeringu? Milliste piirangutega? |
 | Q19 | Omaniku tühistamine | Kas pärast kinnitamist võib broneeringu tühistada ja kuidas see erineb taotluse tagasilükkamisest? |
 | Q20 | Kuupäevade muutmine | Kas olemasolevat taotlust võib muuta või tuleb see tühistada ja uus luua? |
-| Q21 | Enda tööriista rentimine | Oma taotluse kinnitamise keeld on kirjas, kuid oma tööriistale taotluse loomise keeld pole selgelt määratud. |
+| Q21 | Enda tööriista rentimine | PDF lk 4 kirjeldab broneerijat kasutajana, kes pole tööriista omanik, kuid sama lehe märkus jätab backendis oma tööriista rentimise piirangu eraldi kokkuleppeks. Kinnitada serveri kontroll ja veavastus. |
 | Q22 | Korduv taotlus ja piirangud | Kas pärast tagasilükkamist võib kohe samale perioodile uuesti taotleda? Kas aktiivsete taotluste arv on piiratud? |
-| Q23 | Tegelik üleandmine | Kas tööriista üleandmine tuleb registreerida või piisab kinnitamisest ja hilisemast tagastusest? |
 
 ### H. Õigused, profiil ja asukoht
 
-Seotud peatükid: 7–14, 29 ja 32.
-
 | ID | Teema | Vajalik otsus |
 |---|---|---|
-| Q45 | `BLOCKED` mõju | Kas keelatud on ainult sisselogimine või ka taotlused, kinnitamine ja tööriistade avaldamine? Mis saab olemasolevatest broneeringutest? |
-| Q46 | `ADMIN` õigused | Millised tegevused on administraatorile lubatud ja kas ta võib otsustada omaniku asemel? |
-| Q47 | Andmete nähtavus | Kes võib avada `/bookings/{id}`? Millal näeb rentnik omaniku telefoni, e-maili ja täpset aadressi? |
-| Q48 | Külalise juurdepääs | Kas ilma sisselogimiseta võib vaadata kataloogi, detailvaadet ja vabu kuupäevi? |
-| Q43 | Kontakt-e-mail | Kas seda võib Google'ist sõltumatult muuta, kas see vajab kinnitamist ja mida teha aadressikonflikti korral? |
+| Q45 | `B` mõju | Kas keelatud on ainult sisselogimine või ka taotlused, kinnitamine ja tööriistade avaldamine? Mis saab olemasolevatest broneeringutest? |
+| Q46 | `admin` õigused | Millised tegevused on administraatorile lubatud ja kas ta võib otsustada omaniku asemel? |
+| Q47 | Andmete nähtavus | Kes võib avada broneeringu detailid? PDF lk 4 näitab omaniku kontakte ja lk 8 rentniku kontakte. Millal ning kellele avaldatakse telefon, e-mail ja täpne aadress? |
+| Q48 | Külalise juurdepääsu vastuolu | `HomeView` märkmed nõuavad kategoorialt edasi minnes sisselogimist ja PDF avaleht ütleb, et sirvimiseks peab sisse logima; `ToolsView` märkmed lubavad külalist ning avalikku otsingut. Kinnitada ühtne ligipääs kataloogile, detailidele ja saadavusele. |
+| Q43 | Kontakt-e-maili muutmine | Registreerimise PDF kirjeldab aadressikonflikti veana `EMAIL_ALREADY_EXISTS`. Lahtine on hilisem muutmine, kinnitamise vajadus ja muutmise API konfliktikäitumine. |
 | Q44 | Andmete uuendamine sisselogimisel | Kas nimi ja e-mail kirjutatakse korduval sisselogimisel Google'i andmetega üle? |
 | Q49 | Omaniku aadressi muutmine | Kas muutub ka olemasolevate broneeringute üleandmiskoht? Kas varasemad kokkulepped säilitatakse? |
 | Q50 | Jagatud location-kirjed | Kui mitu profiili viitab samale aadressile, kas muutmisel uuendatakse ühist kirjet või luuakse eraldi kirje? |
-| Q51 | Loendid ja koordinaadid | Kes haldab linnu, linnaosi ja kategooriaid? Kust tulevad `lat`/`lng` ja kas neid on MVP-s vaja? |
+| Q51 | Loendite haldamine ja koordinaadid | Linnad, linnaosad ja kategooriad on SQL algandmetes; nende lugemise API-d on kirjeldatud otsingu märkmetes. Lahtine on hilisem haldamine ning `lat`/`lng` allikas ja vajadus MVP-s; skeem lubab NULL-i. |
 
 ### I. Tööriistad, kataloog ja pildid
 
-Seotud peatükid: 16–17 ja 28.
-
 | ID | Teema | Vajalik otsus |
 |---|---|---|
-| Q52 | `UNAVAILABLE` tähendus | Kas omanik määrab staatuse käsitsi või süsteem rentimise ajal? Kuidas suhestub see kuupäevapõhise saadavusega? |
-| Q53 | Taotlustega tööriista sulgemine | Mis juhtub `PENDING` ja `CONFIRMED` kirjetega, kui omanik määrab tööriista `UNAVAILABLE` olekusse? |
+| Q52 | `U` tähendus | Kas omanik määrab staatuse käsitsi või süsteem rentimise ajal? Kuidas suhestub see kuupäevapõhise saadavusega? |
+| Q53 | Taotlustega tööriista sulgemine | Mis juhtub `P` ja `C` kirjetega, kui omanik määrab tööriista `U` olekusse? |
 | Q54 | Tööriista muutmine | Milliseid välju võib aktiivsete broneeringute ajal muuta ja kas osapooled peaksid nägema varasemaid andmeid? |
-| Q55 | Tööriista kustutamine | Kuidas eemaldada tööriist, mille füüsilise kustutamise ajaloolised booking-kirjed `RESTRICT` kaudu keelavad? Arhiveerimine või peitmine pole määratud. |
+| Q55 | Tööriista kustutamine | `booking.tool_id` välisvõtmel puudub kustutamise erireegel (vaikimisi `NO ACTION`), piltidel on `ON DELETE CASCADE`. Kuidas eemaldada ajalooga tööriist: keelata kustutamine, peita või arhiveerida? |
 | Q56 | Kasutaja kustutamine | Kas see kuulub MVP-sse ja kuidas käsitletakse seotud tööriistu, profiili ning broneeringuid? |
 | Q57 | Piltide piirangud | Millised failivormingud, suurused ja piltide arv on lubatud? Kas vähemalt üks pilt on kohustuslik? |
-| Q58 | Põhipildi valik | Kas tööriist võib olla põhipildita? Milline pilt saab põhipildiks pärast senise kustutamist? |
-| Q59 | Kataloogi käitumine | Millised filtrid, otsing, sortimine ja lehekülgedeks jaotamine on kohustuslikud? Kas kättesaamatud tööriistad on nähtavad? |
+| Q58 | Põhipildi puudumine ja asendamine | SQL tagab kõige rohkem ühe põhipildi, mitte selle olemasolu. `MyToolsView` ettepanek kasutab puudumisel `null` ja kohatäitjat. Kinnitada see kõigis vaadetes ning määrata põhipildi kustutamise ja vahetamise reegel. |
+| Q59 | Kataloogi allesjäänud täpsustused | Kategooria-, linna- ja linnaosafiltrid ning lehekülgjaotus on `ToolsView` märkmetes kirjeldatud. Lahtised on sortimine, tekstiotsingu MVP ulatus, lehe suuruse piirid ja vigaste filtrite käsitlus. `status="A"` on sõnastatud võimaliku vaikeväärtusena: kas `U` on avalikus otsingus lubatud? |
 
 ### J. Frontend ja API lepingud
 
-Seotud peatükid: 22 ja 29–34.
-
-Juba kokku lepitud: tööriista lehel on kaks `readonly` kuupäevavälja koos kalendrinuppudega. Hõivatud kuupäevad on hallid ja keelatud, vabad kuupäevad värvilised. Need ei ole lahtised küsimused, kuid kontekstifaili tuleb kokkulepe lisada.
+PDF lk 4 näitab algus- ja lõppkuupäeva kalendreid; toimivat kuupäevakomponenti koodis veel ei ole.
 
 | ID | Teema | Vajalik otsus |
 |---|---|---|
 | Q60 | Saadavuse pärimine | Milline on endpoint, hõivatud perioodide vorming, päringuvahemiku suurus ja andmete uuendamine kuu vahetamisel? |
-| Q65 | DTO lepingud | Millised on väljad, kohustuslikkus, kuupäevavorming ning avalike ja isiklike vastuste erinevused? |
-| Q66 | Rentniku identiteet | Fikseerida identiteedi saamine autentimise kontekstist ning kliendile lubatud sisendväljad. |
-| Q67 | Lõplikud endpoint'id | Omaniku otsuse jaoks on mitu varianti; puuduvad taotluste loendite ja saadavuse lepingud. Kontrollida enne olemasolevaid API-sid. |
-| Q68 | API vead | Milline on ühtne JSON, masinloetavad koodid, väljade vead ja vastus juba töödeldud taotluse korduvale otsusele? |
+| Q65 | DTO lepingute lõpetamine | Kategooriate, otsingu ja asukoha DTO-d on märkmetes, registreerimise ning booking-create näited PDF-is. `MyToolsView` DTO-d on ettepanekud. Ühtlustada ülejäänud detaili-, muutmise-, otsuse- ja saadavuse lepingud, kohustuslikkus, avalikud kontaktandmed ning pildi MIME-tüüp; domeeni DTO-klasse veel pole. |
+| Q67 | Endpointide ja navigeerimise vastuolud | Märkmetes on osa API-sid kirjeldatud, kuid koodis domeeni endpoint'e pole. `POST /auth/google` ei kuulu Vite olemasoleva `/api` proksi alla. PDF lk 4 suunab eduka taotluse järel `/my-bookings`, kinnituse märkmed pakuvad `/booking-confirmation`. Fikseerida autentimise, omaniku otsuse, saadavuse ja isiklike loendite lõplikud rajad. |
+| Q68 | API vealepingu katvus | `ApiError` kuju on olemas: String-väljad `message` ja `errorCode`; handler katab kohandatud 403/404 ning esimese väljevea 400 `INCORRECT_INPUT`. Lahtised on autentimise 401, konflikti 409, korduva otsuse ning muude vigade ühtne kuju. Valideerimise handler eeldab vähemalt üht väljeviga: määrata ka objektitaseme valideerimise käsitlus. |
 | Q61 | Vormi käitumine | Mis juhtub alguse muutmisel, sobimatu lõpu korral, laadimise ajal ja saadavuse päringu tõrke korral? |
 | Q62 | Aegunud saadavusinfo | Mida teeb UI, kui kuupäevad muutuvad valimise ja saatmise vahel hõivatuks: säilitab valiku, tühjendab selle või pakub uut perioodi? |
-| Q63 | Kasutaja vaated | Kus asuvad „Minu renditaotlused” ja „Minu tööriistadele saabunud taotlused” ning milliseid staatuseid ja tegevusi need näitavad? |
-| Q64 | Tagasipöördumine pärast sisselogimist | Kas kuupäevavalik säilib? Kas omanik naaseb e-mailist avatud taotluse juurde? |
-| Q69 | Keel ja ligipääsetavus | Fikseerida UI ja teadete keel, kuupäevavorming, mobiilne käitumine ning kalendri juhtimine klaviatuuriga. |
+| Q63 | Isiklike vaadete tegevused | Kolme loendi tähendus on `MyToolsView` märkmetes kasutajaga täpsustatud. Lahtised on pakutud kuupäeva- ja staatusfiltrite kinnitamine, saabunud ootel taotluste asukoht ning omaniku otsuste ja ajaloo kuvamine. Neid ei kata ainult käimasolevate väljarenditud tööriistade loend. |
+| Q64 | Tagasipöördumine pärast sisselogimist | Kas kasutaja naaseb pärast sisselogimist algselt avatud vaatesse ja kas kuupäevavalik säilib? |
+| Q69 | UI keel ja ligipääsetavus | Maketid ja teated on valdavalt eestikeelsed; toorikus on ka ingliskeelseid silte. Fikseerida kasutajaliidese ja teavituste ühtne keel, kuupäevavorming, mobiilne käitumine ning kalendri juhtimine klaviatuuriga. |
 
-### K. Calendari sündmused ja e-mailid
-
-Seotud peatükid: 23–27.
-
-Juba määratud: Google Calendarit kasutatakse pärast kinnitamist sündmuse loomiseks, `sendUpdates = none`. Kõik booking'uga seotud kasutajateavitused saadab backend.
+### K. Kasutajateavitused
 
 | ID | Teema | Vajalik otsus |
 |---|---|---|
-| Q36 | Sündmuse sisu | Millised on pealkiri, kirjeldus, aadress, booking'u link ja osalejad? |
-| Q38 | Muudatused pärast kinnitamist | Kui tühistamine või kuupäevade muutmine lubatakse, mida tehakse olemasoleva sündmusega? |
-| Q39 | Sündmuse käsitsi muutmine | Kuidas käsitleda sündmuse kustutamist või muutmist Google Calendaris? Tagasisuunalist sünkroonimist pole kirjeldatud ja seda ei tohi automaatselt eeldada. |
-| Q70 | E-mailide sisu | Millised andmed on kohustuslikud: tööriist, periood, osapooled, kontaktid ja tagasilükkamise põhjus? |
-| Q71 | Saaja aadressi muutumine | Kas kiri saadetakse profiili praegusele aadressile või taotluse loomisel kehtinud aadressile? |
-| Q72 | Täiendavad teavitused | Kas aegumise, tagastuse ja tühistamise korral saadetakse e-mail, kui need protsessid kuuluvad MVP-sse? |
+| Q70 | Teavituste kanal ja sisu | `BookingConfirmationView` märkmed lubavad otsusest teatada „sõnumi teel”; PDF näitab sõnumivaateid. Kas teavitus kuvatakse rakenduses, saadetakse e-mailiga või mõlemat? Määrata saajad, saatmise hetked ja kohustuslik sisu koos Q79-ga. |
 
 ### L. MVP ulatus ja vastuvõtt
 
-Seotud peatükid: 1, 36 ja 40.
-
 | ID | Teema | Vajalik otsus |
 |---|---|---|
-| Q73 | Rendi hind ja maksmine | Kas kasutamine on tasuta, arveldamine toimub väljaspool rakendust või jääb hinnastamine MVP-st välja? Hind ja maksmine pole kirjeldatud. |
-| Q75 | Valmisoleku kriteeriumid | Millised vastuvõtustsenaariumid on kohustuslikud, sh samaaegsed päringud ja integratsioonide tõrked? Kuidas kontrollitakse e-maili ning Calendarit testkeskkonnas? |
+| Q73 | Hind ja maksmine | PDF lk 2 näitab „Hind: 5 €/päev”, kuid SQL-is ja kataloogi DTO-s pole hinnavälja. Kas hind on maketi kohatäitja, arveldatakse väljaspool rakendust või peab hinnastamine kuuluma MVP-sse? |
+| Q75 | Valmisoleku kriteeriumid | Backendis puuduvad testide lähtefailid ja frontendi package.json-is testikäsk. Määrata vastuvõtustsenaariumid: registreerimine, õigused, perioodid, samaaegsed päringud ning MVP-sse valitud teavituste ja integratsioonide tõrked. |
 
-## Otsuste fikseerimine
+## Analüüsis lisandunud küsimused
 
-Iga küsimuse lahendamisel märkida selle ID juurde otsus, otsuse kuupäev ja vajaduse korral seotud ülesanne. Seejärel uuendada vastavat konteksti- või funktsioonidokumenti, et vastuolulised kirjeldused ei jääks paralleelselt kehtima.
+| ID | Prioriteet | Teema | Tõend ja vajalik otsus |
+|---|---|---|---|
+| Q76 | P0 | Andmebaasi skeemi valik | `1_reset_database.sql` loob `tool_rental`, kuid `2_create.sql` ja `3_import.sql` kasutavad kvalifitseerimata nimesid ega määra `search_path`-i. Rakenduse seadistuses pole skeemi valikut; `backend/CLAUDE.md` räägib `minu_projekt` skeemist. Määrata ühtne, korratav seadistus, et tulemus ei sõltuks ühenduse välisest `search_path`-ist. Tegelikku andmebaasi ei kontrollitud. |
+| Q77 | P1 | `updated_at` uuendamine | `profile`, `tool` ja `booking` kasutavad ainult `DEFAULT current_timestamp`; uuendamise triggerit ega rakendusloogikat pole. Määrata, milline kiht muudatuste ajatemplid uuendab. |
+| Q78 | P0 | Google-identiteet registreerimisel | PDF lk 3 saadab `googleSub` kliendi JSON-is ja kirjeldab Google tokeni valideerimist. Määrata, kuidas registreerimispäring seotakse serveris kontrollitud Google kasutajaga; kliendi `googleSub`, `userId` või `roleName` ei saa olla serveri autentimistõend. |
+| Q79 | P0 | Sõnumid ja `comment` | PDF lk 5–8 näitab kasutajate sõnumeid ja postkasti, kuid skeemis pole sõnumitabelit. PDF lk 4 saadab rentniku teksti väljas `ownerMessage`; lk 8 näitab ka omaniku sõnumit laenajale. Otsustada sõnumite MVP ulatus ja mõlema osapoole tekstide salvestamine, et need üksteist üle ei kirjutaks. |
+| Q80 | P0 | Tööriista saadavusperiood | PDF lk 12 „Lisa uus tööriist” sisaldab saadavuse algus- ja lõppkuupäeva; `tool` tabelis on ainult `A/U` staatus. Kas omanik määrab lubatud rendiperioodi või eemaldatakse need väljad MVP maketist? Kuidas seostub see bookingute blokeeritud kuupäevadega? |
+| Q81 | P1 | Maketiviite ajakohasus | `MyToolsView` märkmete väide praeguse `Laenukas.pdf` kolmest lehest on aegunud: failis on 14 ning „Minu tööriistad” asub lk 11. Uuendada viidet, et kirjeldus osutaks õigele vaatele. |
 
-Koodi, SQL-i ja olemasolevat äriloogikat selle nimekirja koostamisel ei muudetud. Rakenduse teste ei käivitatud.
+## Otsuste fikseerimine ja kontrolli piirid
+
+Küsimuse lahendamisel uuendada seotud projektidokumenti ning eemaldada lahendatud rida sellest nimekirjast. Osalise lahenduse korral jätta alles ainult lahtine osa. Maketi ettepanekut ei käsitleta automaatselt kinnitatud otsuse ega töötava API-na.
+
+Analüüs oli staatiline: loetud on lähtekood, seadistused, SQL, Markdown ja makettide PDF-tekst. Andmebaasi skripte, rakendust, build'i ega teste ei käivitatud; käitusaja toimivust ei väideta. Muudetud on ainult käesolevat faili.

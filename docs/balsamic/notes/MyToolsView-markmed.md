@@ -14,7 +14,7 @@ Vaate viide: kasutaja tähistus „pg 11”. Repositooriumi `Laenukas.pdf` sisal
 
 Vaate avamisel üks `GET /api/users/me/tools` päring. See tagastab profiilikaardi andmed ja kõik kolm loendit. `me` määratakse serveris autentitud kasutaja põhjal; brauser ei saada `userId` parameetrit. Ka administraator näeb siin ainult enda andmeid. Päring ei muuda andmeid.
 
-Vastus: `MyToolsResponseDto.java`. `rentedTools` ja `bookings` sisaldavad `MyToolBookingDto.java` objekte; `ownedTools` sisaldab `MyToolCardDto.java` objekte. Kõik on kavandatavad DTO-d. Entity jääb mapper'i piiridesse.
+Vastus: `MyToolsResponseDto.java`. `rentedTools` ja `bookings` sisaldavad `MyToolBookingDto.java` objekte; `ownedTools` sisaldab `MyToolCardDto.java` objekte. Kõik on kavandatavad DTO-d.
 
 ### Pakutavad loendite reeglid
 
