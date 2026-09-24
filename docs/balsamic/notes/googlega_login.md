@@ -262,3 +262,32 @@ UPDATE app_user SET google_sub = '<sinu-sub>' WHERE id = 1;
 - **Tootmises kasuta HTTPS-i.** Google lubab `http`-i ainult `localhost`-i puhul.
 - **Avalikuks kasutamiseks** tuleb consent screen avaldada („Publish app“), vastasel juhul pääsevad sisse ainult testkasutajad.
 - **Ainult oma firma kontode lubamiseks** kontrolli `AppUserOidcService`-s tokeni `hd` väärtust (Google Workspace'i domeen).
+
+
+[//]: # (Mis toimib nii, nagu on:)
+
+[//]: # (- app_user.google_sub on NOT NULL UNIQUE, nii et iga Google'i konto on seotud täpselt ühe kasutajaga.)
+
+[//]: # (- Nime saab first_name ja last_name väljadesse otse Google'i andmetest.)
+
+[//]: # (- status abil saab blokeeritud kasutaja sisselogimise tagasi lükata ja role põhjal anda kasutajale Springi õigused.)
+
+[//]: # (- Kuna app_user ja profile on eraldi tabelid, saab kasutaja luua kohe sisselogimisel ja profiili täita hiljem.)
+
+[//]: # ()
+[//]: # (Mida peab koodis arvestama:)
+
+[//]: # (1. Profiili ei saa esimesel sisselogimisel luua. profile.phone ja profile.location_id on NOT NULL, aga Google neid ei anna. Seepärast luuakse alguses ainult app_user ja kasutaja täidab profiili hiljem vormis. Kood   )
+
+[//]: # (   peab lubama olukorda, kus kasutajal profiili veel pole.)
+
+[//]: # (2. E-post on profile tabelis. Sellepärast salvestub see alles profiili täitmisel. Seni võetakse see sessioonist ja kasutatakse profiilivormi eeltäitmiseks.)
+
+[//]: # (3. last_name on NOT NULL, aga Google ei pruugi perekonnanime anda. Sel juhul salvestatakse tühi string.)
+
+[//]: # (4. role_id väljal pole vaikeväärtust, nii et uuele kasutajale paneb kood rolli customer &#40;id 2&#41;.)
+
+[//]: # ()
+[//]: # (Üks väike valik jääb sinu otsustada: kui tahad e-posti kohe esimesel sisselogimisel andmebaasi salvestada, võib email välja tõsta profile tabelist app_user tabelisse. See on loogiline, sest e-post tuleb Google'ist   )
+
+[//]: # (nagu ka nimi. Praegune lahendus töötab ka ilma selle muudatuseta.                                                                                                        )
