@@ -40,7 +40,7 @@ Päring nõuab sisselogimist. Omaniku ID võetakse sessioonist (`@Authentication
    - saaja: rentija `profile.email`;
    - Reply-To: omaniku `profile.email` (või tühi, kui omanikul pole profiili);
    - teema: `Broneering tagasi lükatud: <tool.name>`;
-   - sisu: pöördumine, „Kahjuks lükkas omanik sinu broneeringu tagasi.“, tööriist, periood, omaniku sõnum (kui on) ja link `{toolrental.frontend-url}/bookings/{bookingId}`.
+   - sisu: HTML-mall `backend/src/main/resources/templates/email/booking-rejected.html` (vt [Email-booking-rejected märkmed](../../../balsamic/notes/Email-booking-rejected-markmed.md)) andmetega `toolName`, `bookingId`, `startDate`, `endDate`, `ownerName`, `ownerMessage`, `bookingUrl` (`{toolrental.frontend-url}/bookings/{bookingId}`). Mall asendab `spring_mail.md` lihtteksti (`createText`). Tühja `ownerMessage` korral jääb rida „Lisainfo omanikult“ välja.
 
 Kui rentijal pole profiili, kirja ei saadeta ja see logitakse. E-kirja saatmise viga (`MailException`) ainult logitakse: broneering jääb tagasi lükatuks ja vastus on 200.
 

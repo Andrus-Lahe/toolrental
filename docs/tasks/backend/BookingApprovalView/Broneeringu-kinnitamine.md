@@ -48,7 +48,7 @@ Päring nõuab sisselogimist. Omaniku ID võetakse sessioonist (`@Authentication
    - saaja: rentija `profile.email`;
    - Reply-To: omaniku `profile.email` (või tühi, kui omanikul pole profiili);
    - teema: `Broneering kinnitatud: <tool.name>`;
-   - sisu: pöördumine, tööriist, periood, omaniku sõnum (kui on) ja link `{toolrental.frontend-url}/bookings/{bookingId}`.
+   - sisu: HTML-mall `backend/src/main/resources/templates/email/booking-confirmed.html` (vt [Email-booking-accepted märkmed](../../../balsamic/notes/Email-booking-accepted-markmed.md)) andmetega `toolName`, `bookingId`, `startDate`, `endDate`, `ownerName`, `ownerEmail`, `ownerPhone`, `ownerMessage`, `bookingUrl` (`{toolrental.frontend-url}/bookings/{bookingId}`). Mall asendab `spring_mail.md` lihtteksti (`createText`). Tühja `ownerMessage` korral jääb rida „Lisainfo omanikult“ välja; omaniku profiili puudumisel jäävad välja e-posti ja telefoni read.
 
 Kui rentijal pole profiili, kirja ei saadeta ja see logitakse. E-kirja saatmise viga (`MailException`) ainult logitakse: broneering jääb kinnitatuks ja vastus on 200.
 
