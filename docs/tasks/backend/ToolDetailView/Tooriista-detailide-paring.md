@@ -34,7 +34,7 @@ Päring on **avalik** kõigile rollidele, sh külastajale. `googlega_login.md` `
 }
 ```
 
-Näide on sildilt ja ühtib failiga `3_import.sql` (`tool.id = 1`, omanik Marko Tamm `userId = 1`, kategooria 2 „Ehitustööd“). `"BASE64-image-data"` on lühendus: päris vastuses on `tool_image` rea (`id = 1`) SVG-andmete Base64-kuju.
+Näide on sildilt ja ühtib failiga `3_import.sql` (`tool.id = 1`, omanik Marko Tamm `userId = 1`, kategooria 2 „Ehitustööd“). `"BASE64-image-data"` on sildi kohatäitja. Päris vastuses on `imageData` rea `tool_image.id = 1` baitide Base64 kuju: `Base64.getEncoder().encodeToString(bytes)`, ilma `data:` prefiksita. See on sama kuju nagu [Tööriistade nimekirja päringus](../ToolsView/Tooriistade-nimekirja-paring.md), et sama pilt näeks mõlemas vaates ühesugune. Impordiandmetes on pildid toored SVG-baidid, seega on tulemus SVG faili Base64. `StringBytesConverter` (UTF-8 tekst) siin ei sobi.
 
 | Väli | Java tüüp | Allikas | Selgitus |
 |---|---|---|---|
@@ -43,7 +43,7 @@ Näide on sildilt ja ühtib failiga `3_import.sql` (`tool.id = 1`, omanik Marko 
 | `toolName` | `String` | `tool.name` | |
 | `categoryName` | `String` | `category.category_name` (`tool.category_id`) | |
 | `description` | `String` | `tool.description` | Võib olla `null` |
-| `imageData` | `String` | `tool_image.image_data`, kus `is_main = true` | Base64 (`StringBytesConverter`); `null`, kui põhipilti pole |
+| `imageData` | `String` | `tool_image.image_data`, kus `is_main = true` | Baitide Base64 (`Base64.getEncoder().encodeToString(...)`); `null`, kui põhipilti pole |
 | `status` | `String` | `tool.status` | `A` = saadaval, `U` = pole saadaval |
 
 Ka `status = 'U'` tööriist tagastatakse (200). Vaade kuvab selle ja BookingFormView keelab broneerimise (vt [Laenutuse taotluse loomine](../BookingFormView/Laenutuse-taotluse-loomine.md)). Päring ei muuda andmeid.
@@ -130,7 +130,7 @@ Vastuse kuju on olemasolev `ApiError` (`message`, `errorCode`).
 
 - [ ] Avalik `GET /api/tools/{toolId}` töötab ka sisse logimata kasutajale.
 - [ ] Vastus sisaldab täpselt välju `toolId`, `ownerId`, `toolName`, `categoryName`, `description`, `imageData`, `status`.
-- [ ] `toolId = 1` annab näites toodud väärtused ja `imageData` on `tool_image` rea 1 Base64-kuju.
+- [ ] `toolId = 1` annab näites toodud väärtused ja `imageData` on `tool_image` rea 1 baitide Base64 kuju; dekodeerimisel saadakse täpselt andmebaasi baidid.
 - [ ] `toolId = 2` (status `U`) tagastatakse samuti 200-ga.
 - [ ] Ainult `is_main = true` pilt läheb vastusesse; pildita tööriistal on `imageData = null`.
 - [ ] Olematu `toolId` annab 404 ja `PRIMARY_KEY_NOT_FOUND` teate päringu ID-ga; vigane `toolId` annab 400.
