@@ -41,7 +41,7 @@ Modaali tekst mockupi järgi: „Sinu laenutamise taotlus on edukalt saadetud t�
 4. Enne saatmist kontrolli mõlema kuupäeva olemasolu, kehtivust, `endDate >= startDate` ning sõnumi maksimaalset pikkust 500. Sama päeva periood on lubatud. Tühja valikulise sõnumi võib saata nullina.
 5. Saada ainult toolId, startDate, endDate ja ownerMessage. renterId ega status ei saadeta. Kasuta ühise autentimislahenduse CSRF lepingut.
 6. Saatmise ajal blokeeri korduv vajutus. Vea korral säilita sisestatud andmed ja vabasta saatmisolek `.finally()` kaudu; võrguvea korral ära POST-i automaatselt korda, kuna vastuse kadumine ei tõenda salvestamise ebaõnnestumist.
-7. HTTP 403 ja errorCode `OWN_TOOL_BOOKING_FORBIDDEN` korral kuva täpselt alert „Enda tööriista broneerimine ei ole lubatud.” Ära ava kinnitusmodaali ega suuna kasutajat ära. Backend peab keeldu kontrollima ka siis, kui FE lisab ownerId põhise ennetava kontrolli.
+7. HTTP 403 ja errorCode `OWN_TOOL_BOOKING_FORBIDDEN` korral kuva täpselt alert „Enda tööriista ei saa laenata” Ära ava kinnitusmodaali ega suuna kasutajat ära. Backend peab keeldu kontrollima ka siis, kui FE lisab ownerId põhise ennetava kontrolli.
 8. HTTP 200 korral ava kinnitusmodaal, hoia vorm korduva saatmise eest lukus. Kõik modaali sulgemisteed kasutavad ühte handler'it, mis suunab „Minu tööriistad” vaatesse. Mitte kohe pärast POST-i ega `/my-bookings` rajale.
 9. „Tühista” liigub brauseriajaloos tagasi; ajaloota otseavamisel kasuta tehnilise täpsustusena tööriista detailvaadet `/tools/:toolId`. Saatmise ajal keela vormi nupud, et käimasolevat päringut ei tõlgendataks tühistatuks.
 
@@ -84,7 +84,7 @@ Näidis pärineb mockupist. Impordis on bookingId 2 juba olemas staatusega C nin
 
 | Status code | errorCode | message | Frontend käitumine |
 |---|---|---|---|
-| 403 | OWN_TOOL_BOOKING_FORBIDDEN | Enda tööriista broneerimine ei ole lubatud. | Kuva täpselt sama tekst alertis, säilita vorm, ära ava modaali. |
+| 403 | OWN_TOOL_BOOKING_FORBIDDEN | Enda tööriista ei saa laenata | Kuva täpselt sama tekst alertis, säilita vorm, ära ava modaali. |
 | 404 | PRIMARY_KEY_NOT_FOUND | Ei leidnud primary keyd 'toolId' väärtusega: 123 | Kuva tööriista puudumise viga ja keela edasine saatmine. |
 | 400 | INCORRECT_INPUT | endDate: peab olema startDate'iga samal päeval või hiljem | Kuva kuupäevaviga, säilita andmed. |
 | 400 | INCORRECT_INPUT | `<väli>: <valideerimisvea kirjeldus>` | Kuva serveri sisendiviga. |
@@ -98,7 +98,7 @@ Konkreetsete ärivigade JSON-kuju:
 ```json
 {
   "errorCode": "OWN_TOOL_BOOKING_FORBIDDEN",
-  "message": "Enda tööriista broneerimine ei ole lubatud."
+  "message": "Enda tööriista ei saa laenata"
 }
 ```
 
@@ -191,7 +191,7 @@ Vaade ja nimetatud alamkomponendid/teenused praegu puuduvad. Järgi dokumenteeri
 - [ ] Kuupäevad on kohustuslikud; samapäevane periood on lubatud, pööratud vahemik ning üle 500 märgi pikk sõnum peatavad saatmise.
 - [ ] Mitte-A staatusega tööriista korral on Saada keelatud ja põhjus kuvatud.
 - [ ] POST sisaldab ainult nelja request välja; saatmise ajal pole topeltvajutus võimalik.
-- [ ] 403 OWN_TOOL_BOOKING_FORBIDDEN näitab täpselt „Enda tööriista broneerimine ei ole lubatud.”, ilma modaali või suunamiseta.
+- [ ] 403 OWN_TOOL_BOOKING_FORBIDDEN näitab täpselt „Enda tööriista ei saa laenata”, ilma modaali või suunamiseta.
 - [ ] Ainult 200 avab kinnitusmodaali; selle sulgemine viib „Minu tööriistad” vaatesse, mitte `/my-bookings`.
 - [ ] Tühista ei tee POST päringut ja viib tagasi; ajaloota otseavamine kasutab detailvaate tagasiteed.
 - [ ] GET vead, 400/401/403/404/500 ja vastuseta võrguviga on käsitletud ilma vale eduteateta; ebaõnnestunud POST säilitab sisestatud andmed.

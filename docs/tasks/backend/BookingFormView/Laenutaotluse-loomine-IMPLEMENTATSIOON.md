@@ -1,5 +1,7 @@
 # Laenutaotluse loomine — implementatsiooni plaan
 
+> **NB! Plaan on vananenud (2026-09-25).** Seotud task uuendati märkmefaili BookingFormView-markmed.md järgi: lisandusid TOOL_ALREADY_BOOKED, TOOL_UNAVAILABLE, `@FutureOrPresent` startDate, omanikule saadetav e-kiri ja uus näide. Plaan tuleb enne teostamist uuesti koostada.
+
 **Seotud task:** [Laenutaotluse-loomine.md](./Laenutaotluse-loomine.md)
 
 **Teenus:** `POST /api/bookings`
@@ -74,7 +76,7 @@ Koonda ärikoodid/sõnumid enumisse olemasolevat String lepingut säilitades. PR
 | Olukord | Status code | Response body |
 |---|---|---|
 | Sessioon puudub või on aegunud. | 401 Unauthorized | Tühi body, kooskõlas autentimise taskiga. |
-| Sessiooni kasutaja ID võrdub `tool.owner_id` väärtusega. | 403 Forbidden | `{"errorCode":"OWN_TOOL_BOOKING_FORBIDDEN","message":"Enda tööriista broneerimine ei ole lubatud."}` |
+| Sessiooni kasutaja ID võrdub `tool.owner_id` väärtusega. | 403 Forbidden | `{"errorCode":"OWN_TOOL_BOOKING_FORBIDDEN","message":"Enda tööriista ei saa laenata"}` |
 | Tööriista ID ei eksisteeri, näites 123. | 404 Not Found | `{"errorCode":"PRIMARY_KEY_NOT_FOUND","message":"Ei leidnud primary keyd 'toolId' väärtusega: 123"}` |
 | `endDate < startDate`. | 400 Bad Request | `{"errorCode":"INCORRECT_INPUT","message":"endDate: peab olema startDate'iga samal päeval või hiljem"}` |
 | Kohustuslik väärtus puudub, ID pole positiivne, kuupäev on vigane või teade ületab 500 märki. | 400 Bad Request | `{"errorCode":"INCORRECT_INPUT","message":"<väli>: <valideerimisvea kirjeldus>"}`; täpne tekst sõltub valideerimisreeglist. |
@@ -103,6 +105,6 @@ Lähteülesande vastuvõtukriteeriumidest tuletatav kontrollnimekiri (kontrolli 
 
 ## Avatud küsimused
 
-Sama POST /api/bookings on kahes erinevas taskis: Laenutaotluse-loomine.md ja Laenutuse-taotluse-loomine.md. Need erinevad kuupäeva-, saadavuse-, kattumise-, e-kirja- ja veasõnumi lepingus. Enne endpoint’i teostamist tuleb valida autoriteetne leping ja kooskõlastada FE; kahte konkureerivat controllerit ei looda. See plaan kirjeldab ainult viidatud faili.
+Topelttask Laenutuse-taotluse-loomine.md on kustutatud; selle reeglid (TOOL_ALREADY_BOOKED, TOOL_UNAVAILABLE, startDate ei tohi olla minevikus, new-booking-request e-kiri) on nüüd Laenutaotluse-loomine.md-s.
 
 backend/CLAUDE.md kirjeldab numbrilisi ErrorResponse koode, kuid tegelik ApiError kasutab String koodi ja ErrorResponse enum puudub. Säilita tegelik leping; ära tee numbrilist migratsiooni. Struktuuridokumendi ee.minuprojekt on näidis, kasutada ee.toolrental. OAuth/ühisklasside sõltuvused tuleb realiseerida või taaskasutada, mitte eeldada neid valmis olevaks. See dokument ei muuda tootmiskoodi ega tõenda testide läbimist.
