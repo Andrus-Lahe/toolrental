@@ -43,6 +43,10 @@ dependencies {
 
     // SQL with parameter values
     implementation 'p6spy:p6spy:3.9.1'
+
+    // google login
+    implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
+
 }
 
 compileJava {
