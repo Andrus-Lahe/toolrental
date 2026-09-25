@@ -38,7 +38,7 @@ Response (200):
 }
 
 API teenuse lisainfo:
-renterId võetakse sisse logitud kasutaja sessioonist, mitte päringu body'st. Uue broneeringu staatus on alati algselt 'P' (ootel) — tööriista omanik kinnitab ('C') või lükkab selle hiljem tagasi ('R'). ownerMessage on valikuline väli.
+renterId võetakse sisse logitud kasutaja sessioonist, mitte päringu body'st. Uue broneeringu staatus on alati algselt 'P' (ootel) — tööriista omanik kinnitab ('C') või lükkab selle hiljem tagasi ('R'). ownerMessage on valikuline väli. Taotlus ei tohi kattuda sama tööriista ootel ('P') või kinnitatud ('C') broneeringuga (kattumine: olemasolev start_date <= uus endDate ja olemasolev end_date >= uus startDate); tagasi lükatud ('R') broneering perioodi ei hõiva.
 
 Veateated:
 HTTP: 404
@@ -48,4 +48,8 @@ message: "Ei leidnud primary keyd 'toolId' väärtusega: 123"
 HTTP: 400
 errorCode: INCORRECT_INPUT
 message: "endDate: peab olema startDate'iga samal päeval või hiljem"
+
+HTTP: 403
+errorCode: TOOL_ALREADY_BOOKED
+message: "Tööriist on valitud perioodil juba broneeritud"
 ```
