@@ -8,7 +8,7 @@ Failinimi: ToolDetailView.vue
 Frontend rada: /tools/{toolId}
 
 Vaatega seotud lisainfo:
-Vaate avamisel tehakse päring GET /api/tools/{toolId}, et laadida tööriista detailne info (nimi, kategooria, kirjeldus, pilt, staatus ja omaniku ID) ning seejärel päring GET /api/users/{userId} omaniku kontaktandmete kuvamiseks. Kui kasutaja vajutab nupule "Laenuta", suunatakse ta broneerimise vaatele (/tools/{toolId}/booking). Kui kasutaja pole sisse logitud, suunatakse ta esmalt sisse logima.
+Vaate avamisel tehakse päring GET /api/tools/{toolId}, et laadida tööriista detailne info (nimi, kategooria, kirjeldus, pilt, staatus ja omaniku ID). Sisse logitud kasutajale tehakse seejärel päring GET /api/users/{userId} omaniku kontaktandmete kuvamiseks; külastajale omaniku kontakte ei kuvata ega pärita. Kui kasutaja vajutab nupule "Laenuta", suunatakse ta broneerimise vaatele (/tools/{toolId}/booking). Kui kasutaja pole sisse logitud, suunatakse ta esmalt sisse logima.
 ```
 
 ## API märkmed — GET /api/tools/{toolId}
@@ -53,7 +53,7 @@ Response (200):
 }
 
 API teenuse lisainfo:
-Tagastab kasutaja avalikud kontaktandmed (tööriista omaniku info kuvamiseks).
+Tagastab kasutaja kontaktandmed (tööriista omaniku info kuvamiseks). Nõuab sisselogimist: sisse logimata kasutajale vastab Spring Security 401 ilma ApiError body'ta. Kui kasutajal pole profiili, on email ja phone null.
 
 Veateated:
 HTTP: 404
