@@ -5,7 +5,7 @@ description: Loo frontend vaate taski MD fail balsamic mockup PDF-i konkreetse l
 
 # Loo frontend vaate task mockupi ja olemasoleva backend'i põhjal
 
-Loe balsamic mockup PDF-i konkreetne lehekülg, tuvasta sellel kirjeldatud vaade ("Vaate märkmed" post-it) ja selle tehtavad API kutsed ("API märkmed" postid), ning koosta selle kohta täielik taski MD fail koos vastava lehekülje pildiga. Salvesta `docs/tasks/frontend` kausta. Vaate ja kasutajaliidese kirjeldus tuleb alati mockupilt, aga iga API kutse kontrakt tuletatakse mockupi asemel eelistatult olemasolevast backend koodist või backend taskist — mockupi "API märkmeid" kasutatakse ainult siis, kui kumbagi pole (vt täpne prioriteetsuse järjekord sammus 5).
+Loe balsamic mockup PDF-i konkreetne lehekülg, tuvasta sellel kirjeldatud vaade ("Vaate märkmed" post-it) ja selle tehtavad API kutsed ("API märkmed" postid), ning koosta selle kohta täielik taski MD fail koos vastava lehekülje pildiga. Salvesta `../../../docs/tasks/frontend` kausta. Vaate ja kasutajaliidese kirjeldus tuleb alati mockupilt, aga iga API kutse kontrakt tuletatakse mockupi asemel eelistatult olemasolevast backend koodist või backend taskist — mockupi "API märkmeid" kasutatakse ainult siis, kui kumbagi pole (vt täpne prioriteetsuse järjekord sammus 5).
 
 See skill on `skill-loo-backend-task` vaste frontendi jaoks — erinevus on selles, et frontend task kirjeldab kasutajaliidest ja kasutajavoogu, mitte teenuse äriloogikat.
 
@@ -17,7 +17,7 @@ Kui kasutaja pole neid juba andnud, küsi korraga:
 
 1. **PDF failinimi** — nt `docs/balsamic/Minu Projekt - Avakuva koos sisselogimisega.pdf`
 2. **Lehekülje number** — mille pealt task luua
-3. **Kas mõne sellel lehel oleva API kutse kohta on juba backend task olemas?** Kui kasutaja teab faili(d), küsi need kohe (nt `docs/tasks/backend/Kasutaja-sisselogimine.md`). Kui ta pole kindel, mainib, et otsid ise `docs/tasks/backend` kaustast sobivaid vasteid ja näitad need talle kinnitamiseks.
+3. **Kas mõne sellel lehel oleva API kutse kohta on juba backend task olemas?** Kui kasutaja teab faili(d), küsi need kohe (nt `docs/tasks/backend/Kasutaja-sisselogimine.md`). Kui ta pole kindel, mainib, et otsid ise `../../../docs/tasks/backend` kaustast sobivaid vasteid ja näitad need talle kinnitamiseks.
 
 Kui leheküljel on mitu "Vaate märkmed" postit (mitu erinevat vaadet samal lehel), küsi kasutajalt, millise vaate kohta konkreetselt task luua.
 
@@ -27,7 +27,7 @@ Oota vastust enne kui jätkad.
 
 Kasuta Read tööriista `pages` parameetriga, et lugeda ainult see üks lehekülg PDF-ist.
 
-Leia leheküljelt kollane **"Vaate märkmed"** post-it (struktuur ja väljade tähendus on kirjeldatud failis `docs/balsamic/notes/balsamiq-markmete-struktuur.md`, jaotis 1) ja loe sealt:
+Leia leheküljelt kollane **"Vaate märkmed"** post-it (struktuur ja väljade tähendus on kirjeldatud failis `../../../docs/balsamic/notes/balsamiq-markmete-struktuur.md`, jaotis 1) ja loe sealt:
 
 - `Roll` — kes vaadet näeb
 - `Failinimi` — `.vue` komponendi nimi
@@ -38,11 +38,11 @@ Leia leheküljelt ka kõik **"API märkmed"** postid (sama fail, jaotis 2) — n
 
 Loe läbi ka wireframe ise — see annab visuaalse konteksti (väljad, nupud, paigutus), mida "Vaate märkmed" tekstina ei pruugi täielikult katta.
 
-Kui kaustas `docs/balsamic/notes/` on olemas vastav `<Failinimi ilma .vue-ta>-markmed.md` fail (nt `HomeView-markmed.md`), loe ka see läbi — see sisaldab sama infot puhtama, kergemini loetava tekstina ja aitab kontrollida, et miski PDF-i lugemisel valesti ei tõlgendatud.
+Kui kaustas `../../../docs/balsamic/notes` on olemas vastav `<Failinimi ilma .vue-ta>-markmed.md` fail (nt `HomeView-markmed.md`), loe ka see läbi — see sisaldab sama infot puhtama, kergemini loetava tekstina ja aitab kontrollida, et miski PDF-i lugemisel valesti ei tõlgendatud.
 
 ### 3. Leia pildifail
 
-Pildid asuvad `docs/balsamic/pdf-images/` kaustas. Failinimi ei pruugi olla lehekülje number — praktikas on kasutatud ka vaate/PDF-i kirjeldavat nime (nt `Registreeri kasutajaks.png`). Otsi kaustast sobivat faili (lehekülje numbri, vaate nime või PDF-i failinime järgi).
+Pildid asuvad `../../../docs/balsamic/pdf-images` kaustas. Failinimi ei pruugi olla lehekülje number — praktikas on kasutatud ka vaate/PDF-i kirjeldavat nime (nt `Registreeri kasutajaks.png`). Otsi kaustast sobivat faili (lehekülje numbri, vaate nime või PDF-i failinime järgi).
 
 Kui sobivat pilti ei leidu, **peata ja teavita kasutajat** — küsi, kas ta tahab pildi ise genereerida/lisada, või kas jätkata taski loomist ilma pildita (lisades taski algusesse märkuse, et pilt lisatakse hiljem). Ära ise PDF-ist pilte genereerima hakka.
 
@@ -50,17 +50,17 @@ Kui sobivat pilti ei leidu, **peata ja teavita kasutajat** — küsi, kas ta tah
 
 Loe läbi:
 
-- `docs/frontend/projekti-struktuur.md` — kuhu millised failid kuuluvad (`src/views/`, `src/components/common|forms|modals|tables/`, `src/api-services/`, `src/navigation/`, `src/router/`)
-- `docs/frontend/vue-komponendi-struktuur.md` — Options API stiil (`data`/`computed`/`methods` järjekord ja kuju, `event-` eesliitega emits, `.then()/.catch()/.finally()` API päringu muster, `beforeMount` andmete laadimiseks)
+- `../../../docs/frontend/projekti-struktuur.md` — kuhu millised failid kuuluvad (`src/views/`, `src/components/common|forms|modals|tables/`, `src/api-services/`, `src/navigation/`, `src/router/`)
+- `../../../docs/frontend/vue-komponendi-struktuur.md` — Options API stiil (`data`/`computed`/`methods` järjekord ja kuju, `event-` eesliitega emits, `.then()/.catch()/.finally()` API päringu muster, `beforeMount` andmete laadimiseks)
 
-Vaata olemasolevat koodibaasi (`frontend/src/`) — kas vaate fail (nt `HomeView.vue`) juba eksisteerib (tavaliselt platsihoidjana) ja kas router (`frontend/src/router/index.js`) sisaldab juba vastavat rada. Kui "Vaatega seotud lisainfo" viitab suunamisele rajale, mida router'is veel pole, too see taskis selgelt välja tähelepanekuna (ära ise routerit muuda).
+Vaata olemasolevat koodibaasi (`../../../frontend/src`) — kas vaate fail (nt `HomeView.vue`) juba eksisteerib (tavaliselt platsihoidjana) ja kas router (`../../../frontend/src/router/index.js`) sisaldab juba vastavat rada. Kui "Vaatega seotud lisainfo" viitab suunamisele rajale, mida router'is veel pole, too see taskis selgelt välja tähelepanekuna (ära ise routerit muuda).
 
 ### 5. Tuvasta iga API kutse kontrakt
 
 Iga leitud "API märkmed" posti kohta tuvasta kontrakti allikas järgmises **prioriteetsuse järjekorras** (suurima kaaluga allikas võidab, kui mitu on olemas):
 
-1. **Suurim kaal — olemasolev backend realisatsioon koodibaasis.** Otsi `backend/src/main/java/` alt (nt `find backend/src/main/java -name "*Controller.java"` või `grep -rl` sobiva URL-i järgi) kõiki `*Controller.java` klasse ja tuvasta, kas mõni neist vastab API märkme HTTP meetodile+URL-ile — Java package'i nimi on projektiti erinev, seega ära eelda konkreetset teed. Kui sobiv Controller (ja selle request/response DTO-d) on juba päriselt implementeeritud, kasuta request/response struktuuri, väljade nimesid, tüüpe ja valideerimisreegleid otse sellest koodist (Controller + DTO klassid, sh nt `@NotNull`/`@Size` jms annotatsioonid ja teenuse/exception handleri veakäitumine), mitte taski dokumendist ega mockupist — reaalne kood on kõige ajakohasem tõde ja võib olla taski dokumendist ka lahknenud.
-2. **Kui backend realisatsiooni ei ole veel (kontroller puudub või on ainult platsihoidja)** — kasuta kasutaja antud backend taski viidet (samm 1) või `docs/tasks/backend` kaustast HTTP meetodi+URL-i järgi leitud sobivat faili. Ava see ja kasuta sealt request/response DTO struktuuri, JSON näidiseid ja veaolukordade tabelit.
+1. **Suurim kaal — olemasolev backend realisatsioon koodibaasis.** Otsi `../../../backend/src/main/java` alt (nt `find backend/src/main/java -name "*Controller.java"` või `grep -rl` sobiva URL-i järgi) kõiki `*Controller.java` klasse ja tuvasta, kas mõni neist vastab API märkme HTTP meetodile+URL-ile — Java package'i nimi on projektiti erinev, seega ära eelda konkreetset teed. Kui sobiv Controller (ja selle request/response DTO-d) on juba päriselt implementeeritud, kasuta request/response struktuuri, väljade nimesid, tüüpe ja valideerimisreegleid otse sellest koodist (Controller + DTO klassid, sh nt `@NotNull`/`@Size` jms annotatsioonid ja teenuse/exception handleri veakäitumine), mitte taski dokumendist ega mockupist — reaalne kood on kõige ajakohasem tõde ja võib olla taski dokumendist ka lahknenud.
+2. **Kui backend realisatsiooni ei ole veel (kontroller puudub või on ainult platsihoidja)** — kasuta kasutaja antud backend taski viidet (samm 1) või `../../../docs/tasks/backend` kaustast HTTP meetodi+URL-i järgi leitud sobivat faili. Ava see ja kasuta sealt request/response DTO struktuuri, JSON näidiseid ja veaolukordade tabelit.
 3. Kui mitu backend taski faili näivad sobivat või nimi pole ühene, näita kasutajale leitud kandidaadid ja küsi, milline neist on õige.
 4. **Kui backend realisatsiooni ega backend taski ei leidu** — tuleta kontrakt otse mockupi "API märkmed" postist (samamoodi nagu `skill-loo-backend-task` seda teeks) ja lisa taski API kutse juurde selge märkus, et vastavat backend taski veel pole loodud (soovita see luua enne või paralleelselt `skill-loo-backend-task` abil).
 5. **Kui "Vaatega seotud lisainfo" viitab funktsionaalsusele/API kutsele, mille kohta sellel lehel eraldi "API märkmed" postit ei ole** (nt staatiline sisu, mida hallatakse mujal) — jäta see selle taski skoobist välja ja maini seda lühidalt "Kasutajavoog" jaotises, selle asemel et oletada API kontrakti.
