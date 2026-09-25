@@ -160,7 +160,7 @@ public class SecurityConfig {
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers(HttpMethod.GET, "/api/tools/**", "/api/categories/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/tools/**", "/api/categories/**", "/api/cities/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .requestMatchers("/api/admin/**").hasRole("admin")
                 .anyRequest().authenticated())
@@ -182,7 +182,7 @@ Selgitused:
 - **`defaultSuccessUrl(FRONTEND_URL, true)`**: pärast sisselogimist suunatakse kasutaja tagasi Vue rakendusse, mitte backendi juurlehele.
 - **`HttpStatusEntryPoint(UNAUTHORIZED)`**: kui sisse logimata kasutaja teeb API päringu, vastab backend koodiga `401`, mitte ei suuna teda Google'i lehele. SPA jaoks on see vajalik, sest axios ei oska ümbersuunamist Google'i lehele kasutada. Frontend näeb `401` vastust ja näitab sisselogimisnuppu.
 - **`csrf.disable()`**: CSRF-kaitse blokeeriks vaikimisi Vue POST/PUT/DELETE päringud. Õppeprojektis on lihtsaim see välja lülitada. **Tootmises** tuleks CSRF alles jätta ja kasutada `CookieCsrfTokenRepository`t koos `X-XSRF-TOKEN` päisega.
-- `permitAll` teed on näited. Kohanda need vastavalt tegelikele endpointidele.
+- **`permitAll` GET-teed** on avalikud ka sisse logimata külastajale: tööriistade otsing ja detailvaade (`/api/tools/**`), kategooriad (`/api/categories/**`) ning linnad ja linnaosad (`/api/cities/**`, ToolsView filtrite jaoks). Uue avaliku endpointi lisamisel lisa see siia; kõik muu nõuab sisselogimist. Näiteks omaniku kontaktid (`GET /api/users/{userId}`, ToolDetailView) on teadlikult ainult sisse logitud kasutajale.
 
 ## 6. Vite proxy (`frontend/vite.config.js`)
 

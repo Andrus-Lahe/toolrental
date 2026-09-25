@@ -23,7 +23,7 @@ Failinimi: AdminView.vue
 Frontend rada: /admin
 
 Vaatega seotud lisainfo:
-Menüü link "Haldus" on nähtav ainult adminile. Vaate avamisel laaditakse kasutajad (GET /api/admin/users) ja kategooriad (GET /api/admin/categories).
+Päise link "Admin" (vt Header-markmed.md) on nähtav ainult adminile. Vaate avamisel laaditakse kasutajad (GET /api/admin/users) ja kategooriad (GET /api/admin/categories).
 
 Nupp "Blokeeri" saadab PATCH /api/admin/users/{userId}/status. Kasutaja "Kustuta" küsib kinnitust ja saadab DELETE /api/admin/users/{userId}. Pärast mõlemat tegevust laaditakse kasutajate tabel uuesti.
 
