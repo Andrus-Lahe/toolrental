@@ -46,7 +46,7 @@ Näide on sildilt ja ühtib failiga `3_import.sql` (`tool.id = 1`, omanik Marko 
 | `imageData` | `String` | `tool_image.image_data`, kus `is_main = true` | Baitide Base64 (`Base64.getEncoder().encodeToString(...)`); `null`, kui põhipilti pole |
 | `status` | `String` | `tool.status` | `A` = saadaval, `U` = pole saadaval |
 
-Ka `status = 'U'` tööriist tagastatakse (200). Vaade kuvab selle ja BookingFormView keelab broneerimise (vt [Laenutuse taotluse loomine](../BookingFormView/Laenutuse-taotluse-loomine.md)). Päring ei muuda andmeid.
+Ka `status = 'U'` tööriist tagastatakse (200). Vaade kuvab selle ja BookingFormView keelab broneerimise (vt [Laenutaotluse loomine](../BookingFormView/Laenutaotluse-loomine.md)). Päring ei muuda andmeid.
 
 ## Eesmärk
 

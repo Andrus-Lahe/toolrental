@@ -107,6 +107,6 @@ Lähteülesande vastuvõtukriteeriumidest tuletatav kontrollnimekiri (kontrolli 
 
 ## Avatud küsimused
 
-Kattumise garantii eeldab uut Laenutuse-taotluse-loomine taski; vanas loomise taskis seda pole. SMTP saatmine transaktsiooni sees on lähteülesandes: commit võib hiljem ebaõnnestuda. AFTER_COMMIT parandaks seda, kuid ajastuse muutus tuleb kooskõlastada; plaan ei väida vaikimisi, et lähteülesanne seda juba nõuab.
+Kattumise garantii eeldab, et [Laenutaotluse-loomine.md](../BookingFormView/Laenutaotluse-loomine.md) kattumise kontroll (TOOL_ALREADY_BOOKED) on teostatud. SMTP saatmine transaktsiooni sees on lähteülesandes: commit võib hiljem ebaõnnestuda. AFTER_COMMIT parandaks seda, kuid ajastuse muutus tuleb kooskõlastada; plaan ei väida vaikimisi, et lähteülesanne seda juba nõuab.
 
 backend/CLAUDE.md kirjeldab numbrilisi ErrorResponse koode, kuid tegelik ApiError kasutab String koodi ja ErrorResponse enum puudub. Säilita tegelik leping; ära tee numbrilist migratsiooni. Struktuuridokumendi ee.minuprojekt on näidis, kasutada ee.toolrental. OAuth/ühisklasside sõltuvused tuleb realiseerida või taaskasutada, mitte eeldada neid valmis olevaks. See dokument ei muuda tootmiskoodi ega tõenda testide läbimist.
