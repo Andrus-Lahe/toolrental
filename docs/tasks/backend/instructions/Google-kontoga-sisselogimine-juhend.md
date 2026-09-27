@@ -1,7 +1,8 @@
 # Juhend: GET /api/me (Google kontoga sisselogimine)
 
 **Taski fail:** `docs/tasks/backend/GoogleLoginView/Google-kontoga-sisselogimine.md`
-**Alus (märkmed):** `docs/balsamic/notes/googlega_login.md`
+**Alus (märkmed):** `docs/balsamic/notes/googlega_login.md`, `docs/balsamic/notes/MyProfile-markmed.md`
+**Frontendi task (leping):** `docs/tasks/frontend/GoogleLoginView/Google-kontoga-sisselogimine.md`
 **Kontroller:** uus kontroller `controller/<ressurss>/` alla (nimi on sinu otsus)
 **Implementeerimise voog:** Eeldused (Security + OAuth) → RestController → Service → Repository → Service → Mapper → RestController
 
@@ -11,7 +12,9 @@
 
 See endpoint vastab frontendi küsimusele „kes on praegu sisse logitud ja kas tal on profiil?“. Enne kui `GET /api/me` saab midagi vastata, peab backend oskama Google'iga sisse logida ja sisse logitud kasutaja sessiooni meelde jätta — seda teeb Spring Security. Selle harjutuse käigus õpid, kuidas sessioonist tulev kasutaja jõuab kontrollerisse (`@AuthenticationPrincipal`), ja kordad tavalist GET-voogu: kontroller → service → repository → mapper.
 
-See task on ka eeldus issue #33 (`GET/PUT /api/users/me/profile`) jaoks: seal kasutad sama principal'i ja samu entiteete.
+See task on ka eeldus issue #33 (`GET/PUT /api/users/me/profile`, vt `MyProfile-markmed.md`) jaoks: seal kasutad sama principal'i ja samu entiteete. `MyProfile-markmed.md` kinnitab sama loogikat: `app_user` luuakse esimesel sisselogimisel, profiili **ei looda** automaatselt, kasutaja ID tuleb **ainult sessioonist** ja profiilita kasutaja e-post tuleb Google'i sessioonist. Frontend kasutab `/api/me` vastuse välja `hasProfile`, et otsustada, kas suunata kasutaja `/profile` vormile.
+
+> **Ulatus:** Selles juhendis teed ainult sisselogimise ja `GET /api/me`. Profiili `GET/PUT`, linnad ja linnaosad on eraldi taskid.
 
 > **Mis on praegu olemas?** Backendis on ainult `infrastructure/` kaust (veakäsitlus). Controller-, service- ja persistence-kaustu veel pole. Base-pakett on `ee.toolrental` (vt `ToolRentalApplication.java`).
 
@@ -24,10 +27,10 @@ See task on ka eeldus issue #33 (`GET/PUT /api/users/me/profile`) jaoks: seal ka
 Enne endpointi on vaja kolme asja: sõltuvust, seadistust ja „liimi“, mis seob Google'i konto meie `app_user` tabeliga. Kõik vajalik on kirjas failis `docs/balsamic/notes/googlega_login.md` — **loe see jaotiste kaupa läbi ja kirjuta kood ise**, mitte ära kopeeri pimesi. Iga klassi juures küsi endalt: *miks see siin on?*
 
 1. **Google Cloud Console** (juhendi jaotis 1) — sul on vaja `GOOGLE_CLIENT_ID` ja `GOOGLE_CLIENT_SECRET`. Redirect URI on `http://localhost:5173/login/oauth2/code/google`.
-2. **Sõltuvus** (jaotis 2) — lisa `build.gradle`-isse OAuth client starter. Pane tähele: Spring Boot 4-s on starteri nimi teistsugune kui vanades õpetustes.
+2. **Sõltuvus** (jaotis 2) — ✅ **juba tehtud:** `build.gradle`-is on `spring-boot-starter-security-oauth2-client` olemas. Kontrolli ainult, et Gradle on uuesti laetud.
    > **IntelliJ vihje:** Pärast `build.gradle` muutmist ilmub paremale ülesse elevandi ikoon — vajuta sellele (**Load Gradle Changes**), muidu IntelliJ ei tunne uusi klasse.
 3. **Seadistus** (jaotis 3) — `application.properties`-isse viited keskkonnamuutujatele. **Saladust ennast faili ei kirjutata!** Keskkonnamuutujad pane IntelliJ-s: Run → Edit Configurations → Environment variables.
-4. **Vite proxy** (jaotis 6) — frontendi `vite.config.js`-is peab lisaks `/api`-le minema backendi ka OAuth ja logout teed.
+4. **Vite proxy** (jaotis 6) — frontendi `vite.config.js`-is on praegu ainult `/api`. Lisaks peavad backendi minema ka OAuth ja logout teed. Ära lisa `changeOrigin: true` — miks mitte, on juhendis kirjas.
 
 ### Entiteedid andmebaasist (JPA Buddy)
 
