@@ -8,6 +8,7 @@ import jakarta.persistence.Id;
 
 public class Category {
     @Id
+
     private Integer id;
 
 }
