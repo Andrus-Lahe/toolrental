@@ -1,5 +1,6 @@
 package ee.toolrental.controller.category;
 
+import ee.toolrental.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -13,18 +14,22 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 
 public class CategoryController {
+    private final CategoryService categoryService;
 
 
     @GetMapping("/categories/detailed-info")
     @Operation(summary = "Kategooriate detailinfo päring")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "OK"),
-                            @ApiResponse(responseCode = "500", description = "Kategooriate laadimine ebaõnnestus")
+            @ApiResponse(responseCode = "500", description = "Kategooriate laadimine ebaõnnestus")
     })
-    public void  getCategoriesInfo(){
+
+
+    public void getCategoriesInfo() {
+
+        categoryService.getCategoriesInfo();
 
 
     }
-
 
 
 }

@@ -19,7 +19,7 @@ Request body (`CategoryRequestDto.java`, sama DTO nagu lisamisel):
 | Väli | Java tüüp | Kohustuslik | Reegel |
 |---|---|---|---|
 | `categoryName` | `String` | Jah | Mitte tühi, kuni 100 märki, ei tohi kattuda teise kategooria nimega |
-| `description` | `String` | Ei | Kuni 255 märki, võib olla `null` |
+| `categoryDescription` | `String` | Ei | Kuni 255 märki, võib olla `null` |
 | `sequence` | `Integer` | Jah | Kategooriate järjekord (väiksem enne) |
 
 Näide `PUT /api/admin/categories/1`:
@@ -38,7 +38,7 @@ Teenus on ainult adminile (`/api/admin/**`, `hasRole("admin")`).
 
 **Response (200 OK):** tühi body (`Response (200): NONE`).
 
-Kõik kolm välja kirjutatakse üle (PUT asendab kogu kategooria sisu). Kui `description` on `null`, saab andmebaasis kirjeldus väärtuse `NULL`. Kategooria pilt (`category_image`) ja kategooria tööriistad ei muutu.
+Kõik kolm välja kirjutatakse üle (PUT asendab kogu kategooria sisu). Kui `categoryDescription` on `null`, saab andmebaasis kirjeldus väärtuse `NULL`. Kategooria pilt (`category_image`) ja kategooria tööriistad ei muutu.
 
 ## Eesmärk
 
@@ -80,7 +80,7 @@ Vastuse kuju on olemasolev `ApiError` (`message`, `errorCode`).
 | Sisse logitud kasutaja roll pole `admin`. | 403 Forbidden | tühi (Spring Security) |
 | Kategooriat `categoryId = 123` pole. Teates kasutada tegelikku väärtust. | 404 Not Found | `{"errorCode":"PRIMARY_KEY_NOT_FOUND","message":"Ei leidnud primary keyd 'categoryId' väärtusega: 123"}` |
 | Uus nimi kuulub mõnele teisele kategooriale (nt `categoryId = 1` nimeks `"Ehitustööd"`). | 403 Forbidden | `{"errorCode":"CATEGORY_UNAVAILABLE","message":"Sellise nimega kategooria on juba olemas"}` |
-| `categoryName` puudub, on tühi või liiga pikk; `sequence` puudub; `description` on liiga pikk. | 400 Bad Request | `{"errorCode":"INCORRECT_INPUT","message":"<väli>: <valideerimise teade>"}` |
+| `categoryName` puudub, on tühi või liiga pikk; `sequence` puudub; `categoryDescription` on liiga pikk. | 400 Bad Request | `{"errorCode":"INCORRECT_INPUT","message":"<väli>: <valideerimise teade>"}` |
 | Andmebaasipäring ebaõnnestub ootamatult. | 500 Internal Server Error | `{"errorCode":"INTERNAL_SERVER_ERROR","message":"Kategooria muutmine ebaõnnestus. Palun proovi hiljem uuesti."}` |
 
 - 404 tuleb olemasolevast `PrimaryKeyNotFoundException` klassist.

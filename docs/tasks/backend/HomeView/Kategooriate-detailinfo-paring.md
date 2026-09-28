@@ -21,7 +21,7 @@ Teenusel puuduvad sisendid. Path variable'id, query parameetrid ja request body 
   {
     "categoryId": 1,
     "categoryName": "Aiatööd",
-    "description": "Muruniidukid, labidad, rehad",
+    "categoryDescription": "Muruniidukid, labidad, rehad",
     "imageData": "BASE64-image-data"
   }
 ]
@@ -35,7 +35,7 @@ See on PDF-i esimese elemendi näide; `BASE64-image-data` on mockupi kohatäitja
 |---|---|---|
 | `categoryId` | `Integer` | `category.id` |
 | `categoryName` | `String` | `category.category_name` |
-| `description` | `String` | `category.description`; andmebaasi `NULL` korral JSON `null` |
+| `categoryDescription` | `String` | `category.description`; andmebaasi `NULL` korral JSON `null` |
 | `imageData` | `String` | Seotud `category_image.image_data` baitide Base64 esitus; puuduva pildikirje korral JSON `null` |
 
 Tagasta kategooriad järjestuses `category.sequence ASC`. Võrdse `sequence` korral kasuta `category.id ASC`, et tulemus oleks korduv: see on taski tehniline täpsustus, mida mockup eraldi ei määra. `sequence` ja pildikirje ID ei kuulu DTO-sse. Lehekülgjaotust ega tööriistade olemasolu järgi filtreerimist pole.
@@ -109,12 +109,12 @@ Kasuta olemasoleva `ApiError` kuju: `message` ja `errorCode` on stringid. Praegu
 ## Vastuvõtu kriteeriumid
 
 - [ ] `GET /api/categories/detailed-info` on olemas, sisenditeta ja kättesaadav ka sisse logimata kasutajale.
-- [ ] Vastus on HTTP 200 ja JSON massiiv; iga element sisaldab ainult `categoryId`, `categoryName`, `description` ja `imageData`.
+- [ ] Vastus on HTTP 200 ja JSON massiiv; iga element sisaldab ainult `categoryId`, `categoryName`, `categoryDescription` ja `imageData`.
 - [ ] Andmed loetakse tabelitest `category` ja `category_image`; vastuses on kõik kategooriad, sealhulgas tööriistadeta kategooriad.
 - [ ] Järjestus on `category.sequence ASC`, võrdse väärtuse korral `category.id ASC`.
 - [ ] Impordiandmetega tagastatakse tabelis toodud neli kategooriat, sh nimi „Muud“; pildid on tegelike imporditud baitide Base64 esitus.
 - [ ] Base64 dekodeerimisel saadakse tagasi täpselt andmebaasi pildibaidid; puuduvad data-URL prefiks ja topeltkodeerimine.
-- [ ] Puuduva pildikirjega kategooria jääb vastusesse väärtusega `imageData: null`; puuduv kirjeldus annab `description: null`.
+- [ ] Puuduva pildikirjega kategooria jääb vastusesse väärtusega `imageData: null`; puuduv kirjeldus annab `categoryDescription: null`.
 - [ ] Tühja kategooriatabeli korral tagastatakse `200` ja `[]`, mitte `404` või `null`.
 - [ ] Andmebaasi tõrke korral tagastatakse kirjeldatud 500 `ApiError` ilma tehniliste detailideta.
 - [ ] Päring ei muuda andmeid ega muuda olemasoleva `GET /api/categories` lihtloendi kontrakti.

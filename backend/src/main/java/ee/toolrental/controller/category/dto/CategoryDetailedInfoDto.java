@@ -13,7 +13,10 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class CategoryDetailedInfoDto implements Serializable {
-    private Integer id;
+    private Integer categoryId;
     private String categoryName;
-    private String description;
+    private String categoryDescription;
+
+    private String imageData;
+
 }

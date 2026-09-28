@@ -95,12 +95,12 @@ Teenus on ainult adminile (`/api/admin/**`, `hasRole("admin")`).
 |---|---|---|
 | `categoryId` | `Integer` | `category.id` |
 | `categoryName` | `String` | `category.category_name` |
-| `description` | `String` | `category.description` (võib olla `null`) |
+| `categoryDescription` | `String` | `category.description` (võib olla `null`) |
 | `sequence` | `Integer` | `category.sequence` |
 
 Järjestus on `category.sequence ASC`. Mockupil on viimane kategooria „Muud asjad“, andmebaasis „Muud“; vastus kasutab andmebaasi väärtust. Kategooria pilti (`category_image`) vastuses pole.
 
-See teenus on eraldi avalikust `GET /api/categories` teenusest (vt [Kategooriate nimekirja päring](../../backend/ToolsView/Kategooriate-nimekirja-paring.md)). Avalik teenus tagastab ainult `categoryId` ja `categoryName`. Admin vajab ka `description` ja `sequence` välju, et modaalaken „Muuda“ saaks need ette täita.
+See teenus on eraldi avalikust `GET /api/categories` teenusest (vt [Kategooriate nimekirja päring](../../backend/ToolsView/Kategooriate-nimekirja-paring.md)). Avalik teenus tagastab ainult `categoryId` ja `categoryName`. Admin vajab ka `categoryDescription` ja `sequence` välju, et modaalaken „Muuda“ saaks need ette täita.
 
 **Veateated:**
 
@@ -130,7 +130,7 @@ Request body (`CategoryRequestDto.java`):
 | Väli | Java tüüp | Kohustuslik | Reegel |
 |---|---|---|---|
 | `categoryName` | `String` | Jah | Mitte tühi, kuni 100 märki, unikaalne |
-| `description` | `String` | Ei | Kuni 255 märki, võib olla `null` |
+| `categoryDescription` | `String` | Ei | Kuni 255 märki, võib olla `null` |
 | `sequence` | `Integer` | Jah | Kategooriate järjekord (väiksem enne) |
 
 Näide:
@@ -201,7 +201,7 @@ Request body (`CategoryRequestDto.java`, sama DTO nagu lisamisel):
 | Väli | Java tüüp | Kohustuslik | Reegel |
 |---|---|---|---|
 | `categoryName` | `String` | Jah | Mitte tühi, kuni 100 märki, ei tohi kattuda teise kategooria nimega |
-| `description` | `String` | Ei | Kuni 255 märki, võib olla `null` |
+| `categoryDescription` | `String` | Ei | Kuni 255 märki, võib olla `null` |
 | `sequence` | `Integer` | Jah | Kategooriate järjekord (väiksem enne) |
 
 Näide `PUT /api/admin/categories/1`:
@@ -220,7 +220,7 @@ Teenus on ainult adminile (`/api/admin/**`, `hasRole("admin")`).
 
 **Response (200 OK):** tühi body (`Response (200): NONE`).
 
-Kõik kolm välja kirjutatakse üle (PUT asendab kogu kategooria sisu). Kui `description` on `null`, saab andmebaasis kirjeldus väärtuse `NULL`. Kategooria pilt (`category_image`) ja kategooria tööriistad ei muutu.
+Kõik kolm välja kirjutatakse üle (PUT asendab kogu kategooria sisu). Kui `categoryDescription` on `null`, saab andmebaasis kirjeldus väärtuse `NULL`. Kategooria pilt (`category_image`) ja kategooria tööriistad ei muutu.
 
 **Veateated:**
 

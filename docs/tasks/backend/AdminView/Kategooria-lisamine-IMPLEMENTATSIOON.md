@@ -71,7 +71,7 @@ Vastuse kuju on olemasolev `ApiError` (`message`, `errorCode`).
 | Kasutaja pole sisse logitud. | 401 Unauthorized | tühi (Spring Security) |
 | Sisse logitud kasutaja roll pole `admin`. | 403 Forbidden | tühi (Spring Security) |
 | Sama nimega kategooria on juba olemas (nt `"Aiatööd"`). | 403 Forbidden | `{"errorCode":"CATEGORY_UNAVAILABLE","message":"Sellise nimega kategooria on juba olemas"}` |
-| `categoryName` puudub, on tühi või liiga pikk; `sequence` puudub; `description` on liiga pikk. | 400 Bad Request | `{"errorCode":"INCORRECT_INPUT","message":"<väli>: <valideerimise teade>"}` |
+| `categoryName` puudub, on tühi või liiga pikk; `sequence` puudub; `categoryDescription` on liiga pikk. | 400 Bad Request | `{"errorCode":"INCORRECT_INPUT","message":"<väli>: <valideerimise teade>"}` |
 | Andmebaasipäring ebaõnnestub ootamatult. | 500 Internal Server Error | `{"errorCode":"INTERNAL_SERVER_ERROR","message":"Kategooria lisamine ebaõnnestus. Palun proovi hiljem uuesti."}` |
 
 - `CATEGORY_UNAVAILABLE` on uus kood. Seda visatakse olemasoleva `ForbiddenException` klassiga.
@@ -86,7 +86,7 @@ Lähteülesande vastuvõtukriteeriumidest tuletatav kontrollnimekiri (kontrolli 
 
 - [ ] `POST /api/admin/categories` on olemas ja kättesaadav ainult `admin` rollile.
 - [ ] Näites toodud body annab 200 tühja body'ga ning `category` tabelis on uus rida sama nime, kirjelduse ja järjekorraga.
-- [ ] `description: null` või puuduv `description` on lubatud.
+- [ ] `description: null` või puuduv `categoryDescription` on lubatud.
 - [ ] Olemasolev nimi (`"Aiatööd"`) annab 403 `CATEGORY_UNAVAILABLE` ja uut rida ei lisata.
 - [ ] Puuduv/tühi `categoryName`, puuduv `sequence` ja liiga pikad väljad annavad 400 `INCORRECT_INPUT`.
 - [ ] Uus kategooria on näha nii `GET /api/admin/categories` kui ka `GET /api/categories` vastuses.
