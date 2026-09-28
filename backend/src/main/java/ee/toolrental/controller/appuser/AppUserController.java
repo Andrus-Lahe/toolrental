@@ -22,7 +22,6 @@ public class AppUserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "401", description = "Kasutaja pole sisse logitud")})
-
     public void getCurrentUser(@AuthenticationPrincipal AppUserPrincipal principal) {
         appUserService.getCurrentUser(principal.getUserId(), principal.getEmail());
 

@@ -1,18 +1,19 @@
 package ee.toolrental.persistence.appuser;
 
-import ee.toolrental.controller.appuser.dto.AppUserDto;
-import org.mapstruct.*;
+import ee.toolrental.controller.appuser.dto.CurrentUserDto;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingConstants;
+import org.mapstruct.ReportingPolicy;
 
 @Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE, componentModel = MappingConstants.ComponentModel.SPRING)
 public interface AppUserMapper {
-    @Mapping(source = "roleRoleName", target = "role.roleName")
-    @Mapping(source = "roleId", target = "role.id")
-    AppUser toEntity(AppUserDto appUserDto);
 
-    @InheritInverseConfiguration(name = "toEntity")
-    AppUserDto toDto(AppUser appUser);
-
-    @InheritConfiguration(name = "toEntity")
-    @BeanMapping(nullValuePropertyMappingStrategy = NullValuePropertyMappingStrategy.IGNORE)
-    AppUser partialUpdate(AppUserDto appUserDto, @MappingTarget AppUser appUser);
+    @Mapping(source = "id", target = "userId")
+    @Mapping(source = "role.roleName", target = "roleName")
+    @Mapping(source = "firstName", target = "firstName")
+    @Mapping(source = "lastName", target = "lastName")
+    @Mapping(ignore = true, target = "email")
+    @Mapping(ignore = true, target = "hasProfile")
+    CurrentUserDto toCurrentUserDto(AppUser appUser);
 }
