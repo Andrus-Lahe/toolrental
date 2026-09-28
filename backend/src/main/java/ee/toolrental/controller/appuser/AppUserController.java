@@ -1,5 +1,6 @@
 package ee.toolrental.controller.appuser;
 
+import ee.toolrental.controller.appuser.dto.CurrentUserDto;
 import ee.toolrental.infrastructure.security.AppUserPrincipal;
 import ee.toolrental.service.AppUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,8 +23,8 @@ public class AppUserController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OK"),
             @ApiResponse(responseCode = "401", description = "Kasutaja pole sisse logitud")})
-    public void getCurrentUser(@AuthenticationPrincipal AppUserPrincipal principal) {
-        appUserService.getCurrentUser(principal.getUserId(), principal.getEmail());
+    public CurrentUserDto getCurrentUser(@AuthenticationPrincipal AppUserPrincipal principal) {
+        return appUserService.getCurrentUser(principal.getUserId(), principal.getEmail());
 
     }
 }

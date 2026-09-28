@@ -20,16 +20,21 @@ public class AppUserService {
     private final AppUserMapper appUserMapper;
     private final ProfileRepository profileRepository;
 
-    public void getCurrentUser(Integer userId, String email) {
+    public CurrentUserDto getCurrentUser(Integer userId, String email) {
         AppUser appUser = getValidAppUserBy(userId);
         CurrentUserDto currentUserDto = appUserMapper.toCurrentUserDto(appUser);
         Optional<Profile> optionalProfile = profileRepository.findProfileBy(userId);
         handleProfile(currentUserDto, email, optionalProfile);
-
+        return currentUserDto;
     }
 
-    private void handleProfile(CurrentUserDto currentUserDto, String email, Optional<Profile> optionalProfile)  {
+    public AppUser getValidAppUserBy(Integer userId) {
+        return appUserRepository.findById(userId).orElseThrow(() -> new PrimaryKeyNotFoundException("userId", userId));
+    }
+
+    private void handleProfile(CurrentUserDto currentUserDto, String email, Optional<Profile> optionalProfile) {
         if (optionalProfile.isPresent()) {
+            currentUserDto.setEmail(optionalProfile.get().getEmail());
             currentUserDto.setHasProfile(true);
         } else {
             currentUserDto.setEmail(email);
@@ -37,11 +42,7 @@ public class AppUserService {
         }
     }
 
-
-    public AppUser getValidAppUserBy(Integer userId) {
-        return appUserRepository.findById(userId).orElseThrow(() -> new PrimaryKeyNotFoundException("userId", userId));
-    }
 }
 
-
+terminalis
 
