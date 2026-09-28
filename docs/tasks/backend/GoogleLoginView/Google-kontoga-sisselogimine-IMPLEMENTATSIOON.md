@@ -55,7 +55,7 @@ AppUserOidcService delegeerib standardsele OidcUserService-le, seob kontrollitud
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/controller/auth/AuthController.java`
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/infrastructure/security/SecurityConfig.java`
 
-Seo täpselt `GET /api/me`; seotud OAuth sisselogimisvoog ja `POST /logout`. ning lähteülesande 200 keha. Actor/userId tuleb sessiooni principal’ist, mitte request body’st; säilita taski osapoole kontrollid. Muutvate sessioonipäringute CSRF-leping tuleb ühendada OAuth taskiga. SecurityConfig/principal pole veel teostatud.
+Seo täpselt `GET /api/me`; seotud OAuth sisselogimisvoog ja `POST /logout`. ning lähteülesande 200 keha. Actor/userId tuleb sessiooni principal’ist, mitte request body’st; säilita taski osapoole kontrollid. SecurityConfig/principal pole veel teostatud.
 
 OAuth erisammud: `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/infrastructure/security/AppUserOidcService.java`, `AppUserPrincipal.java` ja `SecurityConfig.java`; `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/build.gradle` OAuth client sõltuvus; `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/resources/application.properties` keskkonnamuutujad GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET. Registreeri /oauth2/authorization/google ja /login/oauth2/code/google Springi voo kaudu, success /, failure /?loginError ning POST /logout sessiooni lõpetamisega. `/mnt/c/Users/opilane/IdeaProjects/toolrental/frontend/vite.config.js` vajab /oauth2, /login/oauth2 ja /logout proxy't algset Host päist säilitades. Secret ei lähe frontendisse ega faili väärtusena. CurrentUserDto kuus välja peavad vastama taskile; OAuth protokolliteid ei dubleerita custom POST endpoint'iga.
 
@@ -75,13 +75,12 @@ Koonda ärikoodid/sõnumid enumisse olemasolevat String lepingut säilitades. PR
 | `GET /api/me`: sessioon puudub või on aegunud. | 401 Unauthorized | Tühi body; Google'i lehele ei suunata. |
 | `GET /api/me`: ootamatu andmebaasitõrge. | 500 Internal Server Error | `{"errorCode":"INTERNAL_SERVER_ERROR","message":"Kasutaja andmete laadimine ebaõnnestus. Palun proovi hiljem uuesti."}` |
 | OAuth autentimine ebaõnnestub või kasutaja on blokeeritud. | 302 Found | Body puudub; `Location: /?loginError` frontendi originil. |
-| `POST /logout`: CSRF token puudub või on vigane. | 403 Forbidden | Body pole selle taskiga määratud; klient käsitleb staatust. |
 
-401 ja loginError käitumine tulevad juhendist. 500 JSON on taski tehniline täpsustus olemasoleva `ApiError` stringväljadega; praegune `RestExceptionHandler` seda veel ei taga. Kliendile ei tagastata SQL-i, stack trace'i ega Google tokenit. CSRF tokeni aegumisel peab uus katse kasutama värsket tokenit.
+401 ja loginError käitumine tulevad juhendist. 500 JSON on taski tehniline täpsustus olemasoleva `ApiError` stringväljadega; praegune `RestExceptionHandler` seda veel ei taga. Kliendile ei tagastata SQL-i, stack trace'i ega Google tokenit.
 
 ## Testid
 
-Uus/olemasolev/korduv/samaaegne login, blokeeritud konto, puuduva family_name tühistring, vigane token, profile true/false, sessioon ja logout/CSRF.
+Uus/olemasolev/korduv/samaaegne login, blokeeritud konto, puuduva family_name tühistring, vigane token, profile true/false, sessioon ja logout.
 
 Lähteülesande vastuvõtukriteeriumidest tuletatav kontrollnimekiri (kontrolli iga punkti, mitte ainult 200 staatust):
 
@@ -91,12 +90,12 @@ Lähteülesande vastuvõtukriteeriumidest tuletatav kontrollnimekiri (kontrolli 
 - [ ] `/api/me` kasutab sessiooni principal'i ning tagastab täpselt kuus kirjeldatud välja, õige rolli ja e-posti allika.
 - [ ] Profiilita kasutaja saab 200 ning `hasProfile: false`; autentimata päring saab 401 ilma Google redirect'ita.
 - [ ] OAuth õnnestumine, ebaõnnestumine ja logout järgivad kirjeldatud suunamisi.
-- [ ] Logout lõpetab sessiooni; pärast seda annab `/api/me` 401. CSRF leping on frontendiga kooskõlas ja kehtetu tokeniga POST lükatakse tagasi.
-- [ ] Automaattestid katavad uue ja olemasoleva kasutaja, blokeeritud konto, vigase autentimistulemuse, korduva loomise, profiiliga/profiilita vastuse, 401, 500 ning logout/CSRF käitumise. Testid ei vaja päris Google kontot.
+- [ ] Logout lõpetab sessiooni; pärast seda annab `/api/me` 401. Logout ei nõua CSRF tokenit.
+- [ ] Automaattestid katavad uue ja olemasoleva kasutaja, blokeeritud konto, vigase autentimistulemuse, korduva loomise, profiiliga/profiilita vastuse, 401, 500 ning logout käitumise. Testid ei vaja päris Google kontot.
 - [ ] Eraldi integratsioonikontroll päris seadistatud testkontoga kinnitab OAuth redirect'i, callback'i ja sessiooniküpsise töö; seda ei asenda mock-testide läbimine.
 
 ## Avatud küsimused
 
-CSRF tokeni väljastus/edastuse täpne leping jääb taskis avatuks. HomeView vana POST /auth/google ei ole selle OAuth voo endpoint. Päris Google redirect test vajab eraldi testkontot; mock-test seda ei tõenda.
+CSRF-kaitse on õppeprojektis välja lülitatud (`csrf.disable()`). HomeView vana POST /auth/google ei ole selle OAuth voo endpoint. Päris Google redirect test vajab eraldi testkontot; mock-test seda ei tõenda.
 
 backend/CLAUDE.md kirjeldab numbrilisi ErrorResponse koode, kuid tegelik ApiError kasutab String koodi ja ErrorResponse enum puudub. Säilita tegelik leping; ära tee numbrilist migratsiooni. Struktuuridokumendi ee.minuprojekt on näidis, kasutada ee.toolrental. OAuth/ühisklasside sõltuvused tuleb realiseerida või taaskasutada, mitte eeldada neid valmis olevaks. See dokument ei muuda tootmiskoodi ega tõenda testide läbimist.

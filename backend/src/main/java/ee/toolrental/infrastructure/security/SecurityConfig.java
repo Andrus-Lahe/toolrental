@@ -12,6 +12,11 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 @Configuration
 @RequiredArgsConstructor
 public class SecurityConfig {
+
+    private static final String FRONTEND_URL = "http://localhost:5173/";
+
+    private final AppUserOidcService appUserOidcService;
+
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http

@@ -59,7 +59,7 @@ Loe `googlega_login.md` jaotis 5. Konfiguratsiooniklass määrab:
 - kuhu suunatakse pärast õnnestunud / ebaõnnestunud sisselogimist;
 - et sisse logimata API päring saab **401**, mitte suunamist Google'i lehele.
 
-> **Otsuse koht — CSRF:** Taskifail ütleb „hoia CSRF-kaitse alles“, aga märkmefail `googlega_login.md` (meie alus) lülitab selle õppeprojekti lihtsuse huvides välja ja selgitab miks. Enne kirjutamist räägi see oma tiimiga läbi või küsi minult — ära otsusta vaikides.
+> **CSRF:** Õppeprojektis lülitame CSRF-kaitse välja (`csrf.disable()`), nagu märkmefail `googlega_login.md` (meie alus) teeb. Loe sealt, miks — muidu blokeeriks Spring Security Vue POST/PUT/DELETE päringud. Tootmisrakenduses jäetaks CSRF alles.
 
 ### Kontroll enne edasiliikumist
 
