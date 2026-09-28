@@ -8,7 +8,10 @@ export default defineConfig({
   plugins: [vue(), vueDevTools()],
   server: {
     proxy: {
-      '/api': 'http://localhost:8080'
+      '/api': 'http://localhost:8080',
+      '/oauth2': 'http://localhost:8080',
+      '/login/oauth2': 'http://localhost:8080',
+      '/logout': 'http://localhost:8080',
     },
   },
   resolve: {
