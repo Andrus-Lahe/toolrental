@@ -24,11 +24,18 @@ public class AppUserService {
         AppUser appUser = getValidAppUserBy(userId);
         CurrentUserDto currentUserDto = appUserMapper.toCurrentUserDto(appUser);
         Optional<Profile> optionalProfile = profileRepository.findProfileBy(userId);
-        handleProfile(userId, email, Profile);
+        handleProfile(currentUserDto, email, optionalProfile);
 
     }
 
-
+    private void handleProfile(CurrentUserDto currentUserDto, String email, Optional<Profile> optionalProfile)  {
+        if (optionalProfile.isPresent()) {
+            currentUserDto.setHasProfile(true);
+        } else {
+            currentUserDto.setEmail(email);
+            currentUserDto.setHasProfile(false);
+        }
+    }
 
 
     public AppUser getValidAppUserBy(Integer userId) {
