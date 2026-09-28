@@ -23,6 +23,11 @@ public class CategoryImage {
 
     private Category category;
 
+    @Column(name = "image_data", nullable = false)
+    private byte imageData [];
+
+
+
 
 
 }
