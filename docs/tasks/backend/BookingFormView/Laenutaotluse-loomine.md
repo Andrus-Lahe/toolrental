@@ -2,70 +2,80 @@
 
 **Teenus:** `POST /api/bookings`
 
-**Vaste balsamic mockupis:** BookingFormView.vue (eraldi STEP-tähis puudub), lehekülg 5/17 failis [Laenukas.pdf](../../../balsamic/notes/Laenukas.pdf).
+**Vaste balsamic mockupis:** BookingFormView.vue (eraldi STEP-tähis puudub), lehekülg 5/17 failis [Laenukas.pdf](../../../balsamic/notes/Laenukas.pdf) (vt `Laenutaotluse-loomine.png`).
 
 ![Mockup](./Laenutaotluse-loomine.png)
 
-Allikas: [BookingFormView-markmed.md](../../../balsamic/notes/BookingFormView-markmed.md) ning kasutaja täpsustus: oma tööriista broneerimine peab tagastama 403 `OWN_TOOL_BOOKING_FORBIDDEN`, ilma booking kirjet loomata. Pärast FE kinnitusmodaali sulgemist minnakse „Minu tööriistad” vaatesse; see täpsustus asendab märkmete `/my-bookings` sihi.
+Täiendavad allikad: [BookingFormView märkmed](../../../balsamic/notes/BookingFormView-markmed.md), [Email-new-booking-request märkmed](../../../balsamic/notes/Email-new-booking-request-markmed.md) ja [spring_mail.md](../../../balsamic/notes/spring_mail.md). Task kirjeldab backend'i teenust, mitte Vue vaate teostust.
+
+Frontendi täpsustus (varasemast taski versioonist): pärast kinnitusmodaali „Taotlus saadetud“ sulgemist minnakse „Minu tööriistad“ vaatesse; märkmefailis on siht `/my-bookings`. See puudutab ainult frontendi ja vajab märkmefailiga kooskõlastamist.
+
+PDF-i näide (`toolId = 2`, Redel, 18.–21.09.2026) annaks impordiandmetega vea: Redeli staatus on `U` ja periood kattub kinnitatud broneeringuga 2. Seepärast kasutavad silt ja task kehtivat näidet (kasutaja otsus).
 
 ## Sisend
 
-Autenditud Customer või Admin saadab `BookingCreateRequestDto.java` JSON body. Path- ja query-parameetreid pole.
+Request body (`BookingCreateRequestDto.java`):
+
+| Väli | Java tüüp | Kohustuslik | Reegel |
+|---|---|---|---|
+| `toolId` | `Integer` | Jah | Olemasoleva tööriista `tool.id` |
+| `startDate` | `LocalDate` | Jah | Kuju `yyyy-MM-dd`, täna või tulevikus (`@FutureOrPresent`) |
+| `endDate` | `LocalDate` | Jah | Kuju `yyyy-MM-dd`, `endDate >= startDate` |
+| `ownerMessage` | `String` | Ei | Laenaja sõnum omanikule, kuni 500 märki, võib olla `null` |
+
+Näide: Liis Kask (`userId = 3`) taotleb Marko Tamme Muruniidukit (`toolId = 5`):
 
 ```json
 {
-  "toolId": 2,
-  "startDate": "2026-09-18",
-  "endDate": "2026-09-21",
-  "ownerMessage": "Palun tagasta redel 21. septembril enne kella 18."
+  "toolId": 5,
+  "startDate": "2026-10-10",
+  "endDate": "2026-10-12",
+  "ownerMessage": "Sooviksin muruniiduki kätte saada reede õhtul."
 }
 ```
 
-| Väli | Java tüüp | Reegel |
-|---|---|---|
-| toolId | Integer | Kohustuslik positiivne tööriista ID. |
-| startDate | LocalDate | Kohustuslik kuupäev kujul `YYYY-MM-DD`. |
-| endDate | LocalDate | Kohustuslik kuupäev kujul `YYYY-MM-DD`, peab olema startDate'iga samal päeval või hiljem. |
-| ownerMessage | String | Valikuline tekst, kuni 500 märki vastavalt skeemile; puuduv/null väärtus salvestatakse nullina. |
+Kuupäevad ja sõnum on näiteväärtused. Tööriist, omanik ja laenaja pärinevad failist `3_import.sql`. Näite kuupäevad jäävad aja jooksul minevikku, seega peavad automaattestid kuupäevad arvutama tänase päeva suhtes (nt `LocalDate.now(clock).plusDays(...)`) või kasutama fikseeritud `Clock`-i.
 
-`renterId`, `status`, `bookingId`, ajatemplid ega Google sündmuse ID ei kuulu request DTO-sse. Rentija tuleb sessiooni principal'ist; kliendi võimalikku lisavälja ei tohi kasutada selle asendamiseks. Rakenda sessioonipõhise autentimise taskiga kooskõlaline CSRF-kaitse; CSRF token pole ärilise DTO osa.
+Päring nõuab sisselogimist. `renterId` võetakse sessioonist (`@AuthenticationPrincipal AppUserPrincipal`), mitte body'st. Lubatud rollid: `customer` ja `admin`.
 
-Kohustuslikkus, positiivne ID ja pikkuse kontroll on skeemist tuletatud tehnilised täpsustused. Mineviku kuupäevade keeld pole allikates kokku lepitud: task ei lisa `@FutureOrPresent` piirangut.
+`ownerMessage` on laenaja sõnum. Sama välja `booking.owner_message` kirjutab omanik hiljem kinnitamisel või tagasilükkamisel üle (kasutaja otsus, tabeleid ei muudeta; vt [BookingApprovalView taskid](../BookingApprovalView/)).
 
 ## Väljund
 
-**Response (200 OK):** `BookingResponseDto.java`, loodud taotlus staatusega `P`.
+**Response (200 OK):** `BookingResponseDto`, loodud broneering.
 
 ```json
 {
-  "bookingId": 2,
-  "toolId": 2,
+  "bookingId": 4,
+  "toolId": 5,
   "renterId": 3,
-  "startDate": "2026-09-18",
-  "endDate": "2026-09-21",
+  "startDate": "2026-10-10",
+  "endDate": "2026-10-12",
   "status": "P",
-  "ownerMessage": "Palun tagasta redel 21. septembril enne kella 18."
+  "ownerMessage": "Sooviksin muruniiduki kätte saada reede õhtul."
 }
 ```
 
-Väljad: `Integer bookingId`, `Integer toolId`, `Integer renterId`, `LocalDate startDate`, `LocalDate endDate`, `String status`, `String ownerMessage`. `bookingId` määrab andmebaas, `renterId` serveri sessioon. Valikuline `ownerMessage` võib olla null.
+`bookingId = 4` on impordiandmete järel järgmine `booking_id_seq` väärtus.
 
-Ülal on mockupi näide, mitte uue kirje fikseeritud ID. Impordis on `booking.id = 2` juba olemas staatusega `C` ning tööriist 2 „Redel” staatusega `U`; mockup näitab uue taotluse lepingut `P`. Tegelik uus ID genereeritakse ja FE ei saa impordi Redelit selle saadavusoleku tõttu saata. Eduka integratsioonitesti jaoks sobib näiteks impordi aktiivne tööriist 1 „Akutrell” (omanik 1), rentijaga 3 ning testis valitud kehtiva kuupäevavahemikuga. Ära kirjuta olemasolevat broneeringut üle ega muuda demotööriista staatust taski koostamisel.
+Ühes transaktsioonis (`@Transactional`):
+
+1. Lisatakse `booking` rida: `status = 'P'`, `renter_id` sessioonist, `google_event_id = NULL`, `created_at` ja `updated_at` = praegune aeg.
+2. Tööriista omanikule saadetakse e-kiri new-booking-request (vt [Email-new-booking-request märkmed](../../../balsamic/notes/Email-new-booking-request-markmed.md)):
+   - saaja: omaniku `profile.email`;
+   - Reply-To: laenaja `profile.email`;
+   - teema: `Uus laenutuse taotlus: <tool.name>`;
+   - mall `backend/src/main/resources/templates/email/booking-request.html` andmetega `toolName`, `bookingId`, `renterName`, `startDate`, `endDate`, `bookingUrl` (`{toolrental.frontend-url}/bookings/{bookingId}`).
+
+Kui omanikul pole profiili, kirja ei saadeta ja see logitakse. E-kirja saatmise viga (`MailException`) ainult logitakse: broneering jääb salvestatuks ja vastus on 200.
+
+**Kattumise reegel:** uus taotlus ei tohi kattuda sama tööriista ootel (`P`) ega kinnitatud (`C`) broneeringuga. Perioodid kattuvad, kui olemasoleva broneeringu `start_date <= uus endDate` ja `end_date >= uus startDate`. Tagasi lükatud (`R`) broneering perioodi ei hõiva. Kuna kattumine välistatakse siin, ei pea kinnitamine seda enam kontrollima.
+
+**Alguskuupäeva reegel:** `startDate` peab olema täna või tulevikus (kasutaja otsus). Minevikus algavat taotlust luua ei saa. „Täna“ arvestatakse ajavööndis `Europe/Tallinn`.
 
 ## Eesmärk
 
-BookingFormView saadab kasutaja laenutaotluse tööriista omanikule kinnitamiseks. Taotlus luuakse alati ootel olekus `P`; kinnitamine `C` või tagasilükkamine `R` toimub eraldi voos. Teenus ei tähenda automaatset kinnitamist, e-kirja saatmist ega Google Calendar sündmuse loomist.
-
-Teostuse järjekord:
-
-1. Tuvasta autenditud kasutaja sessioonist ja valideeri request.
-2. Leia tööriist; puuduva ID puhul tagasta kirjeldatud 404.
-3. Võrdle sessiooni kasutaja ID-d `tool.owner_id` väärtusega. Võrdsuse korral tagasta 403 `OWN_TOOL_BOOKING_FORBIDDEN` ja ära loo booking kirjet. Sama reegel kehtib Adminile.
-4. Kontrolli kuupäevavahemikku ka serveris. Kõik kontrollid peavad eelnema salvestamisele.
-5. Salvesta tehingus uus `booking`: tool_id request'ist, renter_id sessioonist, kuupäevad ja valikuline teade request'ist, status `P`. `google_event_id` jääb nulliks; ajatemplid järgitakse skeemi järgi.
-6. Tagasta salvestatud kirje DTO ja HTTP 200. Vea korral ei tohi jääda osalist kirjet.
-
-**Kokkuleppimata reeglid:** kuupäevade kattuvuse kontrolli, arvesse võetavaid `P`/`C` olekuid ega `DATE_RANGE_UNAVAILABLE` veakoodi kasutaja ei kinnitanud. Neid ei lisata selle taski lepingusse. `tool.status != A` korral nõuavad märkmed FE saatmisnupu keelamist; vastava serveripoolse keelu vealeping jäi kinnitamata ja tuleb enne saadavuse serverikontrolli teostamist täpsustada. FE keeld üksi ei taga serveris saadavust.
+Teenust kasutab BookingFormView vormi nupp „Saada“. Sisse logitud kasutaja valib teise kasutaja tööriistale laenutuse perioodi ja soovi korral kirjutab omanikule sõnumi. Eduka vastuse järel kuvab vaade modaali „Taotlus saadetud“. Omanik saab e-kirja ja otsustab taotluse üle BookingApprovalView vaates.
 
 ## Seotud andmebaasi tabelid
 
@@ -89,7 +99,9 @@ CREATE TABLE booking (
 );
 ```
 
-### `tool`
+Andmebaas kontrollib ainult `start_date <= end_date`. Kattumist ega enda tööriista broneerimist andmebaas ei keela, seega peab need kontrollid tegema service.
+
+### `tool` (ainult lugemine)
 
 ```sql
 CREATE TABLE tool (
@@ -104,58 +116,72 @@ CREATE TABLE tool (
 );
 ```
 
-### `app_user`
+`owner_id` järgi tehakse enda tööriista kontroll, `status` järgi saadavuse kontroll ja `name` läheb e-kirja.
 
-```sql
-CREATE TABLE app_user (
-    id serial PRIMARY KEY,
-    role_id integer NOT NULL REFERENCES role (id),
-    first_name varchar(100) NOT NULL,
-    last_name varchar(100) NOT NULL,
-    google_sub varchar(255) NOT NULL UNIQUE,
-    status char(1) NOT NULL DEFAULT 'A' CHECK (status IN ('A', 'B'))
-);
-```
+### `app_user` ja `profile` (ainult lugemine)
 
-`booking.tool_id` viitab tööriistale, `booking.renter_id` kasutajale. `tool.owner_id` viitab omanikule; selle võrdlus rentijaga on äriloogika, mitte olemasolev SQL CHECK. `booking_period_check` tagab kuupäevade järjekorra, kuid ei kontrolli kattuvust. `google_event_id` on unikaalne valikuline väärtus, mida loomise käigus ei täideta.
+`app_user.first_name` on e-kirja `renterName`. `profile.email` annab kirja saaja (omanik) ja Reply-To (laenaja). Profiil on valikuline (`Optional`).
 
-`app_user.role_id` viitab rollile ja `tool.category_id` kategooriale; neid tabeleid see teenus ei muuda. `profile`, `tool_image`, `category_image` ega kontaktandmete lugemine ei kuulu POST päringusse.
+Algandmed failist [3_import.sql](../../../database/3_import.sql):
 
-[3_import.sql](../../../database/3_import.sql) seotud näidisandmed:
+| tool.id | name | Omanik | status | Aktiivsed broneeringud (P/C) |
+|---|---|---|---|---|
+| 1 | Akutrell | Marko Tamm (1) | A | booking 1: 2026-10-02 – 2026-10-04, P |
+| 2 | Redel | Marko Tamm (1) | U | booking 2: 2026-09-18 – 2026-09-21, C |
+| 3 | Tolmuimeja | Liis Kask (3) | A | — |
+| 4 | Hekikäärid | Liis Kask (3) | A | — (booking 3 on R) |
+| 5 | Muruniiduk | Marko Tamm (1) | A | — |
+| 6 | Survepesur | Marko Tamm (1) | A | — |
+| 7 | Matkatelk | Marko Tamm (1) | A | — |
+| 8 | Projektor | Liis Kask (3) | A | — |
 
-| Kirje | Väärtused |
-|---|---|
-| app_user 1 | Marko Tamm, role_id 1 (admin), status A |
-| app_user 3 | Liis Kask, role_id 2 (customer), status A |
-| tool 1 | Akutrell, owner_id 1, status A |
-| tool 2 | Redel, owner_id 1, status U |
-| booking 1 | tool_id 1, renter_id 3, 2026-10-02 kuni 2026-10-04, status P |
-| booking 2 | tool_id 2, renter_id 3, 2026-09-18 kuni 2026-09-21, status C |
+Testiandmete näited:
+
+| Kasutaja | Päring | Tulemus |
+|---|---|---|
+| Liis (3) | `toolId = 5`, 2026-10-10 – 2026-10-12 | 200, `bookingId = 4` |
+| Liis (3) | `toolId = 1`, 2026-10-03 – 2026-10-05 | 403 `TOOL_ALREADY_BOOKED` (kattub bookingiga 1) |
+| Liis (3) | `toolId = 1`, 2026-10-05 – 2026-10-06 | 200 (ei kattu) |
+| Marko (1) | `toolId = 4`, 2026-10-05 – 2026-10-07 | 200 (booking 3 on R) |
+| Liis (3) | `toolId = 2`, mis tahes periood | 403 `TOOL_UNAVAILABLE` |
+| Liis (3) | `toolId = 3` | 403 `OWN_TOOL_BOOKING_FORBIDDEN` |
+
+`tool_image`, `category` ja `location` ei osale.
 
 ## Veaolukorrad
 
+Vastuse kuju on olemasolev `ApiError` (`message`, `errorCode`).
+
 | Olukord | Status code | Response body |
 |---|---|---|
-| Sessioon puudub või on aegunud. | 401 Unauthorized | Tühi body, kooskõlas autentimise taskiga. |
-| Sessiooni kasutaja ID võrdub `tool.owner_id` väärtusega. | 403 Forbidden | `{"errorCode":"OWN_TOOL_BOOKING_FORBIDDEN","message":"Enda tööriista broneerimine ei ole lubatud."}` |
-| Tööriista ID ei eksisteeri, näites 123. | 404 Not Found | `{"errorCode":"PRIMARY_KEY_NOT_FOUND","message":"Ei leidnud primary keyd 'toolId' väärtusega: 123"}` |
-| `endDate < startDate`. | 400 Bad Request | `{"errorCode":"INCORRECT_INPUT","message":"endDate: peab olema startDate'iga samal päeval või hiljem"}` |
-| Kohustuslik väärtus puudub, ID pole positiivne, kuupäev on vigane või teade ületab 500 märki. | 400 Bad Request | `{"errorCode":"INCORRECT_INPUT","message":"<väli>: <valideerimisvea kirjeldus>"}`; täpne tekst sõltub valideerimisreeglist. |
-| Ootamatu salvestamise tõrge. | 500 Internal Server Error | `{"errorCode":"INTERNAL_SERVER_ERROR","message":"Laenutaotluse saatmine ebaõnnestus. Palun proovi hiljem uuesti."}` |
+| Kasutaja pole sisse logitud. | 401 Unauthorized | tühi (Spring Security) |
+| `endDate` on varasem kui `startDate`. | 400 Bad Request | `{"errorCode":"INCORRECT_INPUT","message":"endDate: peab olema startDate'iga samal päeval või hiljem"}` |
+| `startDate` on minevikus. | 400 Bad Request | `{"errorCode":"INCORRECT_INPUT","message":"startDate: ei tohi olla minevikus"}` |
+| `toolId`, `startDate` või `endDate` puudub; `ownerMessage` on üle 500 märgi; kuupäeva vorming on vale. | 400 Bad Request | `{"errorCode":"INCORRECT_INPUT","message":"<väli>: <valideerimise teade>"}` |
+| Tööriista `toolId = 123` pole. Teates kasutada tegelikku väärtust. | 404 Not Found | `{"errorCode":"PRIMARY_KEY_NOT_FOUND","message":"Ei leidnud primary keyd 'toolId' väärtusega: 123"}` |
+| Kasutaja on tööriista omanik (ka admin). | 403 Forbidden | `{"errorCode":"OWN_TOOL_BOOKING_FORBIDDEN","message":"Enda tööriista ei saa laenata"}` |
+| Tööriista `status = 'U'`. | 403 Forbidden | `{"errorCode":"TOOL_UNAVAILABLE","message":"Tööriist pole hetkel saadaval"}` |
+| Periood kattub sama tööriista `P` või `C` broneeringuga. | 403 Forbidden | `{"errorCode":"TOOL_ALREADY_BOOKED","message":"Tööriist on valitud perioodil juba broneeritud"}` |
+| Andmebaasipäring ebaõnnestub ootamatult. | 500 Internal Server Error | `{"errorCode":"INTERNAL_SERVER_ERROR","message":"Laenutuse taotluse saatmine ebaõnnestus. Palun proovi hiljem uuesti."}` |
 
-403 reegel ja FE teate sõnastus on kasutaja kinnitatud; sama sõnum backendis on selle taski lepingu täpsustus. 400 kuupäevavahemiku ja 404 vead pärinevad märkmetest; PDF-i 99 ja märkmete 123 on üksnes puuduva ID näited. Ülejäänud sisendivalideerimine ning 500 leping on tehnilised täpsustused. Kasuta olemasolevat `ApiError` kuju (`String errorCode`, `String message`), `ForbiddenException` ja `PrimaryKeyNotFoundException` käsitlemist. Praegune veahaldur ei taga veel kõiki kirjeldatud valideerimise ja 500 vastuseid; need tuleb teostamisel katta.
-
-CSRF ebaõnnestumine võib autentimiskihis anda samuti 403, kuid seda ei tohi märgistada `OWN_TOOL_BOOKING_FORBIDDEN` koodiga. FE eristab oma tööriista keeldu nii staatuse kui veakoodi järgi.
+- 404 tuleb olemasolevast `PrimaryKeyNotFoundException` klassist.
+- `OWN_TOOL_BOOKING_FORBIDDEN`, `TOOL_UNAVAILABLE` ja `TOOL_ALREADY_BOOKED` on uued koodid (kinnitatud sildil). Neid visatakse olemasoleva `ForbiddenException` klassiga.
+- 400 tuleb `@Valid` kaudu olemasolevast `handleMethodArgumentNotValid` handlerist. See loeb ainult väljavigu (`getFieldErrors().getFirst()`), seega peab `endDate` kontroll tekitama väljavea nimega `endDate`, mitte klassitaseme (global) vea. Muidu handler viskab erindi.
+- Kuupäeva vale vorming (`HttpMessageNotReadableException`) ja ühtne 500 kuju tuleb teostamisel eraldi käsitleda; praegune handler neid ei kata.
+- Kontrollide järjekord: 400, 404, `OWN_TOOL_BOOKING_FORBIDDEN`, `TOOL_UNAVAILABLE`, siis `TOOL_ALREADY_BOOKED`. Vea korral broneeringut ei looda ja e-kirja ei saadeta.
+- E-kirja saatmise viga ei ole veaolukord: see logitakse ja vastus on 200.
 
 ## Vastuvõtu kriteeriumid
 
-- [ ] Autenditud Customer ja Admin saavad saata kirjeldatud request'i `POST /api/bookings` aadressile; autentimata kasutaja saab 401.
-- [ ] Edukal loomisel tagastatakse 200 ja kirjeldatud DTO; kirje ID genereeritakse, staatus on P ja rentija tuleb sessioonist.
-- [ ] Oma tööriista korral saab nii Customer kui Admin 403 `OWN_TOOL_BOOKING_FORBIDDEN`; booking kirjete arv ei muutu.
-- [ ] Kliendilt saadetud renterId ega status ei saa serveri määratud väärtusi muuta.
-- [ ] Puuduv tööriist annab 404; vigased/puuduvad kuupäevad, pööratud vahemik, vigane ID ja liiga pikk teade annavad 400.
-- [ ] Sama päeva algus ja lõpp on lubatud; ownerMessage puudumine/null ning 500 märki on lubatud, 501 märki mitte.
-- [ ] Salvestamise tõrkel ei jää osalist kirjet ning tagastatakse kirjeldatud üldine viga.
-- [ ] Teenus ei kinnita taotlust, muuda tööriista staatust ega loo Google sündmust.
-- [ ] Automaattestid katavad loomise, sessiooni rentija, oma tööriista keelu koos salvestamise puudumisega, 400/401/404/500, piirväärtused ja tehingu tagasipööramise.
-- [ ] Saadavuse serverikontrolli ja kattuvuse lahtised küsimused on nähtavalt eristatud kinnitatud nõuetest.
+- [ ] `POST /api/bookings` on olemas ja nõuab sisselogimist.
+- [ ] Näites toodud päring (Liis, `toolId = 5`) annab 200 ja `BookingResponseDto` väljadega `bookingId`, `toolId`, `renterId`, `startDate`, `endDate`, `status`, `ownerMessage`.
+- [ ] Loodud rea `status = 'P'`, `renter_id` on sessiooni kasutaja ID (body's antud `renterId` ignoreeritakse) ja `google_event_id = NULL`.
+- [ ] `ownerMessage: null` või puuduv väli on lubatud.
+- [ ] Omanikule saadetakse e-kiri teemaga `Uus laenutuse taotlus: Muruniiduk`, saajaks `email@Gmail.com`, Reply-To `liis.kask@example.com` ja lingiga `/bookings/4`.
+- [ ] Omaniku profiili puudumisel või `MailException` korral on vastus ikka 200 ja broneering salvestatud; viga logitakse.
+- [ ] Kattuv `P` või `C` broneering annab 403 `TOOL_ALREADY_BOOKED`; `R` broneering ja piiriga mittekattuv periood ei takista.
+- [ ] Enda tööriist annab 403 `OWN_TOOL_BOOKING_FORBIDDEN`; `status = 'U'` tööriist 403 `TOOL_UNAVAILABLE`.
+- [ ] Olematu `toolId` annab 404; `endDate < startDate` ja muud valideerimisvead annavad 400.
+- [ ] Minevikus algav `startDate` annab 400 teatega `startDate: ei tohi olla minevikus`; täna algav periood on lubatud.
+- [ ] Vea korral broneeringut ei looda ja e-kirja ei saadeta.
+- [ ] Automaattestid (e-kirja saatmine `JavaMailSender` mockiga) katavad eduka loomise, kõik testiandmete näited, kattumise piirjuhud (sama algus- või lõpupäev), alguskuupäeva piirjuhud (eile, täna, homme), kirja sisu ja saajad, profiilita omaniku, kirja saatmise vea ning 400/401/403/404/500 juhtumid.
