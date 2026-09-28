@@ -1,5 +1,6 @@
 package ee.toolrental.controller.category;
 
+import ee.toolrental.controller.category.dto.CategoryDetailedInfoDto;
 import ee.toolrental.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -8,6 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -24,9 +27,9 @@ public class CategoryController {
     })
 
 
-    public void getCategoriesInfo() {
+    public List<CategoryDetailedInfoDto> getCategoriesInfo() {
 
-        categoryService.getCategoriesInfo();
+       return categoryService.getCategoriesInfo();
 
 
     }
