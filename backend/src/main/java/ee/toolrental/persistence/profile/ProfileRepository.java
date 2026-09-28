@@ -13,4 +13,4 @@ public interface ProfileRepository extends JpaRepository<Profile, Integer> {
     @Query("select a email from profile a where a.googleSub = :googleSub")
     Optional<Email> findemail(String googleSub);
 
-}
+}i
