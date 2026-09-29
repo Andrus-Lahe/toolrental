@@ -20,4 +20,4 @@ public class AppUserPrincipal extends DefaultOidcUser {
     public Integer getUserId() {
         return userId;
     }
-}
+}
