@@ -34,7 +34,7 @@ public class CategoryService {
             for (CategoryImage categoryImage : categoryImages) {
                 if
                 (categoryDetailedInfoDto.getCategoryId().equals(categoryImage.getCategory().getId())) {
-
+                    byte[] imageBytes = categoryImage.getImageData();
 
                 }
             }
@@ -45,12 +45,5 @@ public class CategoryService {
     }
 
     private final CategoryMapper categoryMapper;
-//todo  Hea töö täna! 🙂 Saime piltide päringu, tsüklid ja kategooria ID-
-//  de võrdluse paika.
-//
-//  Järgmisel korral jätkame tühja if-ploki seest: teisendame pildi
-//  baidid Base64 tekstiks ja lisame DTO-sse.
-//
-//  Mõnusat puhkust!
 
 }
