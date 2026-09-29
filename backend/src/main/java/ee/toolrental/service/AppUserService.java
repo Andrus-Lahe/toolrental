@@ -20,6 +20,9 @@ public class AppUserService {
     private final AppUserMapper appUserMapper;
     private final ProfileRepository profileRepository;
 
+    // Tagastab sisselogitud kasutaja andmed teenusele GET /api/me (ID, roll, nimi, e-post, hasProfile).
+    // Kõigepealt leitakse kasutaja andmebaasist, mapper teisendab ta DTO-ks (andmekast frontendile)
+    // ja lõpuks lisab handleProfile e-posti ning märgib, kas kasutajal on profiil juba täidetud.
     public CurrentUserDto getCurrentUser(Integer userId, String email) {
         AppUser appUser = getValidAppUserBy(userId);
         CurrentUserDto currentUserDto = appUserMapper.toCurrentUserDto(appUser);
@@ -28,10 +31,16 @@ public class AppUserService {
         return currentUserDto;
     }
 
+    // Otsib kasutaja ID järgi app_user tabelist. Nimi getValid... lubab, et tagastatakse alati päris kasutaja.
+    // Kui sellise ID-ga kasutajat pole, visatakse PrimaryKeyNotFoundException, millest saab 404 vastus.
+    // Seda meetodit kasutavad ka teised service'id (nt ProfileService), et sama kontrolli mitte korrata.
     public AppUser getValidAppUserBy(Integer userId) {
         return appUserRepository.findById(userId).orElseThrow(() -> new PrimaryKeyNotFoundException("userId", userId));
     }
 
+    // Täidab DTO-s e-posti ja hasProfile välja vastavalt sellele, kas kasutajal on profiil olemas.
+    // Optional on "karp", mis võib olla tühi: profiiliga kasutajal võetakse e-post profiilist (hasProfile = true),
+    // profiilita kasutajal Google'i sessioonist (hasProfile = false). handle-prefiks tähendab, et meetod muudab DTO-d.
     private void handleProfile(CurrentUserDto currentUserDto, String email, Optional<Profile> optionalProfile) {
         if (optionalProfile.isPresent()) {
             currentUserDto.setEmail(optionalProfile.get().getEmail());
