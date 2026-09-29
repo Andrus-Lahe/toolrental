@@ -33,6 +33,15 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, HttpStatus.NOT_FOUND);
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> handleException(Exception exception) {
+        ApiError apiError = new ApiError();
+        apiError.setMessage("Kategooriate laadimine ebaõnnestus. Palun proovi hiljem uuesti.");
+        apiError.setErrorCode("INTERNAL_SERVER_ERROR");
+
+        return new ResponseEntity<>(apiError,
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
     @ExceptionHandler
     public ResponseEntity<ApiError> handlePrimaryKeyNotFoundException(PrimaryKeyNotFoundException exception) {
