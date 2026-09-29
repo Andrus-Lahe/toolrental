@@ -10,8 +10,6 @@ import lombok.Setter;
         "tool_rental")
 @Getter
 @Setter
-
-
 public class CategoryImage {
 
     @Id
@@ -20,14 +18,8 @@ public class CategoryImage {
 
     @OneToOne(optional = false)
     @JoinColumn(name = "category_id", nullable = false, unique = true)
-
     private Category category;
 
     @Column(name = "image_data", nullable = false)
     private byte imageData [];
-
-
-
-
-
 }

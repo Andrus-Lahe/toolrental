@@ -1,6 +1,7 @@
 package ee.toolrental.service;
 
 import ee.toolrental.controller.category.dto.CategoryDetailedInfoDto;
+import ee.toolrental.infrastructure.exception.CategoryLoadingException;
 import ee.toolrental.persistence.category.Category;
 import ee.toolrental.persistence.category.CategoryMapper;
 import ee.toolrental.persistence.category.CategoryRepository;
@@ -14,41 +15,33 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
-
 public class CategoryService {
-
     private final CategoryRepository categoryRepository;
+    private final CategoryMapper categoryMapper;
     private final CategoryImageRepository categoryImageRepository;
 
-
     public List<CategoryDetailedInfoDto> getCategoriesInfo() {
+        try {
+            List<Category> allCategories = categoryRepository.findAllCategories();
+            List<CategoryDetailedInfoDto>
+                    categoryDetailedInfoDtos = categoryMapper.toCategoryDetailedInfoDtos(allCategories);
+            List<CategoryImage> categoryImages = categoryImageRepository.findAllCategoriesImages();
 
-        List<Category> allCategories = categoryRepository.findAllCategories();
-
-        List<CategoryDetailedInfoDto>
-                categoryDetailedInfoDtos = categoryMapper.toCategoryDetailedInfoDtos(allCategories);
-
-
-        List<CategoryImage> categoryImages = categoryImageRepository.findAllCategoriesImages();
-
-        for (CategoryDetailedInfoDto categoryDetailedInfoDto : categoryDetailedInfoDtos) {
-            for (CategoryImage categoryImage : categoryImages) {
-                if
-                (categoryDetailedInfoDto.getCategoryId().equals(categoryImage.getCategory().getId())) {
-                    byte[] imageBytes = categoryImage.getImageData();
-                    String bytesToString = Base64.getEncoder().encodeToString(imageBytes);
-                    categoryDetailedInfoDto.setImageData(bytesToString);
-
-
-
+            for (CategoryDetailedInfoDto categoryDetailedInfoDto : categoryDetailedInfoDtos) {
+                for (CategoryImage categoryImage : categoryImages) {
+                    if
+                    (categoryDetailedInfoDto.getCategoryId().equals(categoryImage.getCategory().getId())) {
+                        byte[] imageBytes = categoryImage.getImageData();
+                        String bytesToString = Base64.getEncoder().encodeToString(imageBytes);
+                        categoryDetailedInfoDto.setImageData(bytesToString);
+                    }
                 }
             }
+
+            return categoryDetailedInfoDtos;
+        } catch (Exception exception) {
+            throw new CategoryLoadingException("Kategooriate laadimine ebaõnnestus. Palun proovi hiljem uuesti.",
+                    "INTERNAL_SERVER_ERROR");
         }
-
-        return categoryDetailedInfoDtos;
-
     }
-
-    private final CategoryMapper categoryMapper;
-
 }
