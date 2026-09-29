@@ -3,6 +3,7 @@ package ee.toolrental.infrastructure;
 import ee.toolrental.infrastructure.error.ApiError;
 import ee.toolrental.infrastructure.exception.DataNotFoundException;
 import ee.toolrental.infrastructure.exception.ForbiddenException;
+import ee.toolrental.infrastructure.exception.InternalServerErrorException;
 import ee.toolrental.infrastructure.exception.PrimaryKeyNotFoundException;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
@@ -40,6 +41,14 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         apiError.setMessage(exception.getMessage());
         apiError.setErrorCode(exception.getErrorCode());
         return new ResponseEntity<>(apiError, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiError> handleInternalServerErrorException(InternalServerErrorException exception) {
+        ApiError apiError = new ApiError();
+        apiError.setMessage(exception.getMessage());
+        apiError.setErrorCode(exception.getErrorCode());
+        return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
