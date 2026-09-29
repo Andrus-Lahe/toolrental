@@ -51,7 +51,7 @@ CityService.getCities(): tagasta id/nimi, [] tühjal tabelil. ReadOnly, lehekül
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/controller/city/CityController.java`
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/infrastructure/security/SecurityConfig.java`
 
-Seo täpselt `GET /api/cities` ning lähteülesande 200 keha. Lugemisteenus on avalik. Muutvate sessioonipäringute CSRF-leping tuleb ühendada OAuth taskiga. SecurityConfig/principal pole veel teostatud.
+Seo täpselt `GET /api/cities` ning lähteülesande 200 keha. Lugemisteenus on avalik. SecurityConfig/principal pole veel teostatud.
 
 6. **Testid** — `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/test/java/ee/toolrental/service/LinnadenimekirjaparingServiceTest.java` ja `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/test/java/ee/toolrental/controller/city/LinnadenimekirjaparingControllerTest.java` (nimed on ettepanekud). Loo service ühiktestid ja HTTP lepingut kontrollivad testid; tehingu/JPQL/lukustuse käitumist kontrolli PostgreSQL integratsiooniga. Käivita sihttestid, seejärel vajalik `./gradlew test` ja build.
 

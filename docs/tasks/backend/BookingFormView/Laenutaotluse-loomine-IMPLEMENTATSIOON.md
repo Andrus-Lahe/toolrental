@@ -60,7 +60,7 @@ BookingService.createBooking(actorId,request): rentija ainult sessioonist; valid
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/controller/booking/BookingController.java`
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/infrastructure/security/SecurityConfig.java`
 
-Seo täpselt `POST /api/bookings` ning lähteülesande 200 keha. Actor/userId tuleb sessiooni principal’ist, mitte request body’st; säilita taski osapoole kontrollid. Muutvate sessioonipäringute CSRF-leping tuleb ühendada OAuth taskiga. SecurityConfig/principal pole veel teostatud.
+Seo täpselt `POST /api/bookings` ning lähteülesande 200 keha. Actor/userId tuleb sessiooni principal’ist, mitte request body’st; säilita taski osapoole kontrollid. SecurityConfig/principal pole veel teostatud.
 
 6. **Testid** — `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/test/java/ee/toolrental/service/LaenutaotluseloomineServiceTest.java` ja `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/test/java/ee/toolrental/controller/booking/LaenutaotluseloomineControllerTest.java` (nimed on ettepanekud). Loo service ühiktestid ja HTTP lepingut kontrollivad testid; tehingu/JPQL/lukustuse käitumist kontrolli PostgreSQL integratsiooniga. Käivita sihttestid, seejärel vajalik `./gradlew test` ja build.
 
@@ -84,7 +84,7 @@ Koonda ärikoodid/sõnumid enumisse olemasolevat String lepingut säilitades. PR
 
 403 reegel ja FE teate sõnastus on kasutaja kinnitatud; sama sõnum backendis on selle taski lepingu täpsustus. 400 kuupäevavahemiku ja 404 vead pärinevad märkmetest; PDF-i 99 ja märkmete 123 on üksnes puuduva ID näited. Ülejäänud sisendivalideerimine ning 500 leping on tehnilised täpsustused. Kasuta olemasolevat `ApiError` kuju (`String errorCode`, `String message`), `ForbiddenException` ja `PrimaryKeyNotFoundException` käsitlemist. Praegune veahaldur ei taga veel kõiki kirjeldatud valideerimise ja 500 vastuseid; need tuleb teostamisel katta.
 
-CSRF ebaõnnestumine võib autentimiskihis anda samuti 403, kuid seda ei tohi märgistada `OWN_TOOL_BOOKING_FORBIDDEN` koodiga. FE eristab oma tööriista keeldu nii staatuse kui veakoodi järgi.
+Autentimiskiht võib anda samuti 403 (nt puuduv õigus), kuid seda ei tohi märgistada `OWN_TOOL_BOOKING_FORBIDDEN` koodiga. FE eristab oma tööriista keeldu nii staatuse kui veakoodi järgi.
 
 ## Testid
 

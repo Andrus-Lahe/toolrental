@@ -43,7 +43,7 @@ Näide kasutab faili `3_import.sql` broneeringut `bookingId = 2`: Marko Tamm (`u
 | `ownerEmail` | omaniku `profile.email` | email@Gmail.com |
 | `ownerPhone` | omaniku `profile.phone` | 56565656 |
 | `ownerMessage` | `booking.owner_message` | Palun tagasta redel 21. septembril enne kella 18. |
-| `bookingUrl` | `toolrental.frontend-url` + `/bookings/{bookingId}` | http://localhost:5173/bookings/2 |
+| `bookingUrl` | `toolrental.frontend-url` + `/bookings/{bookingId}` | http://localhost:8081/bookings/2 |
 
 | Kirja väli | Allikas | Näide |
 |---|---|---|
@@ -68,5 +68,5 @@ Periood: 18.09.2026 kuni 21.09.2026
 Lisainfo omanikult: Palun tagasta redel 21. septembril enne kella 18.
 Broneeringu number: 2
 
-[Vaata taotlust] → http://localhost:5173/bookings/2
+[Vaata taotlust] → http://localhost:8081/bookings/2
 ```

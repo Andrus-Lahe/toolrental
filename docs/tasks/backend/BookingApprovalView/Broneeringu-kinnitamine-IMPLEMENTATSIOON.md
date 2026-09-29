@@ -57,7 +57,7 @@ BookingService otsusemeetod kasutab ühist decideBooking(actorId,id,message,targ
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/controller/booking/BookingController.java`
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/infrastructure/security/SecurityConfig.java`
 
-Seo täpselt `PATCH /api/bookings/{bookingId}/confirm` ning lähteülesande 200 keha. Actor/userId tuleb sessiooni principal’ist, mitte request body’st; säilita taski osapoole kontrollid. Muutvate sessioonipäringute CSRF-leping tuleb ühendada OAuth taskiga. SecurityConfig/principal pole veel teostatud.
+Seo täpselt `PATCH /api/bookings/{bookingId}/confirm` ning lähteülesande 200 keha. Actor/userId tuleb sessiooni principal’ist, mitte request body’st; säilita taski osapoole kontrollid. SecurityConfig/principal pole veel teostatud.
 
 Kirja infrastruktuur: `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/infrastructure/mail/MailService.java`, `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/build.gradle` mail starter ja `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/resources/application.properties` MAIL_USERNAME/MAIL_PASSWORD ning frontend-url. JavaMailSender testis mock; tegelikke kirju dokumentide koostamisel ei saadeta. Kontrolli taski saajat, Reply-To fallback'i ja teemat/sisu; kõik kasutajatekstid HTML malli puhul kodeerida. Loomise HTML mall: `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/resources/templates/email/booking-request.html`; otsusekirjade plain text sisu koostab service. SMTP erind logitakse taski järgi, mitte ei pöörata edukat otsust tagasi.
 

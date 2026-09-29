@@ -26,6 +26,7 @@ dependencies {
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
     testImplementation 'org.springframework:spring-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client-test'
 
     // Swagger - Updated to compatible version for Spring Boot 3.5.x
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:3.0.3'
