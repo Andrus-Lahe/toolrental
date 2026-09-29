@@ -9,6 +9,7 @@ import ee.toolrental.persistence.categoryimage.CategoryImageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Base64;
 import java.util.List;
 
 @Service
@@ -35,6 +36,10 @@ public class CategoryService {
                 if
                 (categoryDetailedInfoDto.getCategoryId().equals(categoryImage.getCategory().getId())) {
                     byte[] imageBytes = categoryImage.getImageData();
+                    String bytesToString = Base64.getEncoder().encodeToString(imageBytes);
+                    categoryDetailedInfoDto.setImageData(bytesToString);
+
+
 
                 }
             }
