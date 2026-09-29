@@ -13,7 +13,7 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private static final String FRONTEND_URL = "http://localhost:5173/";
+    private static final String FRONTEND_URL = "http://localhost:8081/";
 
     private final AppUserOidcService appUserOidcService;
 

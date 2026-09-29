@@ -18,7 +18,7 @@ Seotud voog:
 - `/login/oauth2/code/google`: Spring Security hallatav callback. Protokolli parameetrid ja nende kontroll kuuluvad OAuth teostusele; klient ei saada siia omaloodud kasutajaandmeid.
 - `POST /logout`: request body puudub; sessiooniküpsis peab kaasas olema. CSRF tokenit ei nõuta.
 
-Seadistuses kasuta `GOOGLE_CLIENT_ID` ja `GOOGLE_CLIENT_SECRET` keskkonnamuutujaid. Client secret jääb backendisse. Kohalik callback on juhendi järgi `http://localhost:5173/login/oauth2/code/google`, läbi Vite proxy; Google Console'i seadistus peab sellega kattuma.
+Seadistuses kasuta `GOOGLE_CLIENT_ID` ja `GOOGLE_CLIENT_SECRET` keskkonnamuutujaid. Client secret jääb backendisse. Kohalik callback on juhendi järgi `http://localhost:8081/login/oauth2/code/google`, läbi Vite proxy; Google Console'i seadistus peab sellega kattuma.
 
 ## Väljund
 

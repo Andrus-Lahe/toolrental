@@ -34,9 +34,9 @@ See juhend kirjeldab, kuidas lisada toolrental projekti Google'iga sisselogimine
 2. Loo **OAuth client ID** tüübiga *Web application*.
 3. Lisa **Authorized redirect URI**:
    ```
-   http://localhost:5173/login/oauth2/code/google
+   http://localhost:8081/login/oauth2/code/google
    ```
-   Port on 5173 (Vite), mitte 8080, sest sisselogimise päringud käivad läbi Vite proxy (vt punkt 6).
+   Port on 8081 (Vite), mitte 8080, sest sisselogimise päringud käivad läbi Vite proxy (vt punkt 6).
 4. Kuni rakendus pole avaldatud („Publish app“), saavad sisse logida ainult **testkasutajad**. Lisa oma Google'i konto testkasutajate hulka.
 
 ## 2. Sõltuvus (`backend/build.gradle`)
@@ -152,7 +152,7 @@ package ee.toolrental.infrastructure.security;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private static final String FRONTEND_URL = "http://localhost:5173/";
+    private static final String FRONTEND_URL = "http://localhost:8081/";
 
     private final AppUserOidcService appUserOidcService;
 
@@ -197,9 +197,9 @@ proxy: {
 }
 ```
 
-Nii näeb brauser kõiki päringuid aadressilt `localhost:5173`. Sessiooniküpsis jääb samale originile ja CORS-i pole vaja seadistada.
+Nii näeb brauser kõiki päringuid aadressilt `localhost:8081`. Sessiooniküpsis jääb samale originile ja CORS-i pole vaja seadistada.
 
-**Ära lisa proxyle `changeOrigin: true`.** Spring koostab redirect URI päringu `Host` päise järgi. Päis peab jääma `localhost:5173`, et redirect URI ühtiks Google Console'is registreeritud aadressiga.
+**Ära lisa proxyle `changeOrigin: true`.** Spring koostab redirect URI päringu `Host` päise järgi. Päis peab jääma `localhost:8081`, et redirect URI ühtiks Google Console'is registreeritud aadressiga.
 
 ## 7. `/api/me` endpoint
 
