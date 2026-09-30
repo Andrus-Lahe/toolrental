@@ -2,6 +2,7 @@ import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from "@/views/HomeView.vue";
 import TestView from "@/views/TestView.vue";
 import MyProfile from '@/views/MyProfile.vue'
+import AiSearchView from '@/views/AiSearchView.vue'
 
 
 const router = createRouter({
@@ -21,6 +22,11 @@ const router = createRouter({
       path: '/profile',
       name: 'profileRoute',
       component: MyProfile,
+    },
+    {
+      path: '/ai-search',
+      name: 'aiSearchRoute',
+      component: AiSearchView,
     },
   ],
 })
