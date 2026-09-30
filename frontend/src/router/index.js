@@ -3,6 +3,7 @@ import HomeView from "@/views/HomeView.vue";
 import TestView from "@/views/TestView.vue";
 import MyProfile from '@/views/MyProfile.vue'
 import AiSearchView from '@/views/AiSearchView.vue'
+import ToolsView from '@/views/ToolsView.vue'
 
 
 const router = createRouter({
@@ -27,6 +28,11 @@ const router = createRouter({
       path: '/ai-search',
       name: 'aiSearchRoute',
       component: AiSearchView,
+    },
+    {
+      path: '/tools',
+      name: 'toolsRoute',
+      component: ToolsView,
     },
   ],
 })

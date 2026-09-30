@@ -10,6 +10,7 @@
 
     <section aria-labelledby="categories-title" class="mb-5">
       <h2 id="categories-title" class="mb-4">Saadaolevad tööriistad</h2>
+      <p v-if="session.status === 'loading'" role="status">Sisselogimise oleku laadimine...</p>
       <p v-if="isLoading" role="status">Kategooriate laadimine...</p>
       <div v-else-if="errorMessage" class="alert alert-danger" role="alert">
         {{ errorMessage }}
@@ -91,9 +92,11 @@ export default {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.25rem;
 }
+.category-grid > :last-child:nth-child(3n + 1) { grid-column: 2; }
 .info-placeholder { min-height: 150px; border: 1px solid #adb5bd; }
 @media (max-width: 767px) {
   .category-grid, .info-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .category-grid > :last-child:nth-child(3n + 1) { grid-column: auto; }
 }
 @media (max-width: 575px) {
   .category-grid, .info-grid { grid-template-columns: 1fr; }

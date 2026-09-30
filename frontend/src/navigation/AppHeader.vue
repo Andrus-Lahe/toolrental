@@ -1,8 +1,9 @@
 <template>
   <header class="border-bottom bg-white">
-    <nav class="container d-flex align-items-center gap-4 py-3" aria-label="Peamine navigatsioon">
+    <nav class="container d-flex flex-wrap align-items-center gap-4 py-3" aria-label="Peamine navigatsioon">
       <RouterLink to="/" class="fw-bold text-decoration-none">Laenukas</RouterLink>
       <RouterLink to="/">Avaleht</RouterLink>
+      <RouterLink to="/tools">Otsi tööriistu</RouterLink>
       <RouterLink to="/ai-search">AI otsing</RouterLink>
       <button
         v-if="session.status === 'guest'"
