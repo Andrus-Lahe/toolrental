@@ -1,6 +1,7 @@
 package ee.toolrental.controller.category;
 
 import ee.toolrental.controller.category.dto.CategoryDetailedInfoDto;
+import ee.toolrental.controller.category.dto.CategoryDto;
 import ee.toolrental.infrastructure.RestExceptionHandler;
 import ee.toolrental.infrastructure.exception.CategoryLoadingException;
 import ee.toolrental.service.CategoryService;
@@ -28,6 +29,46 @@ class CategoryControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(new CategoryController(categoryService))
                 .setControllerAdvice(new RestExceptionHandler())
                 .build();
+    }
+
+    @Test
+    void returnsCategoriesWithExpectedShapeAndServiceOrder() throws Exception {
+        when(categoryService.getCategories()).thenReturn(List.of(
+                new CategoryDto(1, "Aiatööd"),
+                new CategoryDto(2, "Ehitustööd"),
+                new CategoryDto(3, "Koristamine"),
+                new CategoryDto(4, "Muud")));
+
+        mockMvc.perform(get("/api/categories"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(4))
+                .andExpect(jsonPath("$[0].categoryId").value(1))
+                .andExpect(jsonPath("$[0].categoryName").value("Aiatööd"))
+                .andExpect(jsonPath("$[0].length()").value(2))
+                .andExpect(jsonPath("$[3].categoryId").value(4))
+                .andExpect(jsonPath("$[3].categoryName").value("Muud"));
+    }
+
+    @Test
+    void emptyCategoryListProducesOkWithEmptyArray() throws Exception {
+        when(categoryService.getCategories()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/categories"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+    }
+
+    @Test
+    void categoryListLoadingFailureProducesSpecifiedApiError() throws Exception {
+        when(categoryService.getCategories()).thenThrow(new CategoryLoadingException(
+                "Kategooriate laadimine ebaõnnestus. Palun proovi hiljem uuesti.",
+                "INTERNAL_SERVER_ERROR"));
+
+        mockMvc.perform(get("/api/categories"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.errorCode").value("INTERNAL_SERVER_ERROR"))
+                .andExpect(jsonPath("$.message").value(
+                        "Kategooriate laadimine ebaõnnestus. Palun proovi hiljem uuesti."));
     }
 
     @Test

@@ -1,6 +1,7 @@
 package ee.toolrental.persistence.category;
 
 import ee.toolrental.controller.category.dto.CategoryDetailedInfoDto;
+import ee.toolrental.controller.category.dto.CategoryDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -15,4 +16,9 @@ public interface CategoryMapper {
     @Mapping(ignore = true, target = "imageData")
     CategoryDetailedInfoDto toCategoryDetailedInfoDto(Category category);
     List<CategoryDetailedInfoDto> toCategoryDetailedInfoDtos(List<Category> categories);
+
+    @Mapping(source = "id", target = "categoryId")
+    @Mapping(source = "categoryName", target = "categoryName")
+    CategoryDto toCategoryDto(Category category);
+    List<CategoryDto> toCategoryDtos(List<Category> categories);
 }

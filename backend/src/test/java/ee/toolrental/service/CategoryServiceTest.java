@@ -1,6 +1,7 @@
 package ee.toolrental.service;
 
 import ee.toolrental.controller.category.dto.CategoryDetailedInfoDto;
+import ee.toolrental.controller.category.dto.CategoryDto;
 import ee.toolrental.infrastructure.exception.CategoryLoadingException;
 import ee.toolrental.persistence.category.Category;
 import ee.toolrental.persistence.category.CategoryMapper;
@@ -30,6 +31,36 @@ class CategoryServiceTest {
     private final CategoryMapper categoryMapper = Mappers.getMapper(CategoryMapper.class);
     private final CategoryService categoryService = new CategoryService(
             categoryRepository, categoryMapper, categoryImageRepository);
+
+    @Test
+    void categoryListContainsOnlyIdAndNameInRepositoryOrder() {
+        when(categoryRepository.findAllCategories()).thenReturn(List.of(
+                category(3, "Koristamine", "Kirjeldus"),
+                category(1, "Aiatööd", null)));
+
+        List<CategoryDto> result = categoryService.getCategories();
+
+        assertEquals(List.of(new CategoryDto(3, "Koristamine"), new CategoryDto(1, "Aiatööd")), result);
+    }
+
+    @Test
+    void emptyCategoryTableProducesEmptyCategoryList() {
+        when(categoryRepository.findAllCategories()).thenReturn(List.of());
+
+        assertTrue(categoryService.getCategories().isEmpty());
+    }
+
+    @Test
+    void categoryListRepositoryFailureProducesCategoryLoadingErrorWithoutTechnicalDetails() {
+        when(categoryRepository.findAllCategories()).thenThrow(new IllegalStateException("SQL details"));
+
+        CategoryLoadingException exception = assertThrows(
+                CategoryLoadingException.class, categoryService::getCategories);
+
+        assertEquals("INTERNAL_SERVER_ERROR", exception.getErrorCode());
+        assertEquals("Kategooriate laadimine ebaõnnestus. Palun proovi hiljem uuesti.", exception.getMessage());
+        assertFalse(exception.getMessage().contains("SQL details"));
+    }
 
     @Test
     void categoryWithoutImageRemainsInResult() {

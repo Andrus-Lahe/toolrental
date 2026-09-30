@@ -31,6 +31,15 @@ class CategoryPublicAccessTest {
     private CategoryService categoryService;
 
     @Test
+    void guestCanReadCategoryList() throws Exception {
+        when(categoryService.getCategories()).thenReturn(List.of());
+
+        mockMvc.perform(get("/api/categories"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("[]"));
+    }
+
+    @Test
     void guestCanReadCategoryDetails() throws Exception {
         when(categoryService.getCategoriesInfo()).thenReturn(List.of());
 
