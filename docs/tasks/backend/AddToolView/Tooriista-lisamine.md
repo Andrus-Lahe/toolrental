@@ -17,7 +17,7 @@ Request body (`ToolCreateRequestDto.java`):
 | `ownerId` | `Integer` | — | Ei kasutata: omanik võetakse sessioonist (vt allpool) | `tool.owner_id` |
 | `categoryId` | `Integer` | Jah | Olemasoleva kategooria `category.id` | `tool.category_id` |
 | `name` | `String` | Jah | Mitte tühi, kuni 150 märki | `tool.name` |
-| `description` | `String` | Ei | Kuni 2000 märki, võib olla `null` | `tool.description` |
+| `categoryDescription` | `String` | Ei | Kuni 2000 märki, võib olla `null` | `tool.description` |
 | `imageData` | `String` | Jah | Pildifaili Base64 kuju (ilma `data:` prefiksita); `""` tähendab, et pilti ei lisata | `tool_image.image_data` |
 
 Näide (sildilt):
@@ -46,7 +46,7 @@ Väli „Pildi nimi“ on ainult kasutajaliidese info ja backendile seda ei saad
 
 Ühes transaktsioonis (`@Transactional`):
 
-1. Luuakse `tool` rida: `owner_id` sessioonist, `category_id`, `name`, `description`, `status = 'A'`, `created_at` ja `updated_at` = praegune aeg.
+1. Luuakse `tool` rida: `owner_id` sessioonist, `category_id`, `name`, `categoryDescription`, `status = 'A'`, `created_at` ja `updated_at` = praegune aeg.
 2. Kui `imageData` ei ole tühi string, luuakse `tool_image` rida: `tool_id` = uus tööriist, `image_data` = `Base64.getDecoder().decode(imageData)` (pildi tegelikud baidid), `is_main = true`. Vorm toetab loomisel ainult ühte (pea)pilti.
 3. Kui `imageData = ""`, pilti ei looda.
 
@@ -138,7 +138,7 @@ Vastuse kuju on olemasolev `ApiError` (`message`, `errorCode`).
 ## Vastuvõtu kriteeriumid
 
 - [ ] `POST /api/tools` on olemas ja nõuab sisselogimist.
-- [ ] Kehtiv päring annab 200 tühja body'ga ning loob `tool` rea väljadega `category_id`, `name`, `description`, `status = 'A'`.
+- [ ] Kehtiv päring annab 200 tühja body'ga ning loob `tool` rea väljadega `category_id`, `name`, `categoryDescription`, `status = 'A'`.
 - [ ] `tool.owner_id` on sessiooni kasutaja ID; body's antud teistsugune `ownerId` ei mõjuta tulemust.
 - [ ] Mittetühja `imageData` korral luuakse üks `tool_image` rida `is_main = true`, mille `image_data` on Base64-st dekodeeritud baidid; `GET /api/tools/{toolId}` tagastab sama Base64 stringi. `imageData = ""` korral pilti ei looda.
 - [ ] `description: null` on lubatud.

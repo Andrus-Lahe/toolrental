@@ -38,6 +38,28 @@ Käivita skriptid järjekorras kaustast `docs/database`:
 
 Kõik tabelid asuvad `minu_projekt` skeemas.
 
+## Käivitamine WSL-ist (Claude Code)
+
+IntelliJ-s käivitades pole seda vaja. Kui backend käivitatakse WSL-i terminalist, näiteks Claude Code'ist, tuleb arvestada kolme asjaga. Ühtegi projekti faili selleks muuta ei tohi, kõik antakse ette keskkonnamuutujatena ainult selle käsu jaoks.
+
+**JAVA_HOME** viitab Windowsi JDK-le (`/mnt/c/Users/opilane/.jdks/...`) ja `./gradlew` annab vea `JAVA_HOME is set to an invalid directory`. Kasuta WSL-i Java 21:
+
+```bash
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
+```
+
+**Andmebaas:** WSL2 NAT-võrgurežiimis ei jõua `localhost:5432` Windowsis jooksva PostgreSQL-ini. Kasuta Windowsi hosti IP-d, mis on WSL-i vaikelüüs:
+
+```bash
+WIN_HOST=$(ip route show default | awk '{print $3}')   # nt 172.17.80.1
+pg_isready -h "$WIN_HOST" -p 5432                        # kontroll
+export SPRING_DATASOURCE_URL="jdbc:p6spy:postgresql://$WIN_HOST:5432/vali_it"
+```
+
+**Google OAuth:** `GOOGLE_CLIENT_ID` ja `GOOGLE_CLIENT_SECRET` peavad olema keskkonnamuutujatena olemas. Õpilase masinas on need IntelliJ run-konfiguratsioonis (`.idea/workspace.xml`), mitte WSL-i keskkonnas. Ära kirjuta neid repositooriumi faili ega väljundisse.
+
+Seejärel käivita: `./gradlew bootRun`. Backend jookseb pordil 8080 ja Windowsi brauser jõuab selleni aadressil `localhost:8080`. Kui IntelliJ-s jookseb samal ajal teine backend, tekib pordikonflikt, seega käivita korraga ainult üks.
+
 ## Arhitektuur
 
 Tegemist on Spring Boot 4.x / Java 21 REST backendiga. Frontend on eraldi Vue 3 SPA (ei ole selles repos).
@@ -63,7 +85,7 @@ Igal domeenialal on oma alampakk `controller/`-is koos DTOdega, teenusklass ja p
 
 **Meetodi nimetamine** — `getX()` lubab kindlat tagastust. Kui meetod sisaldab tingimislikku loogikat ja muteerib DTO-d, kasuta `handle`-prefiksit ja anna DTO parameeter sisse: `handleAddImageData(EntityDetailDto entityDetailDto, Integer entityId)`.
 
-**Entiteedi otsing ID järgi** — `repository.findById()` kasutamine `orElseThrow`-ga peab olema `public getValid<Entiteet>By(Integer <entiteet>Id)` meetodis vastava service klassi all (nt `getValidEntityBy(Integer entityId)` `EntityService`-s).
+**Entiteedi otsing ID järgi** — `repository.findById()` kasutamine `orElseThrow`-ga peab olema `public getValid<Entiteet>By(Integer <entiteet>Id)` meetodis vastava service klassi all (nt `getValidEntityBy(Integer entityId)` `AppUserService`-s).
 
 **SQL päringud** — Kohandatud päringud on JPQL, kirjutatud otse Spring Data repositooriumi liidesele `@Query` annotatsiooniga. Vajadusel kasutab repositoorium konstruktori avaldist otse DTOsse projekteerimiseks.
 

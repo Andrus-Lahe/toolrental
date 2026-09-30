@@ -46,7 +46,7 @@ spring.mail.password=${MAIL_PASSWORD}
 spring.mail.properties.mail.smtp.auth=true
 spring.mail.properties.mail.smtp.starttls.enable=true
 
-toolrental.frontend-url=http://localhost:5173
+toolrental.frontend-url=http://localhost:8081
 ```
 
 ### Gmaili rakenduse parool
@@ -271,7 +271,7 @@ Omaniku sõnum:
 Palun tagasta redel 21. septembril enne kella 18.
 
 Broneeringut saad vaadata siit:
-http://localhost:5173/bookings/2
+http://localhost:8081/bookings/2
 
 Omanikule saad vastata otse sellele kirjale vastates.
 

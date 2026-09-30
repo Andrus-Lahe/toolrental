@@ -51,7 +51,7 @@ AdminCategoryService.addCategory(request): nimi NotBlank/Size100, description Si
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/controller/admin/AdminCategoryController.java`
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/infrastructure/security/SecurityConfig.java`
 
-Seo täpselt `POST /api/admin/categories` ning lähteülesande 200 keha. Admin endpoint nõuab admin rolli; klient ei saa sessiooni actorId-d asendada. Muutvate sessioonipäringute CSRF-leping tuleb ühendada OAuth taskiga. SecurityConfig/principal pole veel teostatud.
+Seo täpselt `POST /api/admin/categories` ning lähteülesande 200 keha. Admin endpoint nõuab admin rolli; klient ei saa sessiooni actorId-d asendada. SecurityConfig/principal pole veel teostatud.
 
 6. **Testid** — `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/test/java/ee/toolrental/service/KategoorialisamineServiceTest.java` ja `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/test/java/ee/toolrental/controller/admin/KategoorialisamineControllerTest.java` (nimed on ettepanekud). Loo service ühiktestid ja HTTP lepingut kontrollivad testid; tehingu/JPQL/lukustuse käitumist kontrolli PostgreSQL integratsiooniga. Käivita sihttestid, seejärel vajalik `./gradlew test` ja build.
 
@@ -71,7 +71,7 @@ Vastuse kuju on olemasolev `ApiError` (`message`, `errorCode`).
 | Kasutaja pole sisse logitud. | 401 Unauthorized | tühi (Spring Security) |
 | Sisse logitud kasutaja roll pole `admin`. | 403 Forbidden | tühi (Spring Security) |
 | Sama nimega kategooria on juba olemas (nt `"Aiatööd"`). | 403 Forbidden | `{"errorCode":"CATEGORY_UNAVAILABLE","message":"Sellise nimega kategooria on juba olemas"}` |
-| `categoryName` puudub, on tühi või liiga pikk; `sequence` puudub; `description` on liiga pikk. | 400 Bad Request | `{"errorCode":"INCORRECT_INPUT","message":"<väli>: <valideerimise teade>"}` |
+| `categoryName` puudub, on tühi või liiga pikk; `sequence` puudub; `categoryDescription` on liiga pikk. | 400 Bad Request | `{"errorCode":"INCORRECT_INPUT","message":"<väli>: <valideerimise teade>"}` |
 | Andmebaasipäring ebaõnnestub ootamatult. | 500 Internal Server Error | `{"errorCode":"INTERNAL_SERVER_ERROR","message":"Kategooria lisamine ebaõnnestus. Palun proovi hiljem uuesti."}` |
 
 - `CATEGORY_UNAVAILABLE` on uus kood. Seda visatakse olemasoleva `ForbiddenException` klassiga.
@@ -86,7 +86,7 @@ Lähteülesande vastuvõtukriteeriumidest tuletatav kontrollnimekiri (kontrolli 
 
 - [ ] `POST /api/admin/categories` on olemas ja kättesaadav ainult `admin` rollile.
 - [ ] Näites toodud body annab 200 tühja body'ga ning `category` tabelis on uus rida sama nime, kirjelduse ja järjekorraga.
-- [ ] `description: null` või puuduv `description` on lubatud.
+- [ ] `description: null` või puuduv `categoryDescription` on lubatud.
 - [ ] Olemasolev nimi (`"Aiatööd"`) annab 403 `CATEGORY_UNAVAILABLE` ja uut rida ei lisata.
 - [ ] Puuduv/tühi `categoryName`, puuduv `sequence` ja liiga pikad väljad annavad 400 `INCORRECT_INPUT`.
 - [ ] Uus kategooria on näha nii `GET /api/admin/categories` kui ka `GET /api/categories` vastuses.

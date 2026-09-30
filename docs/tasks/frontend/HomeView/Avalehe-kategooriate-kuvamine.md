@@ -26,7 +26,7 @@ Kasutaja avab avalehe ning näeb teenuse tutvustust ja kategooriakaarte koos pil
 | Laena tööriistu naabritelt | Pealkiri | Avalehe tutvustuse pealkiri. |
 | Tutvustustekst | Tekst | „Meie kogukonna kõige parem kraami jagamise pleiss. Tööriistade sirvimiseks ja lisamiseks pead olema sisse logitud“. |
 | Saadaolevad tööriistad | Jaotise pealkiri | Selle all kuvatakse kategooriaid, mitte üksikuid tööriistu. |
-| Kategooriakaardid | Klikitavad kaardid | Iga API vastuse element annab ühe kaardi: `imageData`, `categoryName`, `description`. Kaardi valik edastab `categoryId`. |
+| Kategooriakaardid | Klikitavad kaardid | Iga API vastuse element annab ühe kaardi: `imageData`, `categoryName`, `categoryDescription`. Kaardi valik edastab `categoryId`. |
 | Kaartide paigutus | Kaardivõrgustik | Mockupil kolm kaarti esimeses reas ja neljas keskel järgmises reas. Kaartide arv sõltub vastusest; kitsal ekraanil vähenda veergude arvu. |
 | Kuidas see töötab | Pealkiri ja kolm sisuplokki | Mockupil kolm tühja ristkülikut. Säilita jaotise paigutus; tekstide, piltide ega videote sisu pole määratud. |
 | Google sisselogimise modaal | Modaal | Avatakse kirjeldatud tegevustest; modaali sisemine kujundus ja autentimisprotsess ei ole selle lehekülje API märkmetes kirjeldatud. |

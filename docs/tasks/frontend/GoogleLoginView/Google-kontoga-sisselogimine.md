@@ -34,8 +34,8 @@ Brauseri raam, aadressiriba ja märkmelehed ei kuulu rakenduse UI-sse. Eraldi `/
 4. 401 korral tühjenda varasem kasutajaolek ja näita külastaja UI-d. Ära käivita automaatset Google redirect'i; see algab kasutaja lingivalikust. Võrguviga või 500 ei tõenda, et kasutaja on välja logitud: kuva viga ja võimalda uut kontrolli.
 5. Sisselogimislingil puudub kohalik sisendi valideerimine. Backend loob OAuth voo; frontend ei saada kasutaja ID-d ega salvesta Google tokenit või client secret'it.
 6. Google tagasipöördumisel avalehele käivitub sessioonikontroll uuesti. `loginError` korral näita üldist viga, mitte tehnilisi Google andmeid. Varasema kategooriavaliku automaatset taastamist allikad ei määra.
-7. Logout jaoks kasuta tavalist `POST /logout` vormi koos kehtiva CSRF tokeniga. Õnnestunud redirect laeb avalehe uuesti, tühjendab mälus oleva kasutajaoleku ning `/api/me` 401 kinnitab väljalogimise. Kui logout ebaõnnestub, ära väida, et serveri sessioon lõpetati.
-8. Järgi backend taski CSRF lepingut: vajalik on tokeni väljastamise viis ning vormivälja/küpsise nimede kooskõlastus. Kaitset ei lülitata UI tööle saamiseks välja.
+7. Logout jaoks kasuta tavalist `POST /logout` vormi (CSRF tokenit pole vaja, sest kaitse on õppeprojektis välja lülitatud). Õnnestunud redirect laeb avalehe uuesti, tühjendab mälus oleva kasutajaoleku ning `/api/me` 401 kinnitab väljalogimise. Kui logout ebaõnnestub, ära väida, et serveri sessioon lõpetati.
+8. CSRF-kaitse on backendis õppeprojekti lihtsuse huvides välja lülitatud, seega POST/PUT/PATCH/DELETE päringud ei vaja CSRF tokenit ega lisapäist.
 
 ## API kutsed
 
@@ -64,7 +64,7 @@ Tavaline brauseri link, request body puudub. Backend suunab Google lehele; JSON 
 
 ### `POST /logout`
 
-Vormipõhine POST, rakenduse request body puudub peale CSRF vormivälja. Vajalikud on sessiooniküpsis ja värske CSRF token. Õnnestumisel `302` frontendi `/` rajale, JSON vastust pole.
+Vormipõhine POST, rakenduse request body puudub. Vajalik on sessiooniküpsis; CSRF tokenit ei nõuta. Õnnestumisel `302` frontendi `/` rajale, JSON vastust pole.
 
 **Veateated:**
 
@@ -74,7 +74,7 @@ Vormipõhine POST, rakenduse request body puudub peale CSRF vormivälja. Vajalik
 | `/api/me` 500 | INTERNAL_SERVER_ERROR | Kasutaja andmete laadimine ebaõnnestus. Palun proovi hiljem uuesti. | Kuva viga ja võimalda uut kontrolli. |
 | HTTP vastus puudub | Puudub | Puudub | Võrguvea olek; ära eelda `error.response` olemasolu. |
 | OAuth redirect `/?loginError` | Puudub | UI üldine sisselogimise veateade | Näita teadet ja võimalda uuesti Google linki kasutada. |
-| Logout 403 | Määramata | Määramata | Ära kinnita õnnestumist; vajadusel värskenda CSRF tokenit enne uut katset. |
+| Logout ebaõnnestub | Määramata | Määramata | Ära kinnita õnnestumist. |
 
 500 response body täies mahus:
 
@@ -110,6 +110,6 @@ Järgi projekti Options API struktuuri: `name`, `components`, `props`, `emits`, 
 - [ ] Profiiliga kasutaja jätkab tavavaates; profiilita kasutaja suunatakse kokkulepitud profiilivormi eeltäidetud e-postiga.
 - [ ] Puuduvad profiilirada ja autentimise backend on enne lõpliku integratsiooni kontrolli teostatud.
 - [ ] `loginError` kuvatakse kasutajale ja sisselogimist saab uuesti alustada.
-- [ ] Logout saadab kehtiva CSRF tokeni, lõpetab sessiooni ning pärast redirect'i on kasutajaolek tühi; viga ei näidata õnnestumisena.
+- [ ] Logout lõpetab sessiooni ning pärast redirect'i on kasutajaolek tühi; viga ei näidata õnnestumisena.
 - [ ] OAuth proxy ja callback töötavad kohaliku keskkonna kaudu; client secret ega Google token ei jõua frontendikoodi.
 - [ ] Kontrollitud on laadimise, profiilita kasutaja, profiiliga kasutaja, 401, võrguvea, loginError ning logout vood; päris Google integratsioonikatse eristatakse mock-kontrollidest.

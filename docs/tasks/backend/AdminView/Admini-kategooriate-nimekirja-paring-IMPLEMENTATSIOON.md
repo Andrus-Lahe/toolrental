@@ -51,7 +51,7 @@ AdminCategoryService.getCategories(): readOnly, kõik kategooriad, null descript
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/controller/admin/AdminCategoryController.java`
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/infrastructure/security/SecurityConfig.java`
 
-Seo täpselt `GET /api/admin/categories` ning lähteülesande 200 keha. Admin endpoint nõuab admin rolli; klient ei saa sessiooni actorId-d asendada. Muutvate sessioonipäringute CSRF-leping tuleb ühendada OAuth taskiga. SecurityConfig/principal pole veel teostatud.
+Seo täpselt `GET /api/admin/categories` ning lähteülesande 200 keha. Admin endpoint nõuab admin rolli; klient ei saa sessiooni actorId-d asendada. SecurityConfig/principal pole veel teostatud.
 
 6. **Testid** — `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/test/java/ee/toolrental/service/AdminikategooriatenimekirjaparingServiceTest.java` ja `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/test/java/ee/toolrental/controller/admin/AdminikategooriatenimekirjaparingControllerTest.java` (nimed on ettepanekud). Loo service ühiktestid ja HTTP lepingut kontrollivad testid; tehingu/JPQL/lukustuse käitumist kontrolli PostgreSQL integratsiooniga. Käivita sihttestid, seejärel vajalik `./gradlew test` ja build.
 
@@ -79,9 +79,9 @@ Neli impordikategooriat, sequence järjestus, null, [], admin/mitteadmin/külast
 Lähteülesande vastuvõtukriteeriumidest tuletatav kontrollnimekiri (kontrolli iga punkti, mitte ainult 200 staatust):
 
 - [ ] `GET /api/admin/categories` on olemas ja kättesaadav ainult `admin` rollile.
-- [ ] HTTP 200 vastus on massiiv täpselt väljadega `categoryId`, `categoryName`, `description`, `sequence`.
+- [ ] HTTP 200 vastus on massiiv täpselt väljadega `categoryId`, `categoryName`, `categoryDescription`, `sequence`.
 - [ ] Impordiandmetega tagastatakse 4 kategooriat järjestuses `sequence ASC` ja näites toodud väärtustega.
-- [ ] Kategooria, mille `description` on `null`, tagastatakse `"description": null` väärtusega.
+- [ ] Kategooria, mille `categoryDescription` on `null`, tagastatakse `"description": null` väärtusega.
 - [ ] Kategooriateta andmebaasi korral on vastus 200 ja `[]`.
 - [ ] Avalik `GET /api/categories` jääb muutmata.
 - [ ] Sisse logimata kasutaja saab 401 ja mitte-admin 403; andmebaasi tõrge annab kirjeldatud 500 vastuse.

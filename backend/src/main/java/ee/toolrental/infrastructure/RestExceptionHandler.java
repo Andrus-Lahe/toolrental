@@ -3,7 +3,9 @@ package ee.toolrental.infrastructure;
 import ee.toolrental.infrastructure.error.ApiError;
 import ee.toolrental.infrastructure.exception.DataNotFoundException;
 import ee.toolrental.infrastructure.exception.ForbiddenException;
+import ee.toolrental.infrastructure.exception.InternalServerErrorException;
 import ee.toolrental.infrastructure.exception.PrimaryKeyNotFoundException;
+import ee.toolrental.infrastructure.exception.CategoryLoadingException;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -33,13 +35,20 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, HttpStatus.NOT_FOUND);
     }
 
-
     @ExceptionHandler
     public ResponseEntity<ApiError> handlePrimaryKeyNotFoundException(PrimaryKeyNotFoundException exception) {
         ApiError apiError = new ApiError();
         apiError.setMessage(exception.getMessage());
         apiError.setErrorCode(exception.getErrorCode());
         return new ResponseEntity<>(apiError, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiError> handleInternalServerErrorException(InternalServerErrorException exception) {
+        ApiError apiError = new ApiError();
+        apiError.setMessage(exception.getMessage());
+        apiError.setErrorCode(exception.getErrorCode());
+        return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     @Override
@@ -58,5 +67,23 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> handleException(Exception exception) {
+        ApiError apiError = new ApiError();
+        apiError.setMessage("Toiming ebaõnnestus. Palun proovi hiljem uuesti.");
+        apiError.setErrorCode("INTERNAL_SERVER_ERROR");
+
+        return new ResponseEntity<>(apiError,
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiError> handleCategoryLoadingException(CategoryLoadingException exception) {
+        ApiError apiError = new ApiError();
+        apiError.setMessage(exception.getMessage());
+        apiError.setErrorCode(exception.getErrorCode());
+
+        return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
 }

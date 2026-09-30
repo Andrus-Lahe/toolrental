@@ -51,12 +51,12 @@ Teenus on ainult adminile (`/api/admin/**`, `hasRole("admin")`).
 |---|---|---|
 | `categoryId` | `Integer` | `category.id` |
 | `categoryName` | `String` | `category.category_name` |
-| `description` | `String` | `category.description` (võib olla `null`) |
+| `categoryDescription` | `String` | `category.description` (võib olla `null`) |
 | `sequence` | `Integer` | `category.sequence` |
 
 Järjestus on `category.sequence ASC`. Mockupil on viimane kategooria „Muud asjad“, andmebaasis „Muud“; vastus kasutab andmebaasi väärtust. Kategooria pilti (`category_image`) vastuses pole.
 
-See teenus on eraldi avalikust `GET /api/categories` teenusest (vt [Kategooriate nimekirja päring](../ToolsView/Kategooriate-nimekirja-paring.md)). Avalik teenus tagastab ainult `categoryId` ja `categoryName`. Admin vajab ka `description` ja `sequence` välju, et modaalaken „Muuda“ saaks need ette täita.
+See teenus on eraldi avalikust `GET /api/categories` teenusest (vt [Kategooriate nimekirja päring](../ToolsView/Kategooriate-nimekirja-paring.md)). Avalik teenus tagastab ainult `categoryId` ja `categoryName`. Admin vajab ka `categoryDescription` ja `sequence` välju, et modaalaken „Muuda“ saaks need ette täita.
 
 ## Eesmärk
 
@@ -94,9 +94,9 @@ Vastuse kuju on olemasolev `ApiError` (`message`, `errorCode`).
 ## Vastuvõtu kriteeriumid
 
 - [ ] `GET /api/admin/categories` on olemas ja kättesaadav ainult `admin` rollile.
-- [ ] HTTP 200 vastus on massiiv täpselt väljadega `categoryId`, `categoryName`, `description`, `sequence`.
+- [ ] HTTP 200 vastus on massiiv täpselt väljadega `categoryId`, `categoryName`, `categoryDescription`, `sequence`.
 - [ ] Impordiandmetega tagastatakse 4 kategooriat järjestuses `sequence ASC` ja näites toodud väärtustega.
-- [ ] Kategooria, mille `description` on `null`, tagastatakse `"description": null` väärtusega.
+- [ ] Kategooria, mille `categoryDescription` on `null`, tagastatakse `"description": null` väärtusega.
 - [ ] Kategooriateta andmebaasi korral on vastus 200 ja `[]`.
 - [ ] Avalik `GET /api/categories` jääb muutmata.
 - [ ] Sisse logimata kasutaja saab 401 ja mitte-admin 403; andmebaasi tõrge annab kirjeldatud 500 vastuse.

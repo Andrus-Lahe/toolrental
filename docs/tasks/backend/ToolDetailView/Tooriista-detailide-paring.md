@@ -42,7 +42,7 @@ Näide on sildilt ja ühtib failiga `3_import.sql` (`tool.id = 1`, omanik Marko 
 | `ownerId` | `Integer` | `tool.owner_id` | Frontend kasutab seda `GET /api/users/{userId}` päringus (ainult sisse logitud kasutajale) |
 | `toolName` | `String` | `tool.name` | |
 | `categoryName` | `String` | `category.category_name` (`tool.category_id`) | |
-| `description` | `String` | `tool.description` | Võib olla `null` |
+| `categoryDescription` | `String` | `tool.description` | Võib olla `null` |
 | `imageData` | `String` | `tool_image.image_data`, kus `is_main = true` | Baitide Base64 (`Base64.getEncoder().encodeToString(...)`); `null`, kui põhipilti pole |
 | `status` | `String` | `tool.status` | `A` = saadaval, `U` = pole saadaval |
 
@@ -129,7 +129,7 @@ Vastuse kuju on olemasolev `ApiError` (`message`, `errorCode`).
 ## Vastuvõtu kriteeriumid
 
 - [ ] Avalik `GET /api/tools/{toolId}` töötab ka sisse logimata kasutajale.
-- [ ] Vastus sisaldab täpselt välju `toolId`, `ownerId`, `toolName`, `categoryName`, `description`, `imageData`, `status`.
+- [ ] Vastus sisaldab täpselt välju `toolId`, `ownerId`, `toolName`, `categoryName`, `categoryDescription`, `imageData`, `status`.
 - [ ] `toolId = 1` annab näites toodud väärtused ja `imageData` on `tool_image` rea 1 baitide Base64 kuju; dekodeerimisel saadakse täpselt andmebaasi baidid.
 - [ ] `toolId = 2` (status `U`) tagastatakse samuti 200-ga.
 - [ ] Ainult `is_main = true` pilt läheb vastusesse; pildita tööriistal on `imageData = null`.
