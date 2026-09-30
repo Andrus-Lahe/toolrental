@@ -17,6 +17,17 @@ repositories {
 	mavenCentral()
 }
 
+ext {
+    // Spring AI 2.x on Spring Boot 4 jaoks (1.x töötab ainult Spring Boot 3-ga)
+    springAiVersion = '2.0.1'
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+    }
+}
+
 dependencies {
     // Spring Boot
     implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -48,6 +59,9 @@ dependencies {
 
     // google login
     implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
+
+    // AI mudeli (Groq, OpenAI-ühilduv API) poole pöördumine
+    implementation 'org.springframework.ai:spring-ai-starter-model-openai'
 
 }
 
