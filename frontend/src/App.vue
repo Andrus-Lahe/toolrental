@@ -13,6 +13,7 @@
       <div class="navbar-nav">
         <RouterLink class="nav-link" to="/">Home</RouterLink>
         <RouterLink class="nav-link" to="/test">Test</RouterLink>
+        <RouterLink class="nav-link" to="/ai-search">AI otsing</RouterLink>
       </div>
     </div>
   </nav>

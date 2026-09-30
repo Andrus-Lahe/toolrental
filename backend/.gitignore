@@ -38,3 +38,5 @@ out/
 /src/main/generated/
 /spy.log
 /.claude/settings.local.json
+java/ee/toolrental/infrastructure/security/DevSecurityConfig.java
+

@@ -6,6 +6,7 @@ import ee.toolrental.infrastructure.exception.ForbiddenException;
 import ee.toolrental.infrastructure.exception.InternalServerErrorException;
 import ee.toolrental.infrastructure.exception.PrimaryKeyNotFoundException;
 import ee.toolrental.infrastructure.exception.CategoryLoadingException;
+import lombok.extern.slf4j.Slf4j;
 import org.jspecify.annotations.NonNull;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @ControllerAdvice
+@Slf4j
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler
@@ -69,6 +71,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiError> handleException(Exception exception) {
+        log.error("Unexpected request failure", exception);
         ApiError apiError = new ApiError();
         apiError.setMessage("Toiming ebaõnnestus. Palun proovi hiljem uuesti.");
         apiError.setErrorCode("INTERNAL_SERVER_ERROR");

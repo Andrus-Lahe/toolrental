@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from "@/views/HomeView.vue";
 import TestView from "@/views/TestView.vue";
+import AiSearchView from "@/views/AiSearchView.vue";
 
 
 const router = createRouter({
@@ -15,6 +16,11 @@ const router = createRouter({
       path: '/test',
       name: 'testRoute',
       component: TestView,
+    },
+    {
+      path: '/ai-search',
+      name: 'aiSearchRoute',
+      component: AiSearchView,
     },
   ],
 })
