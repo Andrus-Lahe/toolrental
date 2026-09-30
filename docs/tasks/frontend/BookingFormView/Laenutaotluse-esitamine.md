@@ -39,7 +39,7 @@ Modaali tekst mockupi järgi: „Sinu laenutamise taotlus on edukalt saadetud t�
 2. Laadimise ajal ära luba saatmist. Vigane route'i ID või tööriista laadimise 404 näitab viga ega ava toimivat saatmisvormi. Kontaktipäringu tõrget ei esitata tühjade väljamõeldud kontaktandmetena; kuva viga ja võimalda korduslaadimist.
 3. Kui tööriista status ei ole A, keela Saada ja kuva saadavuse teade. Kinnitamata kuupäevade kattuvuse reegleid ega mineviku kuupäevade keeldu ei lisata.
 4. Enne saatmist kontrolli mõlema kuupäeva olemasolu, kehtivust, `endDate >= startDate` ning sõnumi maksimaalset pikkust 500. Sama päeva periood on lubatud. Tühja valikulise sõnumi võib saata nullina.
-5. Saada ainult toolId, startDate, endDate ja ownerMessage. renterId ega status ei saadeta. Kasuta ühise autentimislahenduse CSRF lepingut.
+5. Saada ainult toolId, startDate, endDate ja ownerMessage. renterId ega status ei saadeta. CSRF tokenit pole vaja (kaitse on õppeprojektis välja lülitatud).
 6. Saatmise ajal blokeeri korduv vajutus. Vea korral säilita sisestatud andmed ja vabasta saatmisolek `.finally()` kaudu; võrguvea korral ära POST-i automaatselt korda, kuna vastuse kadumine ei tõenda salvestamise ebaõnnestumist.
 7. HTTP 403 ja errorCode `OWN_TOOL_BOOKING_FORBIDDEN` korral kuva täpselt alert „Enda tööriista ei saa laenata” Ära ava kinnitusmodaali ega suuna kasutajat ära. Backend peab keeldu kontrollima ka siis, kui FE lisab ownerId põhise ennetava kontrolli.
 8. HTTP 200 korral ava kinnitusmodaal, hoia vorm korduva saatmise eest lukus. Kõik modaali sulgemisteed kasutavad ühte handler'it, mis suunab „Minu tööriistad” vaatesse. Mitte kohe pärast POST-i ega `/my-bookings` rajale.
@@ -91,7 +91,7 @@ Näidis pärineb mockupist. Impordis on bookingId 2 juba olemas staatusega C nin
 | 401 | Puudub | Tühi body | Käivita ühine aegunud sessiooni käsitlus; ära kinnita saatmist. |
 | 500 | INTERNAL_SERVER_ERROR | Laenutaotluse saatmine ebaõnnestus. Palun proovi hiljem uuesti. | Kuva üldine viga. |
 | Vastus puudub | Puudub | Määramata | Kuva võrguviga, ära eelda error.response olemasolu ega korda POST-i automaatselt. |
-| Muu 403 | Määramata | Määramata | Üldine ligipääsu/CSRF viga; ära näita oma tööriista alerti üksnes staatuse põhjal. |
+| Muu 403 | Määramata | Määramata | Üldine ligipääsu viga; ära näita oma tööriista alerti üksnes staatuse põhjal. |
 
 Konkreetsete ärivigade JSON-kuju:
 
@@ -195,5 +195,5 @@ Vaade ja nimetatud alamkomponendid/teenused praegu puuduvad. Järgi dokumenteeri
 - [ ] Ainult 200 avab kinnitusmodaali; selle sulgemine viib „Minu tööriistad” vaatesse, mitte `/my-bookings`.
 - [ ] Tühista ei tee POST päringut ja viib tagasi; ajaloota otseavamine kasutab detailvaate tagasiteed.
 - [ ] GET vead, 400/401/403/404/500 ja vastuseta võrguviga on käsitletud ilma vale eduteateta; ebaõnnestunud POST säilitab sisestatud andmed.
-- [ ] MyToolsView route, detail-/kontaktiteenused ning autentimise/CSRF sõltuvused on enne integreeritud kasutajavoo kontrolli olemas.
+- [ ] MyToolsView route, detail-/kontaktiteenused ning autentimise sõltuvused on enne integreeritud kasutajavoo kontrolli olemas.
 - [ ] Kontrollitud on edukas esitamine ja modaali sulgemine, oma tööriista keeld, saadavuse olek, valideerimise piirväärtused, topeltvajutus ja API vead.

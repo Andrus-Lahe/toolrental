@@ -26,7 +26,7 @@ See task on ka eeldus issue #33 (`GET/PUT /api/users/me/profile`, vt `MyProfile-
 
 Enne endpointi on vaja kolme asja: sõltuvust, seadistust ja „liimi“, mis seob Google'i konto meie `app_user` tabeliga. Kõik vajalik on kirjas failis `docs/balsamic/notes/googlega_login.md` — **loe see jaotiste kaupa läbi ja kirjuta kood ise**, mitte ära kopeeri pimesi. Iga klassi juures küsi endalt: *miks see siin on?*
 
-1. **Google Cloud Console** (juhendi jaotis 1) — sul on vaja `GOOGLE_CLIENT_ID` ja `GOOGLE_CLIENT_SECRET`. Redirect URI on `http://localhost:5173/login/oauth2/code/google`.
+1. **Google Cloud Console** (juhendi jaotis 1) — sul on vaja `GOOGLE_CLIENT_ID` ja `GOOGLE_CLIENT_SECRET`. Redirect URI on `http://localhost:8081/login/oauth2/code/google`.
 2. **Sõltuvus** (jaotis 2) — ✅ **juba tehtud:** `build.gradle`-is on `spring-boot-starter-security-oauth2-client` olemas. Kontrolli ainult, et Gradle on uuesti laetud.
    > **IntelliJ vihje:** Pärast `build.gradle` muutmist ilmub paremale ülesse elevandi ikoon — vajuta sellele (**Load Gradle Changes**), muidu IntelliJ ei tunne uusi klasse.
 3. **Seadistus** (jaotis 3) — `application.properties`-isse viited keskkonnamuutujatele. **Saladust ennast faili ei kirjutata!** Keskkonnamuutujad pane IntelliJ-s: Run → Edit Configurations → Environment variables.
@@ -59,7 +59,7 @@ Loe `googlega_login.md` jaotis 5. Konfiguratsiooniklass määrab:
 - kuhu suunatakse pärast õnnestunud / ebaõnnestunud sisselogimist;
 - et sisse logimata API päring saab **401**, mitte suunamist Google'i lehele.
 
-> **Otsuse koht — CSRF:** Taskifail ütleb „hoia CSRF-kaitse alles“, aga märkmefail `googlega_login.md` (meie alus) lülitab selle õppeprojekti lihtsuse huvides välja ja selgitab miks. Enne kirjutamist räägi see oma tiimiga läbi või küsi minult — ära otsusta vaikides.
+> **CSRF:** Õppeprojektis lülitame CSRF-kaitse välja (`csrf.disable()`), nagu märkmefail `googlega_login.md` (meie alus) teeb. Loe sealt, miks — muidu blokeeriks Spring Security Vue POST/PUT/DELETE päringud. Tootmisrakenduses jäetaks CSRF alles.
 
 ### Kontroll enne edasiliikumist
 
@@ -344,4 +344,4 @@ kontrolliMidagiHelper(dtoObjekt.getMingiVäli());
 
 ---
 
-> **Järgmine samm:** Testi. `/api/me` vajab sessiooni, seega logi esmalt sisse läbi frontendi (`http://localhost:5173/oauth2/authorization/google`) ja ava siis samas brauseris `http://localhost:5173/api/me`. Demokasutajana (nt admin Marko) sisse logimiseks vaata `googlega_login.md` jaotist 9. Kontrolli, et vastus vastab taskifaili näidisele.
+> **Järgmine samm:** Testi. `/api/me` vajab sessiooni, seega logi esmalt sisse läbi frontendi (`http://localhost:8081/oauth2/authorization/google`) ja ava siis samas brauseris `http://localhost:8081/api/me`. Demokasutajana (nt admin Marko) sisse logimiseks vaata `googlega_login.md` jaotist 9. Kontrolli, et vastus vastab taskifaili näidisele.

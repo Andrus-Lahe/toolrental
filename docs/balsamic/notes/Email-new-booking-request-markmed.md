@@ -37,7 +37,7 @@ Näide kasutab faili `3_import.sql` broneeringut `bookingId = 1`: Liis Kask (`us
 | `renterName` | taotleja `app_user.first_name` | Liis |
 | `startDate` | `booking.start_date` (`dd.MM.yyyy`) | 02.10.2026 |
 | `endDate` | `booking.end_date` (`dd.MM.yyyy`) | 04.10.2026 |
-| `bookingUrl` | `toolrental.frontend-url` + `/bookings/{bookingId}` | http://localhost:5173/bookings/1 |
+| `bookingUrl` | `toolrental.frontend-url` + `/bookings/{bookingId}` | http://localhost:8081/bookings/1 |
 
 | Kirja väli | Allikas | Näide |
 |---|---|---|
@@ -59,7 +59,7 @@ Periood: 02.10.2026 kuni 04.10.2026
 
 Palun kinnita või tühista taotlus
 
-[Vaata taotlust] → http://localhost:5173/bookings/1
+[Vaata taotlust] → http://localhost:8081/bookings/1
 ```
 
 Rida „Periood“ pole mockupi kirjapildil, kuid kollane märge nimetab malli andmetena `startDate` ja `endDate` ning näitab neid malli näites. Seetõttu on see näidiskirjas olemas (kinnitatud).

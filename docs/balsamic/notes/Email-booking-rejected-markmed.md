@@ -41,7 +41,7 @@ Näide kasutab faili `3_import.sql` broneeringut `bookingId = 3`: Liis Kask (`us
 | `endDate` | `booking.end_date` (`dd.MM.yyyy`) | 07.10.2026 |
 | `ownerName` | omaniku `app_user.first_name` + `last_name` | Liis Kask |
 | `ownerMessage` | `booking.owner_message` | Soovitud kuupäevadel ei saa tööriista välja laenata. |
-| `bookingUrl` | `toolrental.frontend-url` + `/bookings/{bookingId}` | http://localhost:5173/bookings/3 |
+| `bookingUrl` | `toolrental.frontend-url` + `/bookings/{bookingId}` | http://localhost:8081/bookings/3 |
 
 | Kirja väli | Allikas | Näide |
 |---|---|---|
@@ -62,5 +62,5 @@ Periood: 05.10.2026 kuni 07.10.2026
 Lisainfo omanikult: Soovitud kuupäevadel ei saa tööriista välja laenata.
 Broneeringu number: 3
 
-[Vaata taotlust] → http://localhost:5173/bookings/3
+[Vaata taotlust] → http://localhost:8081/bookings/3
 ```

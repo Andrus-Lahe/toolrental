@@ -16,9 +16,9 @@ Seotud voog:
 
 - `GET /oauth2/authorization/google`: brauseri täislehe navigatsioon, mitte Axios päring. Alustab Google OIDC autentimist scope'idega `openid`, `email`, `profile`.
 - `/login/oauth2/code/google`: Spring Security hallatav callback. Protokolli parameetrid ja nende kontroll kuuluvad OAuth teostusele; klient ei saada siia omaloodud kasutajaandmeid.
-- `POST /logout`: request body puudub; sessiooniküpsis ja CSRF token peavad kaasas olema.
+- `POST /logout`: request body puudub; sessiooniküpsis peab kaasas olema. CSRF tokenit ei nõuta.
 
-Seadistuses kasuta `GOOGLE_CLIENT_ID` ja `GOOGLE_CLIENT_SECRET` keskkonnamuutujaid. Client secret jääb backendisse. Kohalik callback on juhendi järgi `http://localhost:5173/login/oauth2/code/google`, läbi Vite proxy; Google Console'i seadistus peab sellega kattuma.
+Seadistuses kasuta `GOOGLE_CLIENT_ID` ja `GOOGLE_CLIENT_SECRET` keskkonnamuutujaid. Client secret jääb backendisse. Kohalik callback on juhendi järgi `http://localhost:8081/login/oauth2/code/google`, läbi Vite proxy; Google Console'i seadistus peab sellega kattuma.
 
 ## Väljund
 
@@ -61,7 +61,7 @@ Teostuse reeglid:
 3. Olemasoleva kasutaja roll säilib; `status = B` korral uut autenditud sessiooni ei looda. Korduv ja samaaegne esmasisselogimine ei tohi luua sama `sub` jaoks mitut kasutajat.
 4. Hoia principal'is sisemist `userId` väärtust ning kasuta seda `/api/me` päringus. Anna õigused andmebaasi rolli järgi. Olemasoleva nime või profiili andmete ülekirjutamist see task ei nõua.
 5. Ära loo `profile` kirjet: Google ei anna kohustuslikku telefoni ega asukohta. Profiili puudumine ei tohi põhjustada `/api/me` viga.
-6. Hoia sessioonipõhise rakenduse CSRF-kaitse alles. Rakenda samal originil SPA-le loetava CSRF küpsise ja vastava päise/vormivälja leping. Erinevalt juhendi lihtsustatud `csrf.disable()` näitest ei lülitata kaitset välja. Frontend peab saama värske tokeni enne logout POST-i; täpne väljastamise viis ja tokeni nimed tuleb mõlemas kihis koos määrata enne teostust.
+6. Lülita CSRF-kaitse õppeprojekti lihtsuse huvides välja (`csrf.disable()`), nagu märkmefail `googlega_login.md` näitab: muidu blokeeriks Spring Security Vue POST/PUT/PATCH/DELETE päringud. Frontend ei pea CSRF tokenit hankima ega saatma. Tootmises tuleks CSRF alles jätta ja kasutada `CookieCsrfTokenRepository`t koos `X-XSRF-TOKEN` päisega.
 7. Lisa vajalik OAuth client sõltuvus ja konfiguratsioon, säilitades avalike kategooria- ja tööriistapäringute ligipääsu. Profiili loomine, tööriista lisamine ja nende ärireeglid ei kuulu sellesse taski.
 
 **Allikate erinevus:** HomeView märkmetes olev `POST /auth/google` ei vasta GoogleLoginView lehekülje ja Google juhendi voole. Selle taski alus on viimane: OAuth navigatsioon + sessioon + `/api/me`. Paralleelset `POST /auth/google` endpoint'i ei looda; HomeView vana märge vajab eraldi kooskõlastamist.
@@ -124,9 +124,8 @@ Päris Google konto esmasisselogimine loob oma kontrollitud `sub` väärtusega k
 | `GET /api/me`: sessioon puudub või on aegunud. | 401 Unauthorized | Tühi body; Google'i lehele ei suunata. |
 | `GET /api/me`: ootamatu andmebaasitõrge. | 500 Internal Server Error | `{"errorCode":"INTERNAL_SERVER_ERROR","message":"Kasutaja andmete laadimine ebaõnnestus. Palun proovi hiljem uuesti."}` |
 | OAuth autentimine ebaõnnestub või kasutaja on blokeeritud. | 302 Found | Body puudub; `Location: /?loginError` frontendi originil. |
-| `POST /logout`: CSRF token puudub või on vigane. | 403 Forbidden | Body pole selle taskiga määratud; klient käsitleb staatust. |
 
-401 ja loginError käitumine tulevad juhendist. 500 JSON on taski tehniline täpsustus olemasoleva `ApiError` stringväljadega; praegune `RestExceptionHandler` seda veel ei taga. Kliendile ei tagastata SQL-i, stack trace'i ega Google tokenit. CSRF tokeni aegumisel peab uus katse kasutama värsket tokenit.
+401 ja loginError käitumine tulevad juhendist. 500 JSON on taski tehniline täpsustus olemasoleva `ApiError` stringväljadega; praegune `RestExceptionHandler` seda veel ei taga. Kliendile ei tagastata SQL-i, stack trace'i ega Google tokenit.
 
 ## Vastuvõtu kriteeriumid
 
@@ -136,6 +135,6 @@ Päris Google konto esmasisselogimine loob oma kontrollitud `sub` väärtusega k
 - [ ] `/api/me` kasutab sessiooni principal'i ning tagastab täpselt kuus kirjeldatud välja, õige rolli ja e-posti allika.
 - [ ] Profiilita kasutaja saab 200 ning `hasProfile: false`; autentimata päring saab 401 ilma Google redirect'ita.
 - [ ] OAuth õnnestumine, ebaõnnestumine ja logout järgivad kirjeldatud suunamisi.
-- [ ] Logout lõpetab sessiooni; pärast seda annab `/api/me` 401. CSRF leping on frontendiga kooskõlas ja kehtetu tokeniga POST lükatakse tagasi.
-- [ ] Automaattestid katavad uue ja olemasoleva kasutaja, blokeeritud konto, vigase autentimistulemuse, korduva loomise, profiiliga/profiilita vastuse, 401, 500 ning logout/CSRF käitumise. Testid ei vaja päris Google kontot.
+- [ ] Logout lõpetab sessiooni; pärast seda annab `/api/me` 401. Logout ei nõua CSRF tokenit.
+- [ ] Automaattestid katavad uue ja olemasoleva kasutaja, blokeeritud konto, vigase autentimistulemuse, korduva loomise, profiiliga/profiilita vastuse, 401, 500 ning logout käitumise. Testid ei vaja päris Google kontot.
 - [ ] Eraldi integratsioonikontroll päris seadistatud testkontoga kinnitab OAuth redirect'i, callback'i ja sessiooniküpsise töö; seda ei asenda mock-testide läbimine.
