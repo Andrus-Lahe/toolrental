@@ -7,6 +7,7 @@ import ee.toolrental.infrastructure.exception.InternalServerErrorException;
 import ee.toolrental.infrastructure.exception.PrimaryKeyNotFoundException;
 import ee.toolrental.infrastructure.exception.CategoryLoadingException;
 import org.jspecify.annotations.NonNull;
+import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @ControllerAdvice
@@ -62,6 +64,25 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
         ApiError apiError = new ApiError();
         apiError.setMessage(firstError.getField() + ": " + firstError.getDefaultMessage());
+        apiError.setErrorCode("INCORRECT_INPUT");
+
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleTypeMismatch(
+            TypeMismatchException ex,
+            org.springframework.http.@NonNull HttpHeaders headers,
+            @NonNull HttpStatusCode status,
+            org.springframework.web.context.request.@NonNull WebRequest request) {
+
+        String parameterName = ex instanceof MethodArgumentTypeMismatchException methodArgumentTypeMismatchException
+                ? methodArgumentTypeMismatchException.getName()
+                : ex.getPropertyName();
+        String requiredTypeName = ex.getRequiredType() == null ? "õiget" : ex.getRequiredType().getSimpleName();
+
+        ApiError apiError = new ApiError();
+        apiError.setMessage(parameterName + ": peab olema " + requiredTypeName + "-tüüpi täisarv");
         apiError.setErrorCode("INCORRECT_INPUT");
 
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
