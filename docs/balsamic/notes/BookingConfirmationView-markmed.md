@@ -1,26 +1,73 @@
-# Taotluse saatmise kinnitus — lehekülg 9
-
-Allikas: kasutaja antud `Laenukas(toorik).pdf`, PDF-i lehekülg 9.
-Vormistus: `balsamiq-markmete-struktuur.md` ja `skill-uus-balsamic-silt`.
-
-Komponendi nimi `BookingConfirmationView.vue` ja frontend rada `/booking-confirmation` on ettepanekud; neid ei ole olemasolevas Vue router'is veel määratud. Allolev silt kirjeldab kavandatavat käitumist.
+# BookingConfirmationView.vue märkmed
 
 ## Vaate märkmed
 
 ```text
-Roll: Customer / Admin (sisse logitud taotluse saatja)
+Roll: Customer / Admin (sisse logitud kasutaja, kes on tööriista omanik)
 Failinimi: BookingConfirmationView.vue
-Frontend rada: /booking-confirmation
+Frontend rada: /bookings/{bookingId}/confirm
 
 Vaatega seotud lisainfo:
-Vaatele suunatakse pärast laenutamise taotluse edukat saatmist; ebaõnnestunud saatmisel kinnitusvaadet ei avata.
-Kuvatakse teade: „Sinu laenutamise taotlus on edukalt saadetud tööriista omanikule ja ootab omaniku kinnitust. Teavitame sõnumi teel, kui taotlus on kinnitatud või tagasi lükatud.”
-Teade kinnitab taotluse saatmist; tööriista omanik ei ole taotlust veel kinnitanud.
-Vaate sisu on staatiline: selle avamine ega värskendamine ei saada uut taotlust ega vaja eraldi API-kutset.
+Vaade avatakse e-kirjas oleva lingi "Vaata taotlust" kaudu või teavituste/broneeringute nimekirjast. Avanemisel laetakse GET /api/bookings/{bookingId} abil taotluse andmed (tööriista nimi, laenutuse periood, laenaja kontaktandmed ja laenaja saadetud lisainfo). Tööriista omanik saab sisestada omapoolse lisainfo laenajale ning vajutada nuppu "Kinnita" (staatus 'C') või "Lükka tagasi" (staatus 'R'), mis teeb päringu PATCH /api/bookings/{bookingId}/status. Nupule "Kinnita" vajutamisel kuvatakse modaal "Taotlus kinnitatud" ja nupule "Lükka tagasi" vajutamisel modaal "Taotlus tagasi lükatud", mille ristist sulgemisel suunatakse kasutaja vaatesse Minu tööriistad (/my-tools).
 ```
 
-## API märkmed
+## API märkmed — GET /api/bookings/{bookingId}
 
-Selle vaate staatilise kinnitusteksti jaoks API märkmete kasti ei lisata. Taotluse loomise API-kutse kuulub taotluse saatmise vormi märkmetesse. Omaniku otsuse ja sõnumiga teavitamise API-kutsed kuuluvad vastavate tegevuste märkmetesse; kinnitusvaade neid ei käivita.
+```text
+API: GET /api/bookings/{bookingId}
 
-Päise ühine navigeerimine ja „Logi välja” tegevus kirjeldatakse ühise päisekomponendi juures. Sõnumiga teavitamine on PDF-is kirjeldatud nõue; see märge ei kinnita selle funktsiooni olemasolu backend'is.
+BookingDetailResponse.java
+Response (200):
+{
+  "bookingId": 2,
+  "toolName": "Aurupesur",
+  "startDate": "2026-09-18",
+  "endDate": "2026-09-21",
+  "status": "P",
+  "renterFirstName": "Peeter",
+  "renterLastName": "Kask",
+  "renterEmail": "peeter@gmail.com",
+  "renterPhone": "55123456",
+  "renterMessage": "Palun nädalavahetuseks lisainfoga",
+  "ownerMessage": ""
+}
+
+API teenuse lisainfo:
+Tagastab konkreetse broneeringu taotluse andmed koos laenaja kontaktinfo ja sõnumiga omanikule ülevaatamiseks.
+
+Veateated:
+HTTP: 404
+errorCode: PRIMARY_KEY_NOT_FOUND
+message: "Ei leidnud primary keyd 'bookingId' väärtusega: 123"
+
+HTTP: 403
+errorCode: FORBIDDEN
+message: "Sul puudub õigus selle broneeringu vaatamiseks"
+```
+
+## API märkmed — PATCH /api/bookings/{bookingId}/status
+
+```text
+API: PATCH /api/bookings/{bookingId}/status
+
+BookingStatusUpdateRequest.java
+Request body:
+{
+  "status": "C",
+  "ownerMessage": "Tule kohe järgi, redel on valmis."
+}
+
+Response (200): NONE
+
+API teenuse lisainfo:
+Tööriista omanik saab kinnitada taotluse (status = 'C') või lükata selle tagasi (status = 'R'). ownerMessage on valikuline väli lisainfo edastamiseks laenajale. Staatuse muutmisel saadetakse laenajale vastav teavituskiri e-mailile.
+
+Veateated:
+HTTP: 404
+errorCode: PRIMARY_KEY_NOT_FOUND
+message: "Ei leidnud primary keyd 'bookingId' väärtusega: 123"
+
+HTTP: 403
+errorCode: FORBIDDEN
+message: "Ainult tööriista omanik saab broneeringu staatust muuta"
+```

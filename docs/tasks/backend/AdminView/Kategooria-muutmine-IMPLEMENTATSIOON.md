@@ -72,7 +72,7 @@ Vastuse kuju on olemasolev `ApiError` (`message`, `errorCode`).
 | Sisse logitud kasutaja roll pole `admin`. | 403 Forbidden | tühi (Spring Security) |
 | Kategooriat `categoryId = 123` pole. Teates kasutada tegelikku väärtust. | 404 Not Found | `{"errorCode":"PRIMARY_KEY_NOT_FOUND","message":"Ei leidnud primary keyd 'categoryId' väärtusega: 123"}` |
 | Uus nimi kuulub mõnele teisele kategooriale (nt `categoryId = 1` nimeks `"Ehitustööd"`). | 403 Forbidden | `{"errorCode":"CATEGORY_UNAVAILABLE","message":"Sellise nimega kategooria on juba olemas"}` |
-| `categoryName` puudub, on tühi või liiga pikk; `sequence` puudub; `description` on liiga pikk. | 400 Bad Request | `{"errorCode":"INCORRECT_INPUT","message":"<väli>: <valideerimise teade>"}` |
+| `categoryName` puudub, on tühi või liiga pikk; `sequence` puudub; `categoryDescription` on liiga pikk. | 400 Bad Request | `{"errorCode":"INCORRECT_INPUT","message":"<väli>: <valideerimise teade>"}` |
 | Andmebaasipäring ebaõnnestub ootamatult. | 500 Internal Server Error | `{"errorCode":"INTERNAL_SERVER_ERROR","message":"Kategooria muutmine ebaõnnestus. Palun proovi hiljem uuesti."}` |
 
 - 404 tuleb olemasolevast `PrimaryKeyNotFoundException` klassist.

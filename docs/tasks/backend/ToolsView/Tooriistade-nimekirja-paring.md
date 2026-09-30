@@ -73,7 +73,7 @@ Näite ainus sobiv tööriist on impordi Akutrell. Sama kategooria Redel on staa
 |---|---|---|
 | `toolId` | `Integer` | `tool.id`. |
 | `toolName` | `String` | `tool.name`. |
-| `description` | `String` | `tool.description`, võib olla NULL. |
+| `categoryDescription` | `String` | `tool.description`, võib olla NULL. |
 | `imageData` | `String` | `tool_image.image_data` Base64-na, ainult kirjest `is_main = true`; põhipildi puudumisel NULL. |
 | `status` | `String` | `tool.status`, `A` või `U`. |
 | `cityName` | `String` | Omaniku profiili aadressi linna nimi; profiili puudumisel NULL. |
@@ -81,7 +81,7 @@ Näite ainus sobiv tööriist on impordi Akutrell. Sama kategooria Redel on staa
 
 **Kasutajaga kinnitatud:** kui omanikul puudub profiil, säilib tema tööriist loendis, kui ülejäänud filtrid sobivad ja asukohafiltreid pole; `cityName` ning `districtName` on `null`. Positiivse linna- või linnaosafiltri korral selline tööriist ei sobitu.
 
-Põhipildi puudumine ei eemalda tööriista loendist. Ka siis, kui lisapilte on olemas, ei valita suvalist lisapilti põhipildi asemele. `imageData` sisaldab Base64-baite ilma data-URI prefiksita; `description`, `imageData`, `cityName` ja `districtName` NULL-välju JSON-ist ei eemaldata. Impordipildid on SVG-d; MIME-tüübi ega pildi üleslaadimise uut lepingut see task ei lisa.
+Põhipildi puudumine ei eemalda tööriista loendist. Ka siis, kui lisapilte on olemas, ei valita suvalist lisapilti põhipildi asemele. `imageData` sisaldab Base64-baite ilma data-URI prefiksita; `categoryDescription`, `imageData`, `cityName` ja `districtName` NULL-välju JSON-ist ei eemaldata. Impordipildid on SVG-d; MIME-tüübi ega pildi üleslaadimise uut lepingut see task ei lisa.
 
 Lehekülgjaotus rakendub pärast filtreerimist. `tools` sisaldab iga tööriista kõige rohkem ühe korra; pildiseosed ei tohi suurendada `totalElements` väärtust. Viimasest lehest suurem positiivne `pageNumber` annab 200 ja `tools: []`, säilitades tegelikud `totalElements` ning `totalPages` väärtused. Täiesti tühja tulemuse näide:
 

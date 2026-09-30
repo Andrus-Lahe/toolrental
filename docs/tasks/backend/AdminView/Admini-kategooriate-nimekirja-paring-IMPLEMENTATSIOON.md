@@ -79,9 +79,9 @@ Neli impordikategooriat, sequence järjestus, null, [], admin/mitteadmin/külast
 Lähteülesande vastuvõtukriteeriumidest tuletatav kontrollnimekiri (kontrolli iga punkti, mitte ainult 200 staatust):
 
 - [ ] `GET /api/admin/categories` on olemas ja kättesaadav ainult `admin` rollile.
-- [ ] HTTP 200 vastus on massiiv täpselt väljadega `categoryId`, `categoryName`, `description`, `sequence`.
+- [ ] HTTP 200 vastus on massiiv täpselt väljadega `categoryId`, `categoryName`, `categoryDescription`, `sequence`.
 - [ ] Impordiandmetega tagastatakse 4 kategooriat järjestuses `sequence ASC` ja näites toodud väärtustega.
-- [ ] Kategooria, mille `description` on `null`, tagastatakse `"description": null` väärtusega.
+- [ ] Kategooria, mille `categoryDescription` on `null`, tagastatakse `"description": null` väärtusega.
 - [ ] Kategooriateta andmebaasi korral on vastus 200 ja `[]`.
 - [ ] Avalik `GET /api/categories` jääb muutmata.
 - [ ] Sisse logimata kasutaja saab 401 ja mitte-admin 403; andmebaasi tõrge annab kirjeldatud 500 vastuse.

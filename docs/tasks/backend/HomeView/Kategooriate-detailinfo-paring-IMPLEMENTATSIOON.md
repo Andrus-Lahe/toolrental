@@ -81,7 +81,7 @@ Puuduv pilt/kirjeldus, sortimine, Base64 round-trip ja kõik kategooriad ka tö�
 Lähteülesande vastuvõtukriteeriumidest tuletatav kontrollnimekiri (kontrolli iga punkti, mitte ainult 200 staatust):
 
 - [ ] `GET /api/categories/detailed-info` on olemas, sisenditeta ja kättesaadav ka sisse logimata kasutajale.
-- [ ] Vastus on HTTP 200 ja JSON massiiv; iga element sisaldab ainult `categoryId`, `categoryName`, `description` ja `imageData`.
+- [ ] Vastus on HTTP 200 ja JSON massiiv; iga element sisaldab ainult `categoryId`, `categoryName`, `categoryDescription` ja `imageData`.
 - [ ] Andmed loetakse tabelitest `category` ja `category_image`; vastuses on kõik kategooriad, sealhulgas tööriistadeta kategooriad.
 - [ ] Järjestus on `category.sequence ASC`, võrdse väärtuse korral `category.id ASC`.
 - [ ] Impordiandmetega tagastatakse tabelis toodud neli kategooriat, sh nimi „Muud“; pildid on tegelike imporditud baitide Base64 esitus.

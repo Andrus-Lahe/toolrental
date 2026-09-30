@@ -64,7 +64,7 @@ CREATE TABLE category (
 );
 ```
 
-`category_name` on kohustuslik ja unikaalne. `description` ja `sequence` ei kuulu DTO-sse; `sequence` kasutatakse sortimiseks. `category_image`, `tool` ja `tool_image` ei osale päringus. See on filtrite lihtloend, mitte avalehe `GET /api/categories/detailed-info` teenus.
+`category_name` on kohustuslik ja unikaalne. `categoryDescription` ja `sequence` ei kuulu DTO-sse; `sequence` kasutatakse sortimiseks. `category_image`, `tool` ja `tool_image` ei osale päringus. See on filtrite lihtloend, mitte avalehe `GET /api/categories/detailed-info` teenus.
 
 Näidisandmete ID-d ja nimed on esitatud eespool olevas täielikus JSON-is.
 
