@@ -65,6 +65,7 @@
 <script>
 import { RouterLink } from 'vue-router'
 import { isAdmin, loadSession, session } from '@/auth/session.js'
+import { hasLoginReturnPath } from '@/auth/loginReturnPath.js'
 
 export default {
   name: 'AppHeader',
@@ -93,7 +94,7 @@ export default {
 
     handleProfileRedirect() {
       const user = this.session.user
-      if (this.isLoggedIn && !user.hasProfile && this.$route.name !== 'profileRoute') {
+      if (this.isLoggedIn && !user.hasProfile && !hasLoginReturnPath() && this.$route.name !== 'profileRoute') {
         this.$router.push({ name: 'profileRoute' })
       }
     },

@@ -7,6 +7,7 @@
     "dev": "vite --port 8081",
     "build": "vite build",
     "preview": "vite preview",
+    "test:booking-approval": "node --test tests/booking-approval.test.js",
     "lint": "run-s lint:*",
     "lint:oxlint": "oxlint . --fix",
     "lint:eslint": "eslint . --fix --cache",

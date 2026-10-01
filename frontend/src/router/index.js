@@ -8,6 +8,7 @@ import AddToolView from '@/views/AddToolView.vue'
 import MyToolsView from '@/views/MyToolsView.vue'
 import BookingFormView from '@/views/BookingFormView.vue'
 import AdminView from '@/views/AdminView.vue'
+import BookingApprovalView from '@/views/BookingApprovalView.vue'
 
 
 const router = createRouter({
@@ -37,6 +38,11 @@ const router = createRouter({
       path: '/tools/:toolId/booking',
       name: 'bookingFormRoute',
       component: BookingFormView,
+    },
+    {
+      path: '/bookings/:bookingId',
+      name: 'bookingApprovalRoute',
+      component: BookingApprovalView,
     },
     {
       path: '/tools/new',
