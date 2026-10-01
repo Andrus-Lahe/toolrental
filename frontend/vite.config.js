@@ -1,17 +1,20 @@
 import { fileURLToPath, URL } from 'node:url'
+import { env } from 'node:process'
 
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
 
+const backendTarget = env.VITE_BACKEND_URL || 'http://localhost:8080'
+
 export default defineConfig({
   plugins: [vue(), vueDevTools()],
   server: {
     proxy: {
-      '/api': 'http://localhost:8080',
-      '/oauth2': 'http://localhost:8080',
-      '/login/oauth2': 'http://localhost:8080',
-      '/logout': 'http://localhost:8080',
+      '/api': backendTarget,
+      '/oauth2': backendTarget,
+      '/login/oauth2': backendTarget,
+      '/logout': backendTarget,
     },
   },
   resolve: {
