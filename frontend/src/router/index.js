@@ -6,6 +6,7 @@ import AiSearchView from '@/views/AiSearchView.vue'
 import ToolsView from '@/views/ToolsView.vue'
 import AddToolView from '@/views/AddToolView.vue'
 import MyToolsView from '@/views/MyToolsView.vue'
+import BookingFormView from '@/views/BookingFormView.vue'
 
 
 const router = createRouter({
@@ -30,6 +31,11 @@ const router = createRouter({
       path: '/ai-search',
       name: 'aiSearchRoute',
       component: AiSearchView,
+    },
+    {
+      path: '/tools/:toolId/booking',
+      name: 'bookingFormRoute',
+      component: BookingFormView,
     },
     {
       path: '/tools/new',

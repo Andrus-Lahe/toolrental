@@ -14,4 +14,13 @@ export default {
   navigateToProfile(router) {
     return router.push({ path: '/profile' })
   },
+
+  navigateToToolDetail(router, toolId) {
+    return router.push({ path: `/tools/${toolId}` })
+  },
+
+  navigateBackOrToToolDetail(router, toolId) {
+    if (window.history.state?.back) return router.back()
+    return this.navigateToToolDetail(router, toolId)
+  },
 }
