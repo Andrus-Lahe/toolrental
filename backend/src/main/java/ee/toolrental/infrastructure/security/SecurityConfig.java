@@ -25,6 +25,7 @@ public class SecurityConfig {
                         .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("admin")
                         .requestMatchers(HttpMethod.POST, "/api/bookings").hasAnyRole("customer", "admin")
+                        .requestMatchers(HttpMethod.POST, "/api/tools").hasRole("customer")
                         .anyRequest().authenticated())
                 .oauth2Login(oauth -> oauth
                         .userInfoEndpoint(userInfo -> userInfo.oidcUserService(appUserOidcService))

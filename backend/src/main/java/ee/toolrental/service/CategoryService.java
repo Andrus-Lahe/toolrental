@@ -3,6 +3,7 @@ package ee.toolrental.service;
 import ee.toolrental.controller.category.dto.CategoryDetailedInfoDto;
 import ee.toolrental.controller.category.dto.CategoryDto;
 import ee.toolrental.infrastructure.exception.CategoryLoadingException;
+import ee.toolrental.infrastructure.exception.PrimaryKeyNotFoundException;
 import ee.toolrental.persistence.category.Category;
 import ee.toolrental.persistence.category.CategoryMapper;
 import ee.toolrental.persistence.category.CategoryRepository;
@@ -20,6 +21,11 @@ public class CategoryService {
     private final CategoryRepository categoryRepository;
     private final CategoryMapper categoryMapper;
     private final CategoryImageRepository categoryImageRepository;
+
+    public Category getValidCategoryBy(Integer categoryId) {
+        return categoryRepository.findById(categoryId)
+                .orElseThrow(() -> new PrimaryKeyNotFoundException("categoryId", categoryId));
+    }
 
     public List<CategoryDto> getCategories() {
         try {
