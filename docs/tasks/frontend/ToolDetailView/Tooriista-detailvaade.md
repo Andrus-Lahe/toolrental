@@ -23,7 +23,7 @@ Kasutaja avab vaate ToolsView kaardi nupust „Vaata detaile“ (`/tools/{toolId
 | Tööriista pilt | Pilt | `imageData` (Base64) → `<img :src="'data:image/...;base64,' + imageData">`. `imageData = null` korral kohatäitja (nt Bootstrap ikoon/hall kast). MIME-tüüp vt lahtine ots allpool. |
 | Tööriista nimi | Tekst (kirjutuskaitstud) | `toolName`. Mockupil sisendkasti moodi, kuid vaade ainult kuvab. |
 | Kategooria | Tekst (kirjutuskaitstud) | `categoryName`. |
-| Tööriista kirjeldus | Tekst (kirjutuskaitstud) | `categoryDescription`; `null` korral tühi või „Kirjeldus puudub“. |
+| Tööriista kirjeldus | Tekst (kirjutuskaitstud) | `description`; `null` korral tühi või „Kirjeldus puudub“. |
 | Saadavuse teade | Teade | Kui `status = "U"`, näita „Tööriist pole hetkel saadaval“. Mockupil pole; tuleneb `status` väljast (vt lahtine ots). |
 | „Omaniku kontaktinfo“ | Kast | Nähtav **ainult sisse logitud kasutajale**. |
 | Omaniku nimi | Tekst | `firstName` + `" "` + `lastName`. |
@@ -70,7 +70,7 @@ Sisend: path variable `toolId` (Integer). Request body puudub.
 }
 ```
 
-`imageData` on põhipildi (`is_main = true`) baitide Base64 kuju ilma `data:` prefiksita, pildita tööriistal `null`. `status`: `A` = saadaval, `U` = pole saadaval. `categoryDescription` võib olla `null`.
+`imageData` on põhipildi (`is_main = true`) baitide Base64 kuju ilma `data:` prefiksita, pildita tööriistal `null`. `status`: `A` = saadaval, `U` = pole saadaval. `description` võib olla `null`.
 
 **Veateated:**
 

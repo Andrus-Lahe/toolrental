@@ -1,5 +1,6 @@
 package ee.toolrental.controller.tool;
 
+import ee.toolrental.controller.tool.dto.ToolDetailResponse;
 import ee.toolrental.controller.tool.dto.ToolsResponse;
 import ee.toolrental.infrastructure.security.AppUserOidcService;
 import ee.toolrental.infrastructure.security.SecurityConfig;
@@ -19,7 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(ToolController.class)
+@WebMvcTest({ToolController.class, ToosListController.class})
 @Import(SecurityConfig.class)
 @TestPropertySource(properties = {
         "spring.security.oauth2.client.registration.google.client-id=test-client-id",
@@ -42,5 +43,14 @@ class ToolPublicAccessTest {
         mockMvc.perform(get("/api/tools"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.tools.length()").value(0));
+    }
+
+    @Test
+    void guestCanReadToolDetail() throws Exception {
+        when(toolService.getToolDetail(1)).thenReturn(new ToolDetailResponse(1, 1, "Akutrell", "Ehitustööd", null, null, "A"));
+
+        mockMvc.perform(get("/api/tools/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.toolId").value(1));
     }
 }
