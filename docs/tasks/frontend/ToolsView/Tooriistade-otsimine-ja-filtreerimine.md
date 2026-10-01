@@ -8,7 +8,7 @@
 
 ![Mockup](./Tooriistade-otsimine-ja-filtreerimine.png)
 
-Täiendav allikas: [ToolsView-markmed.md](../../../balsamic/notes/ToolsView-markmed.md). Kõigi nelja teenuse backend taskid on olemas ja allpool viidatud; Controller/DTO realisatsioonid koodibaasis praegu puuduvad, seega kasutatakse taskide lepinguid.
+Täiendav allikas: [ToolsView-markmed.md](../../../balsamic/notes/ToolsView-markmed.md). Kõigi nelja teenuse backend taskid on olemas ja allpool viidatud; Kõik neli endpointi on backendis realiseeritud; kus backendi kood ja backend task erinevad, kehtib backendi kood (`ToolListItemDto.description`, vaikimisi `pageSize=12`).
 
 ## Kasutajavoog
 
@@ -26,7 +26,7 @@ Kasutaja avab tööriistade otsingu otse või avalehe kategoorialt ning näeb le
 | Linn | Rippmenüü | Valikuline cityId; „Vali linn“/kõik valik vastab 0-le. |
 | Linnaosa | Rippmenüü | Valikuline districtId; valikud tulevad valitud linna järgi. Linna puudumisel ja laadimise ajal keelatud. |
 | Rakenda / Tühista filtrid | Filtrite tegevused | Mockupi ühine silt teostatakse kahe selgelt eristatava tegevusena (UI täpsustus): rakendamine ja lähtestamine. |
-| Tööriistakaardid | Kaardivõrgustik | Mockupil 3 veergu ja 2 rida, vaikimisi kuni 6 kaarti lehel; kitsal ekraanil vähem veerge. |
+| Tööriistakaardid | Kaardivõrgustik | Mockupil 3 veergu; backendi vaikimisi lehe suurusega kuni 12 kaarti lehel (4 rida); kitsal ekraanil vähem veerge. |
 | Pilt | Kaardi pilt | imageData Base64; puudumisel või kuvamisveal kohatäitja, alt-tekstiks tööriista nimi. |
 | Nimi ja kirjeldus | Kaardi tekst | toolName ja description; null-kirjeldust ei näidata tekstina „null“. |
 | Hind: 5 €/päev | Mockupi tekst | DTO-s ega andmebaasis hinnavälja pole. Hinda ei kuvata väljamõeldud või fikseeritud väärtusena; hinnainfo vajab eraldi lepingut. |
@@ -39,10 +39,10 @@ Kasutaja avab tööriistade otsingu otse või avalehe kategoorialt ning näeb le
 ## Käitumine ja valideerimine
 
 1. Alusta andmete laadimist `beforeMount` kaudu. Kategooriate, linnade ja tööriistade algpäringud võivad käia sõltumatult. Vaade ja neli GET endpoint'i on avalikud: ToolsView avamine ega detaililingile vajutamine ei nõua selle taski järgi Google modaali.
-2. Vaikimisi kasuta categoryId=0, cityId=0, districtId=0, status=A, pageNumber=1 ja pageSize=6. `/tools?categoryId=1` peab juba esimeses tööriistapäringus rakendama kategooria 1 ning näitama seda pärast valikute laadimist rippmenüüs. Ära tee enne seda tarbetut filtreerimata päringut.
+2. Vaikimisi kasuta categoryId=0, cityId=0, districtId=0, status=A, pageNumber=1 ja pageSize=12. `status` ja `pageSize` jäetakse päringust välja, kehtivad backendi vaikeväärtused. `/tools?categoryId=1` peab juba esimeses tööriistapäringus rakendama kategooria 1 ning näitama seda pärast valikute laadimist rippmenüüs. Ära tee enne seda tarbetut filtreerimata päringut.
 3. Hoia vormis valitavad filtrid ja viimati rakendatud filtrid eraldi. Rippmenüü muutmine ei lae kohe uusi tööriistu; „Rakenda“ rakendab valikud ja alustab lehelt 1. Lehevahetus kasutab rakendatud filtreid, mitte pooleliolevaid valikuid.
 4. Linna vahetamisel nulli kohe districtId ja vana linnaosaloend. Positiivse cityId puhul küsi linnaosad; cityId=0 korral seda GET-i ei tehta. Kui linn muutub päringu kestel, eira vana linna vastust. Tühi edukas linnaosaloend pole 404.
-5. „Tühista filtrid“ lähtestab kõik kolm ID-filtrit 0-le, tühjendab linnaosad, seab pageNumber=1 ning laadib tulemuse status=A ja pageSize=6 väärtustega. Avalehe categoryId query ei tohi lähtestamisel filtrit kohe taastada: eemalda see router query'st.
+5. „Tühista filtrid“ lähtestab kõik kolm ID-filtrit 0-le, tühjendab linnaosad, seab pageNumber=1 ning laadib tulemuse backendi vaikeväärtustega (status=A, pageSize=12). Avalehe categoryId query ei tohi lähtestamisel filtrit kohe taastada: eemalda see router query'st.
 6. Toeta categoryId ja pageNumber route query muutusi ka sama komponendi kasutamisel (nt HomeView link või brauseri tagasi/edasi). Vajadusel sünkrooni valitud linn/linnaosa samasse URL-i kui tehniline täpsustus; väldi watch'i ja käsitsi laadimise topeltpäringuid. Üksik districtId ilma cityId-ta on backendis lubatud, kuid seda erijuhtu ei pea linna valimist nõudev vorm looma.
 7. Ära saada tühje stringe: puuduv ID-filter saadetakse 0-na või jäetakse välja. Arvud peavad olema Java Integer vahemikus; ID-d vähemalt 0 ja lehenumber/lehesuurus vähemalt 1. Vigane toetatud URL-parameeter annab nähtava sisendivea ning lähtestamise võimaluse, mitte vaikse teise otsingu. Positiivne olematu kategooria ei asendu vaikselt filtrita otsinguga: säilita päringu filter, näita puuduvat valikut ja võimalda lähtestada.
 8. Eelmine on esimesel lehel keelatud, Järgmine viimasel ning mõlemad totalPages=0 korral. Lehenumbrid pärinevad tegelikust totalPages väärtusest. Positiivne üle viimase lehe number võib API-st anda tühja tools massiivi koos mittenull metaandmetega: kuva selle lehe tühi olek ja võimalda minna olemasolevale lehele, ära väida kogu otsingut tühjaks.
@@ -72,9 +72,9 @@ Path variable'id ja request body puuduvad. Endpoint on avalik: maketi rollid on 
 | `districtId` | `Integer` | Ei | `0` | `0` või puudumine jätab linnaosafiltri rakendamata; positiivne väärtus filtreerib omaniku aadressi linnaosa järgi. |
 | `status` | `String` | Ei | `A` | `A` = saadaval, `U` = pole saadaval, `0` = staatusefiltrit ei rakendata. `0` on ainult päringu eriväärtus, mitte andmebaasi staatus. |
 | `pageNumber` | `Integer` | Ei | `1` | Lehenumber algab ühest; peab olema vähemalt 1. |
-| `pageSize` | `Integer` | Ei | `6` | Kirjete arv lehel; peab olema vähemalt 1. |
+| `pageSize` | `Integer` | Ei | `12` | Kirjete arv lehel; peab olema vähemalt 1. |
 
-**Kasutajaga kinnitatud:** puuduv `status` tähendab `A`, `status=0` tähendab kõiki staatusi; vaikimisi `pageNumber=1`, `pageSize=6`; tulemused järjestatakse `tool.id ASC`.
+**Kasutajaga kinnitatud:** puuduv `status` tähendab `A`, `status=0` tähendab kõiki staatusi; vaikimisi `pageNumber=1`, `pageSize=12` (backendi kood; algne backend task nimetas 6); tulemused järjestatakse `tool.id ASC`.
 
 Kõik etteantud filtrid ühendatakse AND-tingimusega. `districtId` võib olla antud ka ilma `cityId`-ta. `cityId` ja `districtId` vastuoluline kombinatsioon annab tühja tulemuse, mitte teise linna tööriistu. Positiivne filter, mille ID-d andmebaasis pole, annab samuti tühja tulemuse; see loendipäring ei kasuta puuduva filtriväärtuse jaoks 404. Need servajuhtumid on taski tehnilised täpsustused, mida PDF eraldi ei kirjelda.
 
@@ -83,7 +83,7 @@ Negatiivne ID-filter, alla ühe lehenumber või lehe suurus, Integer-iks teisend
 Näidispäring, mille täielik vastus on allpool:
 
 ```http
-GET /api/tools?categoryId=2&cityId=1&districtId=1&status=A&pageNumber=1&pageSize=6
+GET /api/tools?categoryId=2&cityId=1&districtId=1&status=A&pageNumber=1&pageSize=12
 ```
 
 **Väljund:**
@@ -93,7 +93,7 @@ GET /api/tools?categoryId=2&cityId=1&districtId=1&status=A&pageNumber=1&pageSize
 ```json
 {
   "pageNumber": 1,
-  "pageSize": 6,
+  "pageSize": 12,
   "totalPages": 1,
   "totalElements": 1,
   "tools": [
@@ -126,7 +126,7 @@ Näite ainus sobiv tööriist on impordi Akutrell. Sama kategooria Redel on staa
 |---|---|---|
 | `toolId` | `Integer` | `tool.id`. |
 | `toolName` | `String` | `tool.name`. |
-| `categoryDescription` | `String` | `tool.description`, võib olla NULL. |
+| `description` | `String` | `tool.description`, võib olla NULL. |
 | `imageData` | `String` | `tool_image.image_data` Base64-na, ainult kirjest `is_main = true`; põhipildi puudumisel NULL. |
 | `status` | `String` | `tool.status`, `A` või `U`. |
 | `cityName` | `String` | Omaniku profiili aadressi linna nimi; profiili puudumisel NULL. |
@@ -134,14 +134,14 @@ Näite ainus sobiv tööriist on impordi Akutrell. Sama kategooria Redel on staa
 
 **Kasutajaga kinnitatud:** kui omanikul puudub profiil, säilib tema tööriist loendis, kui ülejäänud filtrid sobivad ja asukohafiltreid pole; `cityName` ning `districtName` on `null`. Positiivse linna- või linnaosafiltri korral selline tööriist ei sobitu.
 
-Põhipildi puudumine ei eemalda tööriista loendist. Ka siis, kui lisapilte on olemas, ei valita suvalist lisapilti põhipildi asemele. `imageData` sisaldab Base64-baite ilma data-URI prefiksita; `categoryDescription`, `imageData`, `cityName` ja `districtName` NULL-välju JSON-ist ei eemaldata. Impordipildid on SVG-d; MIME-tüübi ega pildi üleslaadimise uut lepingut see task ei lisa.
+Põhipildi puudumine ei eemalda tööriista loendist. Ka siis, kui lisapilte on olemas, ei valita suvalist lisapilti põhipildi asemele. `imageData` sisaldab Base64-baite ilma data-URI prefiksita; `description`, `imageData`, `cityName` ja `districtName` NULL-välju JSON-ist ei eemaldata. Impordipildid on SVG-d; MIME-tüübi ega pildi üleslaadimise uut lepingut see task ei lisa.
 
 Lehekülgjaotus rakendub pärast filtreerimist. `tools` sisaldab iga tööriista kõige rohkem ühe korra; pildiseosed ei tohi suurendada `totalElements` väärtust. Viimasest lehest suurem positiivne `pageNumber` annab 200 ja `tools: []`, säilitades tegelikud `totalElements` ning `totalPages` väärtused. Täiesti tühja tulemuse näide:
 
 ```json
 {
   "pageNumber": 1,
-  "pageSize": 6,
+  "pageSize": 12,
   "totalPages": 0,
   "totalElements": 0,
   "tools": []
@@ -150,16 +150,16 @@ Lehekülgjaotus rakendub pärast filtreerimist. `tools` sisaldab iga tööriista
 
 Kontrollnäited kogu praeguse [3_import.sql](../../../database/3_import.sql) kohta:
 
-| Päringu tingimus | totalElements | totalPages (pageSize=6) | Esimese lehe toolId-d |
+| Päringu tingimus | totalElements | totalPages (pageSize=12) | Esimese lehe toolId-d |
 |---|---|---|---|
-| Vaikimisi `status=A` | 7 | 2 | 1, 3, 4, 5, 6, 7 |
-| `status=0` | 8 | 2 | 1, 2, 3, 4, 5, 6 |
+| Vaikimisi `status=A` | 7 | 1 | 1, 3, 4, 5, 6, 7, 8 |
+| `status=0` | 8 | 1 | 1, 2, 3, 4, 5, 6, 7, 8 |
 | `status=U` | 1 | 1 | 2 |
 | `categoryId=2&status=A` | 1 | 1 | 1 |
 | `cityId=1&districtId=2&status=A` | 3 | 1 | 3, 4, 8 |
 | `cityId=2&status=0` | 0 | 0 | tühi |
 
-Vaikimisi päringu teisel lehel on ainult `toolId=8`. PDF-i `totalElements=8` näide sobib `status=0` päringule; vaikimisi `A` korral on andmebaasis 7 sobivat kirjet. PDF-i kaardil olevat hinda ei lisata API-sse: kirjeldatud DTO ega SQL ei sisalda hinnavälja.
+Vaikimisi päringu teine leht (`pageNumber=2`) annab `tools: []` koos `totalElements=7` ja `totalPages=1`. PDF-i `totalElements=8` näide sobib `status=0` päringule; vaikimisi `A` korral on andmebaasis 7 sobivat kirjet. PDF-i kaardil olevat hinda ei lisata API-sse: kirjeldatud DTO ega SQL ei sisalda hinnavälja.
 
 **Veateated:**
 
@@ -409,15 +409,15 @@ Arvuliste parameetrite veateates asendub näidisvälja nimi tegeliku vigase para
 | `frontend/src/views/ToolsView.vue` | Uus vaade, route'i algväärtused, eraldi vormi/rakendatud filtrid, päringud ja navigeerimine. |
 | `frontend/src/components/forms/ToolsFilterForm.vue` | Kolm rippmenüüd ja rakendamise/lähtestamise tegevused; props valikutele ja olekutele, event-apply-filters / event-reset-filters / event-city-changed. |
 | `frontend/src/components/common/ToolCard.vue` | Tööriista pilt, nimi, kirjeldus ja event-view-details toolId-ga. |
-| `frontend/src/components/common/Pagination.vue` | Lehenumbrid ja eelmine/järgmine, event-page-changed. |
+| `frontend/src/components/common/ToolsPagination.vue` | Lehenumbrid ja eelmine/järgmine, event-page-changed. |
 | `frontend/src/components/common/AlertDanger.vue` | Veateadete kuvamine tekstina; kasuta ühist komponenti, kui see on teise taskiga loodud. |
 | `frontend/src/api-services/ToolService.js` | GET /api/tools, parameetrid Axiose params kaudu. |
 | `frontend/src/api-services/CategoryService.js` | GET /api/categories; eraldi HomeView detailsest kategooriapäringust. |
 | `frontend/src/api-services/CityService.js` | GET /api/cities ja GET /api/cities/{cityId}/districts. |
 | `frontend/src/navigation/NavigationService.js` | Detailvaatesse navigeerimine. |
-| `frontend/src/router/index.js` | Lisa `/tools`; `/tools/:toolId` detailvaade on integratsiooni sõltuvus. |
+| `frontend/src/router/index.js` | `/tools` on olemas, muudatust ei vaja; `/tools/:toolId` detailvaade on ToolDetailView taski sõltuvus. |
 
-Praegu puuduvad ToolsView, detailvaade, nimetatud teenused ja `/tools` route; router sisaldab ainult `/` ning `/test`. Kavandatud failid sobita teiste taskidega, ära dubleeri nende ühiskomponente. Järgi `docs/frontend/projekti-struktuur.md` ja `docs/frontend/vue-komponendi-struktuur.md`: Options API järjekord `name`, `components`, `props`, `emits`, `data`, `computed`, `methods`, `beforeMount`; päringud `.then()` / `.catch()` / `.finally()` ning eraldi handle-meetodid.
+`/tools` route, `CategoryService`, `CityService`, `CitiesDropdown` ja `DistrictsDropdown` on olemas; `ToolsView.vue` on kohatäitja. `/tools/:toolId` route kuulub ToolDetailView taskile ja seda siin ei lisata. Detailne plaan: [Tooriistade-otsimine-ja-filtreerimine-IMPLEMENTATSIOON.md](./Tooriistade-otsimine-ja-filtreerimine-IMPLEMENTATSIOON.md). Kavandatud failid sobita teiste taskidega, ära dubleeri nende ühiskomponente. Järgi `docs/frontend/projekti-struktuur.md` ja `docs/frontend/vue-komponendi-struktuur.md`: Options API järjekord `name`, `components`, `props`, `emits`, `data`, `computed`, `methods`, `beforeMount`; päringud `.then()` / `.catch()` / `.finally()` ning eraldi handle-meetodid.
 
 ## Vastuvõtu kriteeriumid
 
@@ -425,8 +425,8 @@ Praegu puuduvad ToolsView, detailvaade, nimetatud teenused ja `/tools` route; ro
 - [ ] Mockupi päis, kolm filtrit, rakendamine/lähtestamine, kaardid ja paginatsioon on olemas; fiktiivset hinda ei kuvata.
 - [ ] HomeView categoryId query rakendub esimeses päringus ja rippmenüüs; lähtestamine eemaldab selle mõju ka URL-ist.
 - [ ] Linna muutmine nullib linnaosa, cityId=0 ei kutsu districts endpoint'i ning vana vastus ei kirjuta uue linna valikuid üle.
-- [ ] Rakendamine alustab lehelt 1, lehevahetus säilitab rakendatud filtrid, lähtestamine taastab status=A ja pageSize=6 vaikimisi otsingu.
-- [ ] Vaikimisi impordi esimene leht sisaldab toolId-sid 1, 3, 4, 5, 6, 7 ning teine leht 8; metaandmed on 7 tulemust ja 2 lehte.
+- [ ] Rakendamine alustab lehelt 1, lehevahetus säilitab rakendatud filtrid, lähtestamine taastab backendi vaikimisi otsingu (status=A, pageSize=12).
+- [ ] Vaikimisi impordi esimene leht sisaldab toolId-sid 1, 3, 4, 5, 6, 7, 8; metaandmed on 7 tulemust, 1 leht ja pageSize 12.
 - [ ] cityId=2 otsing annab korrektse tühja tulemuse; olematu positiivne ID ja üle viimase lehe number ei tekita väljamõeldud 404 viga.
 - [ ] Paginatsioon kasutab vastuse metaandmeid ja keelab piiril mittesobivad tegevused.
 - [ ] Null-kirjeldus, puuduv/vigane pilt ja profiilita omaniku null-asukoht ei lõhu kaarti.

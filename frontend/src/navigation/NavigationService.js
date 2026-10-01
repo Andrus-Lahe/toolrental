@@ -35,4 +35,8 @@ export default {
   navigateToHomeView(router) {
     return router.push({ name: 'homeRoute' })
   },
+
+  navigateToToolsSearch(router, query) {
+    return router.push({ path: '/tools', query })
+  },
 }
