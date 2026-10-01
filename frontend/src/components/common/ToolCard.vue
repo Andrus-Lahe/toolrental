@@ -1,5 +1,5 @@
 <template>
-  <article class="card h-100">
+  <article class="card tool-list-card h-100">
     <div class="tool-card-image">
       <img
         v-if="imageUrl && !imageFailed"
@@ -68,13 +68,27 @@ export default {
 </script>
 
 <style scoped>
+.tool-list-card {
+  min-width: 0;
+  padding: var(--space-3);
+  transition: border-color 150ms ease, box-shadow 150ms ease, transform 150ms ease;
+}
+
+.tool-list-card:hover {
+  border-color: var(--color-border-strong);
+  box-shadow: var(--shadow-card-hover);
+  transform: translateY(-2px);
+}
+
 .tool-card-image {
   aspect-ratio: 4 / 3;
   overflow: hidden;
-  background: #f1f5f9;
+  border-radius: calc(var(--radius-card) - 0.3rem);
+  background: var(--color-surface-soft);
 }
 
 .tool-card-image img {
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -86,8 +100,25 @@ export default {
   height: 100%;
   min-height: 140px;
   place-items: center;
-  color: #64748b;
-  font-size: 0.875rem;
+  color: var(--color-muted);
+  font-size: var(--font-size-small);
+}
+
+.tool-list-card .card-body {
+  min-width: 0;
+  padding: var(--space-4) var(--space-2) var(--space-2);
+}
+
+.tool-list-card .card-title {
+  margin-bottom: var(--space-2);
+  color: var(--color-ink);
+  font-size: 1.05rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.tool-list-card .btn {
+  width: 100%;
 }
 
 .tool-card-description {
@@ -96,7 +127,14 @@ export default {
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 3;
   line-clamp: 3;
-  color: #475569;
-  font-size: 0.875rem;
+  color: var(--color-muted);
+  font-size: var(--font-size-small);
+  line-height: 1.5;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tool-list-card {
+    transition: none;
+  }
 }
 </style>

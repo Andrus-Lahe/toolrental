@@ -1,6 +1,6 @@
 <template>
   <form class="tools-filter-form" @submit.prevent="$emit('event-apply-filters')">
-    <h2 class="h5 mb-3">Filtreeri</h2>
+    <h2 class="h5 mb-4">Filtreeri</h2>
 
     <div class="mb-3">
       <label for="tools-filter-category" class="form-label">Kategooria</label>
@@ -110,8 +110,29 @@ export default {
 
 <style scoped>
 .tools-filter-form {
-  padding: 1.25rem;
-  border: 1px solid #dee2e6;
-  border-radius: 0.5rem;
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.tools-filter-form h2 {
+  color: var(--color-ink);
+  letter-spacing: -0.025em;
+}
+
+.tools-filter-form .form-label {
+  margin-bottom: var(--space-2);
+}
+
+.tools-filter-form .d-grid {
+  margin-top: var(--space-5);
+}
+
+@media (max-width: 575.98px) {
+  .tools-filter-form {
+    padding: var(--space-4);
+  }
 }
 </style>

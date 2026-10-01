@@ -45,8 +45,12 @@ export default {
 
 <style scoped>
 .tool-detail-image {
+  padding: var(--space-3);
   overflow: hidden;
-  background: #f1f5f9;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
 }
 
 .tool-detail-image img,
@@ -56,10 +60,20 @@ export default {
   min-height: 260px;
   aspect-ratio: 4 / 3;
   place-items: center;
+  border-radius: calc(var(--radius-card) - 0.3rem);
+  background: var(--color-surface-soft);
   object-fit: contain;
 }
 
 .tool-detail-image-placeholder {
-  color: #64748b;
+  color: var(--color-muted);
+  font-size: var(--font-size-small);
+}
+
+@media (max-width: 575.98px) {
+  .tool-detail-image img,
+  .tool-detail-image-placeholder {
+    min-height: 0;
+  }
 }
 </style>

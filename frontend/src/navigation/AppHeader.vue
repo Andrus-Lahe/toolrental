@@ -1,10 +1,10 @@
 <template>
-  <header class="border-bottom bg-white">
+  <header class="site-header border-bottom bg-white">
     <nav
-      class="navbar navbar-expand-lg container py-3"
+      class="navbar navbar-expand-lg container py-3 site-header-nav"
       aria-label="Peamine navigatsioon"
     >
-      <RouterLink to="/" class="navbar-brand fw-bold">Laenukas</RouterLink>
+      <RouterLink to="/" class="navbar-brand fw-bold site-brand">Laenukas</RouterLink>
       <button
         class="navbar-toggler"
         type="button"
@@ -18,22 +18,22 @@
       </button>
 
       <div id="navMenu" class="collapse navbar-collapse">
-        <div class="navbar-nav gap-lg-3 me-auto">
-          <RouterLink class="nav-link" active-class="active" to="/">Avaleht</RouterLink>
-          <RouterLink class="nav-link" active-class="active" to="/tools">Otsi tööriistu</RouterLink>
-          <RouterLink class="nav-link" active-class="active" to="/ai-search">AI otsing</RouterLink>
+        <div class="navbar-nav gap-lg-2 me-auto site-nav-links">
+          <RouterLink class="nav-link site-nav-link" active-class="active" to="/">Avaleht</RouterLink>
+          <RouterLink class="nav-link site-nav-link" active-class="active" to="/tools">Otsi tööriistu</RouterLink>
+          <RouterLink class="nav-link site-nav-link" active-class="active" to="/ai-search">AI otsing</RouterLink>
           <template v-if="isLoggedIn">
-            <RouterLink class="nav-link" active-class="active" to="/my-tools">
+            <RouterLink class="nav-link site-nav-link" active-class="active" to="/my-tools">
               Minu tööriistad
             </RouterLink>
-            <RouterLink class="nav-link" active-class="active" to="/profile">Profiil</RouterLink>
+            <RouterLink class="nav-link site-nav-link" active-class="active" to="/profile">Profiil</RouterLink>
           </template>
-          <RouterLink v-if="isAdmin" class="nav-link" active-class="active" to="/admin">
+          <RouterLink v-if="isAdmin" class="nav-link site-nav-link" active-class="active" to="/admin">
             Haldus
           </RouterLink>
         </div>
 
-        <div class="d-flex align-items-center gap-2">
+        <div class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 site-header-actions">
           <template v-if="session.status === 'error'">
             <span class="text-danger small">{{ session.error }}</span>
             <button type="button" class="btn btn-outline-secondary btn-sm" @click="loadSession">

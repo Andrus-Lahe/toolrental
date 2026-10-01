@@ -1,8 +1,12 @@
 <template>
   <main class="tools container py-4 py-lg-5">
-    <h1 class="mb-4">Otsing</h1>
+    <header class="tools-heading mb-4 mb-lg-5">
+      <p class="tools-eyebrow">Tööriistad sinu lähedal</p>
+      <h1 class="mb-0">Leia sobiv tööriist</h1>
+      <p class="tools-intro mb-0">Sirvi valikut ja täpsusta otsingut kategooria või asukoha järgi.</p>
+    </header>
 
-    <div class="row g-4">
+    <div class="row g-4 g-xl-5">
       <aside class="col-12 col-lg-3">
         <ToolsFilterForm
           :categories="categories"
@@ -21,7 +25,7 @@
           @event-reset-filters="handleResetFilters"
         />
 
-        <div class="mt-3">
+        <div class="tools-filter-status mt-3">
           <p v-if="isCategoriesLoading" class="small mb-2" role="status">Kategooriate laadimine…</p>
           <div v-if="categoriesErrorMessage" class="mb-2">
             <AlertDanger :error-message="categoriesErrorMessage" />
@@ -52,7 +56,7 @@
       </aside>
 
       <section class="col-12 col-lg-9" aria-labelledby="tools-results-title">
-        <h2 id="tools-results-title" class="visually-hidden">Otsingu tulemused</h2>
+        <h2 id="tools-results-title" class="tools-results-title h4 mb-4">Otsingu tulemused</h2>
 
         <div v-if="urlErrorMessage" class="mb-4">
           <AlertDanger :error-message="urlErrorMessage" />
@@ -78,12 +82,12 @@
             Kuvatud tulemus võib olla aegunud.
           </div>
 
-          <p v-if="isToolsLoading" class="py-2" role="status">Tööriistade laadimine…</p>
+          <p v-if="isToolsLoading" class="tools-feedback" role="status">Tööriistade laadimine…</p>
 
           <template v-if="toolsResponse">
-            <p v-if="isEmptySearch" class="py-4">Otsingule vastavaid tööriistu ei leitud.</p>
+            <p v-if="isEmptySearch" class="tools-feedback">Otsingule vastavaid tööriistu ei leitud.</p>
 
-            <div v-else-if="isPageBeyondLast" class="py-4">
+            <div v-else-if="isPageBeyondLast" class="tools-feedback">
               <p>Sellel lehel tööriistu pole.</p>
               <button type="button" class="btn btn-outline-primary" @click="handleGoToLastPage">
                 Mine viimasele lehele
@@ -422,19 +426,59 @@ export default {
   max-width: 1200px;
 }
 
+.tools-heading {
+  max-width: 680px;
+}
+
+.tools-eyebrow {
+  margin-bottom: var(--space-3);
+  color: var(--color-primary);
+  font-size: var(--font-size-small);
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.tools-heading h1 {
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.04em;
+}
+
+.tools-intro {
+  margin-top: var(--space-3);
+  color: var(--color-muted);
+  font-size: var(--font-size-lead);
+}
+
+.tools-results-title {
+  letter-spacing: -0.025em;
+}
+
+.tools-filter-status {
+  color: var(--color-muted);
+}
+
+.tools-feedback {
+  padding: var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-card);
+  background: var(--color-surface);
+  color: var(--color-muted);
+}
+
 .tool-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 1.25rem;
+  gap: var(--space-4);
 }
 
-@media (max-width: 991px) {
+@media (max-width: 991.98px) {
   .tool-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
-@media (max-width: 575px) {
+@media (max-width: 575.98px) {
   .tool-grid {
     grid-template-columns: 1fr;
   }

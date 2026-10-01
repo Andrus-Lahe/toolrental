@@ -1,18 +1,20 @@
 <template>
-  <AppHeader />
+  <div class="app-shell">
+    <AppHeader />
 
-  <div v-if="hasLoginError" class="container mt-3 alert alert-danger" role="alert">
-    Google kontoga sisselogimine ebaõnnestus. Palun proovi uuesti.
-    <button type="button" class="btn btn-link" @click="handleLoginRetry">Proovi uuesti</button>
+    <div v-if="hasLoginError" class="app-alerts alert alert-danger" role="alert">
+      Google kontoga sisselogimine ebaõnnestus. Palun proovi uuesti.
+      <button type="button" class="btn btn-link" @click="handleLoginRetry">Proovi uuesti</button>
+    </div>
+
+    <div v-if="session.status === 'error'" class="app-alerts alert alert-warning" role="alert">
+      {{ session.error }}
+      <button type="button" class="btn btn-link" @click="loadSession">Proovi uuesti</button>
+    </div>
+
+    <RouterView />
+    <GoogleLoginModal :is-open="isLoginModalOpen" @event-modal-closed="handleLoginModalClosed" />
   </div>
-
-  <div v-if="session.status === 'error'" class="container mt-3 alert alert-warning" role="alert">
-    {{ session.error }}
-    <button type="button" class="btn btn-link" @click="loadSession">Proovi uuesti</button>
-  </div>
-
-  <RouterView />
-  <GoogleLoginModal :is-open="isLoginModalOpen" @event-modal-closed="handleLoginModalClosed" />
 </template>
 
 <script>
