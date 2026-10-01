@@ -62,7 +62,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     public ResponseEntity<ApiError> handleIncorrectInputException(IncorrectInputException exception) {
         ApiError apiError = new ApiError();
         apiError.setMessage(exception.getMessage());
-        apiError.setErrorCode("INCORRECT_INPUT");
+        apiError.setErrorCode(exception.getErrorCode());
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 

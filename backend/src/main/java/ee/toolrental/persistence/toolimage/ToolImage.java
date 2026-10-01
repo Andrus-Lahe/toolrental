@@ -23,4 +23,11 @@ public class ToolImage {
 
     @Column(name = "is_main", nullable = false)
     private boolean main;
+    public Boolean getIsMain() {
+        return main;
+    }
+
+    public void setIsMain(Boolean isMain) {
+        this.main = Boolean.TRUE.equals(isMain);
+    }
 }
