@@ -88,7 +88,7 @@
           />
 
           <section class="mb-4" aria-labelledby="pending-requests-heading">
-            <h2 id="pending-requests-heading" class="h4 mb-3">Kinnituse ootel</h2>
+            <h2 id="pending-requests-heading" class="h4 mb-3">Admin. kinnituse ootel</h2>
             <MyToolsSection
               title="Palun kinnita"
               heading-id="incoming-requests-heading"

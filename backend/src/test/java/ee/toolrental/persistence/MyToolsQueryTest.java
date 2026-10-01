@@ -80,8 +80,10 @@ class MyToolsQueryTest {
         var rentedOut = bookingRepository.findCurrentOwnerBookingsBy(currentUser.getId(), TODAY);
         var available = toolRepository.findAvailableOwnerToolsBy(currentUser.getId(), TODAY);
 
-        assertEquals(1, myRentals.size());
-        assertEquals("C", myRentals.getFirst().getStatus());
+        assertEquals(2, myRentals.size(), "Käimasolev ja tulevane kinnitatud laenutus");
+        assertEquals("C", myRentals.get(0).getStatus());
+        assertEquals("C", myRentals.get(1).getStatus());
+        assertEquals(TODAY.plusDays(1), myRentals.get(1).getStartDate());
         assertEquals(1, incoming.size());
         assertEquals("P", incoming.getFirst().getStatus());
         assertEquals(2, outgoing.size());

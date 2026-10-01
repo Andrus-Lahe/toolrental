@@ -26,7 +26,7 @@ public interface BookingRepository extends JpaRepository<Booking, Integer> {
 
     @Query("select b from Booking b join fetch b.tool t " +
             "where b.renter.id = :userId and t.owner.id <> :userId and b.status = 'C' " +
-            "and b.startDate <= :today and b.endDate >= :today order by b.startDate asc, b.id asc")
+            "and b.endDate >= :today order by b.startDate asc, b.id asc")
     List<Booking> findCurrentRenterBookingsBy(@Param("userId") Integer userId,
                                               @Param("today") LocalDate today);
 
