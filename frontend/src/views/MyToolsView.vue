@@ -196,15 +196,6 @@ export default {
         this.accessStatus = 'forbidden'
         return
       }
-      if (!this.session.user?.hasProfile) {
-        this.accessStatus = 'ready'
-        this.profileRequired = true
-        this.loadFailed = true
-        this.errorMessage = 'Kasutaja profiili ei leitud.'
-        NavigationService.navigateToProfile(this.$router)
-        return
-      }
-
       this.accessStatus = 'ready'
       this.getMyTools()
     },
@@ -265,10 +256,9 @@ export default {
 
       if (status === 401) {
         this.myToolsResponse = null
-        this.accessStatus = 'guest'
+        this.accessStatus = 'ready'
         this.errorMessage = apiError?.message ?? LOGIN_REQUIRED_MESSAGE
-        session.user = null
-        session.status = 'guest'
+        this.loadFailed = true
         this.openLoginModal()
         return
       }
