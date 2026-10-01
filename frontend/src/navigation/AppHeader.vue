@@ -95,7 +95,7 @@ export default {
     handleProfileRedirect() {
       const user = this.session.user
       if (this.isLoggedIn && !user.hasProfile && !hasLoginReturnPath() && this.$route.name !== 'profileRoute') {
-        this.$router.push({ name: 'profileRoute' })
+        this.$router.push({ name: 'profileRoute', query: { completeProfile: 'true' } })
       }
     },
   },

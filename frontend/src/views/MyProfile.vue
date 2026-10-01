@@ -3,79 +3,96 @@
     <h1>Minu profiil</h1>
 
     <form class="profile-form mt-4" novalidate @submit.prevent="saveProfile">
+      <div v-if="isCompletingProfile" class="alert alert-warning" role="alert">
+        Jätkamiseks täida kohustuslikud väljad.
+      </div>
       <AlertDanger :error-message="errorMessage" />
 
       <div class="mb-3">
-        <label for="firstName" class="form-label">Eesnimi</label>
+        <label for="firstName" class="form-label">Eesnimi*</label>
         <input
           id="firstName"
           v-model="profile.firstName"
           type="text"
           class="form-control"
+          :class="{ 'is-invalid': isRequiredTextMissing(profile.firstName) }"
           maxlength="100"
         />
       </div>
       <div class="mb-3">
-        <label for="lastName" class="form-label">Perenimi</label>
+        <label for="lastName" class="form-label">Perenimi*</label>
         <input
           id="lastName"
           v-model="profile.lastName"
           type="text"
           class="form-control"
+          :class="{ 'is-invalid': isRequiredTextMissing(profile.lastName) }"
           maxlength="100"
         />
       </div>
       <div class="mb-3">
-        <label for="email" class="form-label">E-post</label>
+        <label for="email" class="form-label">E-post*</label>
         <input
           id="email"
           v-model="profile.email"
           type="email"
           class="form-control"
+          :class="{ 'is-invalid': isRequiredTextMissing(profile.email) }"
           maxlength="254"
         />
       </div>
       <div class="mb-3">
-        <label for="phone" class="form-label">Telefon</label>
-        <input id="phone" v-model="profile.phone" type="text" class="form-control" maxlength="32" />
+        <label for="phone" class="form-label">Telefon*</label>
+        <input
+          id="phone"
+          v-model="profile.phone"
+          type="text"
+          class="form-control"
+          :class="{ 'is-invalid': isRequiredTextMissing(profile.phone) }"
+          maxlength="32"
+        />
       </div>
       <div class="mb-3">
-        <label class="form-label">Linn</label>
+        <label class="form-label">Linn*</label>
         <CitiesDropdown
           first-option-label="Vali linn"
           :cities="cities"
           :selected-city-id="selectedCityId"
+          :class="{ 'is-invalid': shouldHighlightMissingFields && selectedCityId === 0 }"
           @event-new-city-selected="handleCitySelected"
         />
       </div>
 
       <div class="mb-3">
-        <label class="form-label">Linnaosa</label>
+        <label class="form-label">Linnaosa*</label>
         <DistrictsDropdown
           first-option-label="Vali linnaosa"
           :districts="districts"
           :selected-district-id="profile.districtId"
           :is-disabled="isDistrictsDisabled"
+          :class="{ 'is-invalid': shouldHighlightMissingFields && profile.districtId === 0 }"
           @event-new-district-selected="handleDistrictSelected"
         />
       </div>
       <div class="mb-3">
-        <label for="streetName" class="form-label">Tänava nimi</label>
+        <label for="streetName" class="form-label">Tänava nimi*</label>
         <input
           id="streetName"
           v-model="profile.streetName"
           type="text"
           class="form-control"
+          :class="{ 'is-invalid': isRequiredTextMissing(profile.streetName) }"
           maxlength="150"
         />
       </div>
       <div class="mb-3">
-        <label for="houseNumber" class="form-label">Majanumber</label>
+        <label for="houseNumber" class="form-label">Majanumber*</label>
         <input
           id="houseNumber"
           v-model="profile.houseNumber"
           type="text"
           class="form-control"
+          :class="{ 'is-invalid': isRequiredTextMissing(profile.houseNumber) }"
           maxlength="20"
         />
       </div>
@@ -106,7 +123,7 @@ import CityService from '@/api-services/CityService.js'
 import NavigationService from '@/navigation/NavigationService.js'
 import { loadSession, markProfileCompleted, session } from '@/auth/session.js'
 
-const REQUIRED_FIELDS_MESSAGE = 'Täida kõik kohustuslikud väljad'
+const REQUIRED_FIELDS_MESSAGE = 'Jätkamiseks täida kohustuslikud väljad.'
 const NETWORK_ERROR_MESSAGE = 'Serveriga ei saanud ühendust. Palun proovi hiljem uuesti.'
 
 export default {
@@ -115,6 +132,7 @@ export default {
   data() {
     return {
       errorMessage: '',
+      hasAttemptedSave: false,
       isLoading: true,
       isSaving: false,
       cities: [],
@@ -133,6 +151,14 @@ export default {
     }
   },
   computed: {
+    isCompletingProfile() {
+      return this.$route.query.completeProfile === 'true'
+    },
+
+    shouldHighlightMissingFields() {
+      return this.hasAttemptedSave || this.isCompletingProfile
+    },
+
     isFormValid() {
       const { firstName, lastName, email, phone, streetName, houseNumber, districtId } =
         this.profile
@@ -149,6 +175,10 @@ export default {
     },
   },
   methods: {
+    isRequiredTextMissing(value) {
+      return this.shouldHighlightMissingFields && value.trim() === ''
+    },
+
     getMyProfile() {
       ProfileService.sendGetMyProfileRequest()
         .then((response) => this.handleGetMyProfileResponse(response.data))
@@ -216,6 +246,7 @@ export default {
         return
       }
       this.errorMessage = ''
+      this.hasAttemptedSave = true
       if (!this.isFormValid) {
         this.errorMessage = REQUIRED_FIELDS_MESSAGE
         return
