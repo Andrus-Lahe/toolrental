@@ -3,9 +3,6 @@
     <h1>Minu profiil</h1>
 
     <form class="profile-form mt-4" novalidate @submit.prevent="saveProfile">
-      <div v-if="isCompletingProfile" class="alert alert-warning" role="alert">
-        Jätkamiseks täida kohustuslikud väljad.
-      </div>
       <AlertDanger :error-message="errorMessage" />
 
       <div class="mb-3">
@@ -111,11 +108,17 @@
         Salvesta
       </button>
     </form>
+
+    <RequiredFieldsModal
+      :is-open="isRequiredFieldsModalOpen"
+      @event-modal-closed="handleRequiredFieldsModalClosed"
+    />
   </main>
 </template>
 
 <script>
 import AlertDanger from '@/components/common/AlertDanger.vue'
+import RequiredFieldsModal from '@/components/modals/RequiredFieldsModal.vue'
 import CitiesDropdown from '@/components/forms/CitiesDropdown.vue'
 import DistrictsDropdown from '@/components/forms/DistrictsDropdown.vue'
 import ProfileService from '@/api-services/ProfileService.js'
@@ -123,16 +126,16 @@ import CityService from '@/api-services/CityService.js'
 import NavigationService from '@/navigation/NavigationService.js'
 import { loadSession, markProfileCompleted, session } from '@/auth/session.js'
 
-const REQUIRED_FIELDS_MESSAGE = 'Jätkamiseks täida kohustuslikud väljad.'
 const NETWORK_ERROR_MESSAGE = 'Serveriga ei saanud ühendust. Palun proovi hiljem uuesti.'
 
 export default {
   name: 'MyProfile',
-  components: { AlertDanger, CitiesDropdown, DistrictsDropdown },
+  components: { AlertDanger, CitiesDropdown, DistrictsDropdown, RequiredFieldsModal },
   data() {
     return {
       errorMessage: '',
       hasAttemptedSave: false,
+      isRequiredFieldsModalOpen: false,
       isLoading: true,
       isSaving: false,
       cities: [],
@@ -175,6 +178,10 @@ export default {
     },
   },
   methods: {
+    handleRequiredFieldsModalClosed() {
+      this.isRequiredFieldsModalOpen = false
+    },
+
     isRequiredTextMissing(value) {
       return this.shouldHighlightMissingFields && value.trim() === ''
     },
@@ -248,7 +255,7 @@ export default {
       this.errorMessage = ''
       this.hasAttemptedSave = true
       if (!this.isFormValid) {
-        this.errorMessage = REQUIRED_FIELDS_MESSAGE
+        this.isRequiredFieldsModalOpen = true
         return
       }
       this.isSaving = true
@@ -291,6 +298,7 @@ export default {
     },
   },
   beforeMount() {
+    this.isRequiredFieldsModalOpen = this.isCompletingProfile
     this.getMyProfile()
     this.getCities()
   },
