@@ -7,7 +7,10 @@
         <MyToolCard
           :tool="item"
           :is-details-disabled="isDetailsDisabled"
+          :is-deletable="isDeletable"
+          :is-delete-disabled="isDeleteDisabled"
           @event-view-details="$emit('event-view-details', item)"
+          @event-delete-tool="$emit('event-delete-tool', item)"
         />
       </div>
     </div>
@@ -27,8 +30,10 @@ export default {
     itemType: { type: String, required: true },
     isLoaded: { type: Boolean, default: false },
     isDetailsDisabled: { type: Boolean, default: false },
+    isDeletable: { type: Boolean, default: false },
+    isDeleteDisabled: { type: Boolean, default: false },
   },
-  emits: ['event-view-details'],
+  emits: ['event-view-details', 'event-delete-tool'],
   methods: {
     getItemKey(item) {
       return this.itemType === 'booking' ? item.bookingId : item.toolId

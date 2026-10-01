@@ -4,6 +4,10 @@
       {{ successMessage }}
     </div>
 
+    <div v-if="toolDeletedMessage" class="alert alert-success" role="status">
+      {{ toolDeletedMessage }}
+    </div>
+
     <h1 class="h2 mb-4">Minu tööriistad</h1>
 
     <section v-if="accessStatus === 'checking'" class="py-4 text-center" role="status">
@@ -61,6 +65,15 @@
             :is-action-disabled="isBlocked"
             @event-edit-profile="handleEditProfile"
           />
+          <button
+            v-if="canAddTool"
+            type="button"
+            class="btn btn-primary btn-sm mt-3"
+            :disabled="isBlocked"
+            @click="handleAddTool"
+          >
+            Lisa uus tööriist
+          </button>
         </aside>
 
         <div class="col-12 col-lg-9">
@@ -97,18 +110,7 @@
           </section>
 
           <section class="mb-4" aria-labelledby="my-tools-heading">
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
-              <h2 id="my-tools-heading" class="h4 mb-0">Minu tööriistad</h2>
-              <button
-                v-if="canAddTool"
-                type="button"
-                class="btn btn-primary btn-sm"
-                :disabled="isBlocked"
-                @click="handleAddTool"
-              >
-                Lisa uus tööriist
-              </button>
-            </div>
+            <h2 id="my-tools-heading" class="h4 mb-3">Minu tööriistad</h2>
             <MyToolsSection
               title="Vabad"
               heading-id="available-tools-heading"
@@ -116,7 +118,10 @@
               item-type="tool"
               :is-loaded="true"
               :is-details-disabled="isBlocked"
+              :is-deletable="true"
+              :is-delete-disabled="isBlocked || isToolDeleting"
               @event-view-details="(tool) => handleViewToolDetails(tool)"
+              @event-delete-tool="(tool) => handleDeleteToolRequested(tool)"
             />
             <MyToolsSection
               title="Välja laenatud"
@@ -131,6 +136,15 @@
         </div>
       </div>
     </template>
+
+    <ConfirmDeleteModal
+      :is-open="toolToDelete !== null"
+      title="Kustuta tööriist"
+      :message="deleteToolMessage"
+      :is-busy="isToolDeleting"
+      @event-confirm="handleDeleteToolConfirmed"
+      @event-cancel="handleDeleteToolCancelled"
+    />
   </main>
 </template>
 
@@ -138,11 +152,14 @@
 import AlertDanger from '@/components/common/AlertDanger.vue'
 import MyToolsSection from '@/components/common/MyToolsSection.vue'
 import UserProfileCard from '@/components/common/UserProfileCard.vue'
+import ConfirmDeleteModal from '@/components/modals/ConfirmDeleteModal.vue'
 import MyToolsService from '@/api-services/MyToolsService.js'
+import ToolService from '@/api-services/ToolService.js'
 import NavigationService from '@/navigation/NavigationService.js'
 import { loadSession, session } from '@/auth/session.js'
 
 const MY_TOOLS_LOADING_FAILED = 'Minu tööriistade laadimine ebaõnnestus. Palun proovi hiljem uuesti.'
+const TOOL_DELETING_FAILED = 'Tööriista kustutamine ebaõnnestus. Palun proovi hiljem uuesti.'
 const NETWORK_ERROR_MESSAGE = 'Serveriga ei saanud ühendust. Palun proovi hiljem uuesti.'
 const LOGIN_REQUIRED_MESSAGE = 'Sinu sisselogimine on aegunud. Logi sisse ja proovi uuesti.'
 const BLOCKED_USER_CODE = 'USER_BLOCKED'
@@ -150,7 +167,7 @@ const PROFILE_NOT_FOUND_CODE = 'PROFILE_NOT_FOUND'
 
 export default {
   name: 'MyToolsView',
-  components: { AlertDanger, MyToolsSection, UserProfileCard },
+  components: { AlertDanger, MyToolsSection, UserProfileCard, ConfirmDeleteModal },
   inject: ['openLoginModal'],
   data() {
     return {
@@ -162,12 +179,19 @@ export default {
       isBlocked: false,
       profileRequired: false,
       requestGeneration: 0,
+      toolToDelete: null,
+      isToolDeleting: false,
+      toolDeletedMessage: '',
       session,
     }
   },
   computed: {
     successMessage() {
       return this.$route.query.successMessage ?? ''
+    },
+    deleteToolMessage() {
+      if (!this.toolToDelete) return ''
+      return `Kas oled kindel, et soovid tööriista ${this.toolToDelete.toolName} kustutada? Tööriist ja selle pilt kustutatakse jäädavalt.`
     },
     canAddTool() {
       return this.accessStatus === 'ready' && this.session.user?.roleName === 'customer'
@@ -306,6 +330,48 @@ export default {
     handleApproveBooking(booking) {
       if (this.isBlocked || !Number.isInteger(booking?.bookingId)) return
       NavigationService.navigateToBookingApproval(this.$router, booking.bookingId)
+    },
+
+    handleDeleteToolRequested(tool) {
+      if (this.isBlocked || this.isToolDeleting || !Number.isInteger(tool?.toolId)) return
+      this.toolDeletedMessage = ''
+      this.toolToDelete = { toolId: tool.toolId, toolName: tool.toolName }
+    },
+
+    handleDeleteToolCancelled() {
+      if (!this.isToolDeleting) this.toolToDelete = null
+    },
+
+    // Saadab DELETE valitud tööriista ID-ga; edu korral laaditakse loend uuesti, vea korral jääb tööriist alles.
+    handleDeleteToolConfirmed() {
+      if (!this.toolToDelete || this.isToolDeleting) return
+      const { toolId, toolName } = this.toolToDelete
+      this.errorMessage = ''
+      this.isToolDeleting = true
+      ToolService.sendDeleteToolRequest(toolId)
+        .then(() => this.handleToolDeleted(toolName))
+        .catch((error) => this.handleDeleteToolError(error))
+        .finally(() => {
+          this.isToolDeleting = false
+          this.toolToDelete = null
+        })
+    },
+
+    handleToolDeleted(toolName) {
+      this.toolDeletedMessage = `Tööriist ${toolName} kustutati`
+      this.getMyTools()
+    },
+
+    handleDeleteToolError(error) {
+      const status = error?.response?.status
+      const apiError = error?.response?.data
+      if (status === 401) {
+        this.errorMessage = apiError?.message ?? LOGIN_REQUIRED_MESSAGE
+        this.openLoginModal()
+        return
+      }
+      this.errorMessage =
+        apiError?.message ?? (error?.response ? TOOL_DELETING_FAILED : NETWORK_ERROR_MESSAGE)
     },
 
     handleViewToolDetails(tool) {
