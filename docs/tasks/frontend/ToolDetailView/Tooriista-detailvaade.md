@@ -27,10 +27,10 @@ Kasutaja avab vaate ToolsView kaardi nupust „Vaata detaile“ (`/tools/{toolId
 | Saadavuse teade | Teade | Kui `status = "U"`, näita „Tööriist pole hetkel saadaval“. Mockupil pole; tuleneb `status` väljast (vt lahtine ots). |
 | „Omaniku kontaktinfo“ | Kast | Nähtav **ainult sisse logitud kasutajale**. |
 | Omaniku nimi | Tekst | `firstName` + `" "` + `lastName`. |
-| Omaniku e-mail | Tekst ümbrikuikooniga | `email`; `null` korral rida peidetud. |
-| Omaniku telefon | Tekst telefoniikooniga | `phone`; `null` korral rida peidetud. |
+| Omaniku e-mail | `mailto:` link ümbrikuikooniga | `email`; `null` korral rida peidetud. |
+| Omaniku telefon | `tel:` link telefoniikooniga | `phone`; `null` korral rida peidetud. |
 | Lehekülgede riba | Navigatsioon | **Skoobist väljas** (vt Kasutajavoog). |
-| „Laenuta“ | Nupp | Sisse logitud → `/tools/{toolId}/booking`; külastaja → sisselogimine. |
+| „Laenuta“ | Nupp | Sisse logitud → `/tools/{toolId}/booking`; külastaja → sisselogimine. Oma tööriista puhul keelatud koos selgitusega „See on sinu tööriist. Oma tööriista laenutada ei saa.“ |
 
 ## Käitumine ja valideerimine
 
@@ -43,17 +43,18 @@ Kasutaja avab vaate ToolsView kaardi nupust „Vaata detaile“ (`/tools/{toolId
 7. **Laadimise olek:** kuni tööriista vastus pole saabunud, näita laadimise olekut; „Laenuta“ on keelatud.
 8. **Vead:** vt API veatabelid. Omaniku päringu viga ei peida tööriista andmeid — ainult kontaktikast jääb tühjaks/veateatega.
 
-**Täpsusta enne implementeerimist (väikesed lahtised otsad):**
-- **Pildi MIME-tüüp:** backend tagastab ainult Base64 (ilma `data:` prefiksita). Impordi pildid on SVG (`image/svg+xml`); kasutaja lisatud pildid võivad olla muud tüüpi. Kokku leppida, kas eeldada ühte tüüpi või lisada backendi vastusesse tüüp.
-- **Saadavuse teade ja „Laenuta“ `status = "U"` korral:** silt seda ei kirjelda. Task pakub teadet; nupp jääb aktiivseks ja BookingFormView keelab saatmise (oma sildi järgi).
-- **Oma tööriist:** kui sisse logitud kasutaja on tööriista omanik (`ownerId` = kasutaja `userId`), keelab backend broneerimise (`OWN_TOOL_BOOKING_FORBIDDEN`). Silt ei ütle, kas „Laenuta“ tuleks siin peita.
-- **E-posti link:** silt ei ütle, kas e-mail on lihttekst, `mailto:` või Gmaili kirjutamise link (vt `Mail_compose.md`). Task kuvab lihtteksti.
+**Kasutajaga kinnitatud otsused (varem lahtised otsad):**
+- **Pildi MIME-tüüp:** eeldatakse `image/svg+xml` (impordipildid on SVG); `ToolImage.vue` näitab kuvamisvea korral kohatäitjat. Üldine MIME-leping jääb eraldi täpsustuseks.
+- **Saadavuse teade ja „Laenuta“ `status = "U"` korral:** näidatakse teadet „Tööriist pole hetkel saadaval“; nupp jääb aktiivseks ja BookingFormView keelab saatmise.
+- **Oma tööriist:** kui sisse logitud kasutaja `userId` (`GET /api/me`) = `ownerId`, on „Laenuta“ keelatud ja selle all on selgitus „See on sinu tööriist. Oma tööriista laenutada ei saa.“
+- **E-posti ja telefoni link:** `OwnerContactCard.vue` kuvab e-maili `mailto:` ja telefoni `tel:` lingina.
+- **Tagasipöördumine pärast sisselogimist:** praegu ei muudeta — külastaja jõuab pärast sisselogimist avalehele (`auth/loginReturnPath.js` lubab ainult `/bookings/<id>` radu).
 
 ## API kutsed
 
 ### `GET /api/tools/{toolId}`
 
-**Backend task:** vt [docs/tasks/backend/ToolDetailView/Tooriista-detailide-paring.md](../../backend/ToolDetailView/Tooriista-detailide-paring.md). Backendi controllerit veel pole; kontrakt on backend taskist. Päring on **avalik** (ka külastajale).
+**Backend task:** vt [docs/tasks/backend/ToolDetailView/Tooriista-detailide-paring.md](../../backend/ToolDetailView/Tooriista-detailide-paring.md). Realiseeritud: `ToolController.getToolDetail`. Päring on **avalik** (ka külastajale).
 
 Sisend: path variable `toolId` (Integer). Request body puudub.
 
@@ -83,7 +84,7 @@ Sisend: path variable `toolId` (Integer). Request body puudub.
 
 ### `GET /api/users/{userId}`
 
-**Backend task:** vt [docs/tasks/backend/ToolDetailView/Omaniku-kontaktandmete-paring.md](../../backend/ToolDetailView/Omaniku-kontaktandmete-paring.md). Backendi controllerit veel pole. Päring **nõuab sisselogimist**; kutsutakse ainult sisse logitud kasutajale, `userId` = eelmise vastuse `ownerId`.
+**Backend task:** vt [docs/tasks/backend/ToolDetailView/Omaniku-kontaktandmete-paring.md](../../backend/ToolDetailView/Omaniku-kontaktandmete-paring.md). Realiseeritud: `UserDetailController.getUserDetails`. Päring **nõuab sisselogimist**; kutsutakse ainult sisse logitud kasutajale, `userId` = eelmise vastuse `ownerId`.
 
 `UserDetailResponse.java` — response (200):
 ```json
@@ -114,17 +115,17 @@ Profiilita omanikul on `email` ja `phone` `null`. Ka blokeeritud omaniku kontakt
 
 | Fail | Vastutus / praegune seis |
 |---|---|
-| `frontend/src/views/ToolDetailView.vue` | **Puudub.** Vaade: tööriista ja omaniku andmete laadimine, „Laenuta“ loogika. |
-| `frontend/src/components/common/OwnerContactCard.vue` | **Puudub.** Kast „Omaniku kontaktinfo“ (prop `owner`); peidab `null` e-posti/telefoni read. |
-| `frontend/src/components/common/ToolImage.vue` | **Puudub.** Base64 pildi kuvamine koos kohatäitjaga (prop `imageData`); saab jagada ToolsView ja MyToolsView kaartidega. |
-| `frontend/src/components/common/AlertDanger.vue` | **Puudub** (kavandatud ka MyProfile taskis). Veateade (prop `errorMessage`). |
-| `frontend/src/api-services/ToolService.js` | **Puudub.** `sendGetToolRequest(toolId)`. |
-| `frontend/src/api-services/UserService.js` | **Puudub.** `sendGetUserRequest(userId)`. |
-| `frontend/src/navigation/NavigationService.js` | **Puudub.** Nt `navigateToBookingFormView(toolId)`. |
-| `frontend/src/auth/` | **Puudub** (GoogleLoginView task). Ühine kasutajaolek (`isLoggedIn`, `userId`) ja `GoogleLoginModal.vue`. |
-| `frontend/src/router/index.js` | Sisaldab ainult `/` ja `/test`. **Rajad `/tools/:toolId` ja `/tools/:toolId/booking` puuduvad.** |
+| `frontend/src/views/ToolDetailView.vue` | Olemas. Vaade: tööriista ja omaniku andmete laadimine, „Laenuta“ loogika (sh oma tööriista keeld), võrguvea teade. |
+| `frontend/src/components/common/OwnerContactCard.vue` | Olemas. Kast „Omaniku kontaktinfo“ (prop `owner`); `mailto:`/`tel:` lingid, peidab `null` read. |
+| `frontend/src/components/common/ToolImage.vue` | Olemas. Base64 pilt (`image/svg+xml`) koos kohatäitjaga (props `imageData`, `altText`). |
+| `frontend/src/components/common/AlertDanger.vue` | Olemas. Veateade (prop `errorMessage`). |
+| `frontend/src/api-services/ToolService.js` | Olemas. `sendGetToolDetailsRequest(toolId)`. |
+| `frontend/src/api-services/UserService.js` | Olemas. `sendGetUserDetailsRequest(userId)`. |
+| `frontend/src/navigation/NavigationService.js` | Olemas. `navigateToBookingFormView(router, toolId)`. |
+| `frontend/src/auth/session.js`, `App.vue` | Olemas. Ühine kasutajaolek (`session.status`, `session.user.userId`) ja `openLoginModal` (provide/inject). |
+| `frontend/src/router/index.js` | Olemas. `/tools/:toolId` (`toolDetailRoute`) ja `/tools/:toolId/booking` (`bookingFormRoute`). |
 
-Järgi `docs/frontend/vue-komponendi-struktuur.md` Options API järjekorda, `event-` eesliitega sündmusi ja `.then()/.catch()/.finally()` mustrit eraldi `handle...` meetoditega. Olemasolevat koodi selle taski koostamisel ei muudetud.
+Järgi `docs/frontend/vue-komponendi-struktuur.md` Options API järjekorda, `event-` eesliitega sündmusi ja `.then()/.catch()/.finally()` mustrit eraldi `handle...` meetoditega. Detailne lünkade analüüs: [Tooriista-detailvaade-IMPLEMENTATSIOON.md](./Tooriista-detailvaade-IMPLEMENTATSIOON.md).
 
 ## Vastuvõtu kriteeriumid
 
@@ -136,6 +137,7 @@ Järgi `docs/frontend/vue-komponendi-struktuur.md` Options API järjekorda, `eve
 - [ ] Profiilita omanikul on e-posti ja telefoni read peidetud, nimi on nähtav.
 - [ ] „Laenuta“ viib sisse logitud kasutaja rajale `/tools/{toolId}/booking`; külastajale avaneb sisselogimise voog.
 - [ ] `status = "U"` korral (nt `toolId = 2` Redel) näidatakse saadavuse teadet.
+- [ ] Oma tööriista vaatamisel on „Laenuta“ keelatud ja selgitus nähtav.
 - [ ] Olematu `toolId` (404), vigane `toolId` (400) ja 500 korral näidatakse backendi `message` ning „Laenuta“ nuppu pole.
 - [ ] Omaniku päringu 401/404/500 ei peida tööriista andmeid; võrguvea korral näidatakse üldist viga.
 - [ ] Lehekülgede riba ei ole selle taski osa.
