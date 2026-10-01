@@ -8,4 +8,8 @@ export default {
   sendCreateToolRequest(tool) {
     return axios.post('/api/tools', tool)
   },
+
+  sendGetToolsRequest(params) {
+    return axios.get('/api/tools', { params })
+  },
 }
