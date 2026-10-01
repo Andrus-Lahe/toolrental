@@ -28,7 +28,7 @@ class ToolListControllerTest {
 
     @BeforeEach
     void setUp() {
-        mockMvc = MockMvcBuilders.standaloneSetup(new ToolListController(toolService))
+        mockMvc = MockMvcBuilders.standaloneSetup(new ToosListController(toolService))
                 .setControllerAdvice(new RestExceptionHandler())
                 .build();
     }
