@@ -216,6 +216,34 @@ class BookingServiceTest {
     }
 
     @Test
+    void ownerRejectsPendingBookingAndSavesNullableDecisionMessage() {
+        Booking booking = booking();
+        when(bookingRepository.findBookingForDecisionById(4)).thenReturn(Optional.of(booking));
+        service.rejectBooking(1, 4, "Kuupäevad ei sobi.");
+        assertEquals("R", booking.getStatus());
+        assertEquals("Kuupäevad ei sobi.", booking.getOwnerMessage());
+        assertNotNull(booking.getUpdatedAt());
+        verify(bookingRepository).saveAndFlush(booking);
+        verify(decisionMailService).sendBookingRejected(booking);
+
+        booking.setStatus("P");
+        service.rejectBooking(1, 4, null);
+        assertNull(booking.getOwnerMessage());
+        verify(decisionMailService, times(2)).sendBookingRejected(booking);
+        verify(decisionMailService, never()).sendBookingConfirmed(any());
+    }
+
+    @Test
+    void rejectionDatabaseFailureUsesRejectionErrorMessage() {
+        when(bookingRepository.findBookingForDecisionById(4)).thenThrow(new DataAccessResourceFailureException("DB down"));
+        InternalServerErrorException error = assertThrows(InternalServerErrorException.class,
+                () -> service.rejectBooking(1, 4, "Põhjus"));
+        assertEquals("INTERNAL_SERVER_ERROR", error.getErrorCode());
+        assertEquals("Taotluse tagasilükkamine ebaõnnestus. Palun proovi hiljem uuesti.", error.getMessage());
+        verifyNoInteractions(decisionMailService);
+    }
+
+    @Test
     void createsPendingBookingForSessionRenterAndSendsMail() {
         BookingResponseDto response = service.createBooking(3, request);
 

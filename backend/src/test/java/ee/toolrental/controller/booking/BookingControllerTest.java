@@ -103,6 +103,61 @@ class BookingControllerTest {
     }
 
     @Test
+    void ownerCanRejectAndAnonymousRequestIsUnauthorized() throws Exception {
+        mockMvc.perform(patch("/api/bookings/4/reject").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"ownerMessage\":\"Kuupäevad ei sobi\"}")
+                        .with(loggedInUser(1, "customer")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+        verify(bookingService).rejectBooking(1, 4, "Kuupäevad ei sobi");
+
+        mockMvc.perform(patch("/api/bookings/4/reject").contentType(MediaType.APPLICATION_JSON)
+                        .content("{}")).andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void rejectionValidatesOwnerMessageAndReturnsBusinessErrors() throws Exception {
+        mockMvc.perform(patch("/api/bookings/4/reject").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"ownerMessage\":\"" + "x".repeat(501) + "\"}")
+                        .with(loggedInUser(1, "customer")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value("INCORRECT_INPUT"))
+                .andExpect(jsonPath("$.message").value("ownerMessage: Sõnum võib olla kuni 500 märki"));
+        verifyNoInteractions(bookingService);
+
+        doThrow(new ForbiddenException("Ainult tööriista omanik saab taotlust kinnitada või tagasi lükata", "BOOKING_NOT_OWNER"))
+                .when(bookingService).rejectBooking(3, 4, null);
+        mockMvc.perform(patch("/api/bookings/4/reject").contentType(MediaType.APPLICATION_JSON)
+                        .content("{}").with(loggedInUser(3, "customer")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("BOOKING_NOT_OWNER"));
+
+        reset(bookingService);
+        doThrow(new ForbiddenException("Taotlus on juba kinnitatud või tagasi lükatud", "BOOKING_NOT_PENDING"))
+                .when(bookingService).rejectBooking(1, 4, null);
+        mockMvc.perform(patch("/api/bookings/4/reject").contentType(MediaType.APPLICATION_JSON)
+                        .content("{}").with(loggedInUser(1, "customer")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("BOOKING_NOT_PENDING"));
+
+        reset(bookingService);
+        doThrow(new PrimaryKeyNotFoundException("bookingId", 404)).when(bookingService).rejectBooking(1, 404, null);
+        mockMvc.perform(patch("/api/bookings/404/reject").contentType(MediaType.APPLICATION_JSON)
+                        .content("{}").with(loggedInUser(1, "customer")))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorCode").value("PRIMARY_KEY_NOT_FOUND"));
+
+        reset(bookingService);
+        doThrow(new InternalServerErrorException("Taotluse tagasilükkamine ebaõnnestus. Palun proovi hiljem uuesti."))
+                .when(bookingService).rejectBooking(1, 4, null);
+        mockMvc.perform(patch("/api/bookings/4/reject").contentType(MediaType.APPLICATION_JSON)
+                        .content("{}").with(loggedInUser(1, "customer")))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.errorCode").value("INTERNAL_SERVER_ERROR"))
+                .andExpect(jsonPath("$.message").value("Taotluse tagasilükkamine ebaõnnestus. Palun proovi hiljem uuesti."));
+    }
+
+    @Test
     void bookingCanBeReadByAuthenticatedOwnerAndReturnsContactFields() throws Exception {
         BookingApprovalDto response = bookingApprovalResponse();
         when(bookingService.getBooking(1, 4)).thenReturn(response);

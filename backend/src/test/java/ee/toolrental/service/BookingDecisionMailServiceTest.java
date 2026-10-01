@@ -68,6 +68,7 @@ class BookingDecisionMailServiceTest {
         message = new MimeMessage(Session.getInstance(new Properties()));
         when(mailSender.createMimeMessage()).thenReturn(message);
         when(templateEngine.process(eq("email/booking-confirmed"), any(Context.class))).thenReturn("<html>confirmed</html>");
+        when(templateEngine.process(eq("email/booking-rejected"), any(Context.class))).thenReturn("<html>rejected</html>");
         when(profileRepository.findProfileByUserId(3)).thenReturn(Optional.of(renterProfile));
         when(profileRepository.findProfileByUserId(1)).thenReturn(Optional.of(ownerProfile));
     }
@@ -104,5 +105,22 @@ class BookingDecisionMailServiceTest {
     void mailServerFailureIsSwallowedAfterBookingDecision() {
         doThrow(new MailSendException("SMTP unavailable")).when(mailSender).send(any(MimeMessage.class));
         assertDoesNotThrow(() -> service.sendBookingConfirmed(booking));
+    }
+
+    @Test
+    void sendsRejectionEmailWithOwnerMessageAndWithoutOwnerContactRows() throws Exception {
+        service.sendBookingRejected(booking);
+
+        assertEquals("Broneering tagasi lükatud: Akutrell", message.getSubject());
+        assertEquals("liis.kask@example.com", message.getRecipients(MimeMessage.RecipientType.TO)[0].toString());
+        assertEquals("email@Gmail.com", message.getReplyTo()[0].toString());
+        verify(templateEngine).process(eq("email/booking-rejected"), argThat(context ->
+                "Marko Tamm".equals(context.getVariable("ownerName"))
+                        && "Palun helista saabudes".equals(context.getVariable("ownerMessage"))
+                        && "02.10.2026".equals(context.getVariable("startDate"))
+                        && "04.10.2026".equals(context.getVariable("endDate"))
+                        && context.getVariable("ownerEmail") == null
+                        && context.getVariable("ownerPhone") == null));
+        verify(mailSender).send(message);
     }
 }

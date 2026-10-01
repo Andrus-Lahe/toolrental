@@ -44,6 +44,21 @@ public class BookingController {
         bookingService.confirmBooking(principal.getUserId(), bookingId, request.ownerMessage());
     }
 
+    @PatchMapping("/bookings/{bookingId}/reject")
+    @Operation(summary = "Broneeringu tagasilükkamine")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Broneering lükati tagasi"),
+            @ApiResponse(responseCode = "400", description = "Vigane omaniku sõnum", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "401", description = "Kasutaja pole sisse logitud"),
+            @ApiResponse(responseCode = "403", description = "Broneeringu tagasilükkamine on keelatud", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "404", description = "Broneeringut ei leitud", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "500", description = "Tagasilükkamine ebaõnnestus", content = @Content(schema = @Schema(implementation = ApiError.class)))})
+    public void rejectBooking(@AuthenticationPrincipal AppUserPrincipal principal,
+                              @PathVariable Integer bookingId,
+                              @RequestBody @Valid BookingDecisionRequest request) {
+        bookingService.rejectBooking(principal.getUserId(), bookingId, request.ownerMessage());
+    }
+
     @GetMapping("/bookings/{bookingId}")
     @Operation(summary = "Broneeringu andmete päring")
     @ApiResponses(value = {

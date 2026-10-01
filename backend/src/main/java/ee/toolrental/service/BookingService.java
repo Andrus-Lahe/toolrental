@@ -31,9 +31,11 @@ public class BookingService {
     private static final ZoneId TALLINN = ZoneId.of("Europe/Tallinn");
     private static final String SAVE_FAILED = "Laenutuse taotluse saatmine ebaõnnestus. Palun proovi hiljem uuesti.";
     private static final String BOOKING_LOAD_FAILED = "Broneeringu laadimine ebaõnnestus. Palun proovi hiljem uuesti.";
-    private static final String DECISION_FAILED = "Taotluse kinnitamine ebaõnnestus. Palun proovi hiljem uuesti.";
+    private static final String CONFIRMATION_FAILED = "Taotluse kinnitamine ebaõnnestus. Palun proovi hiljem uuesti.";
+    private static final String REJECTION_FAILED = "Taotluse tagasilükkamine ebaõnnestus. Palun proovi hiljem uuesti.";
     private static final String STATUS_PENDING = "P";
     private static final String STATUS_CONFIRMED = "C";
+    private static final String STATUS_REJECTED = "R";
 
     private final BookingRepository bookingRepository;
     private final ToolRepository toolRepository;
@@ -45,6 +47,15 @@ public class BookingService {
 
     @Transactional
     public void confirmBooking(Integer ownerId, Integer bookingId, String ownerMessage) {
+        decideBooking(ownerId, bookingId, ownerMessage, STATUS_CONFIRMED);
+    }
+
+    @Transactional
+    public void rejectBooking(Integer ownerId, Integer bookingId, String ownerMessage) {
+        decideBooking(ownerId, bookingId, ownerMessage, STATUS_REJECTED);
+    }
+
+    private void decideBooking(Integer ownerId, Integer bookingId, String ownerMessage, String targetStatus) {
         try {
             Booking booking = getValidBookingForDecisionBy(bookingId);
             if (!booking.getTool().getOwner().getId().equals(ownerId)) {
@@ -54,13 +65,18 @@ public class BookingService {
                 throw new ForbiddenException("Taotlus on juba kinnitatud või tagasi lükatud", "BOOKING_NOT_PENDING");
             }
 
-            booking.setStatus(STATUS_CONFIRMED);
+            booking.setStatus(targetStatus);
             booking.setOwnerMessage(ownerMessage);
             booking.setUpdatedAt(Instant.now());
             booking = bookingRepository.saveAndFlush(booking);
-            bookingDecisionMailService.sendBookingConfirmed(booking);
+            if (STATUS_CONFIRMED.equals(targetStatus)) {
+                bookingDecisionMailService.sendBookingConfirmed(booking);
+            } else {
+                bookingDecisionMailService.sendBookingRejected(booking);
+            }
         } catch (DataAccessException exception) {
-            throw new InternalServerErrorException(DECISION_FAILED);
+            String errorMessage = STATUS_CONFIRMED.equals(targetStatus) ? CONFIRMATION_FAILED : REJECTION_FAILED;
+            throw new InternalServerErrorException(errorMessage);
         }
     }
 

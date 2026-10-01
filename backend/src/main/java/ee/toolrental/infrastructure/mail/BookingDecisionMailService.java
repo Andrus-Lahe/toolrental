@@ -35,9 +35,17 @@ public class BookingDecisionMailService {
     private String senderEmail;
 
     public void sendBookingConfirmed(Booking booking) {
+        sendBookingDecision(booking, true);
+    }
+
+    public void sendBookingRejected(Booking booking) {
+        sendBookingDecision(booking, false);
+    }
+
+    private void sendBookingDecision(Booking booking, boolean confirmed) {
         Optional<Profile> renterProfile = profileRepository.findProfileByUserId(booking.getRenter().getId());
         if (renterProfile.isEmpty()) {
-            log.warn("Broneeringu {} rentijal puudub profiil; kinnituse e-kirja ei saadetud", booking.getId());
+            log.warn("Broneeringu {} rentijal puudub profiil; otsuse e-kirja ei saadetud", booking.getId());
             return;
         }
 
@@ -50,8 +58,10 @@ public class BookingDecisionMailService {
             context.setVariable("endDate", DATE_FORMAT.format(booking.getEndDate()));
             context.setVariable("ownerName", booking.getTool().getOwner().getFirstName() + " "
                     + booking.getTool().getOwner().getLastName());
-            context.setVariable("ownerEmail", ownerProfile.map(Profile::getEmail).orElse(null));
-            context.setVariable("ownerPhone", ownerProfile.map(Profile::getPhone).orElse(null));
+            if (confirmed) {
+                context.setVariable("ownerEmail", ownerProfile.map(Profile::getEmail).orElse(null));
+                context.setVariable("ownerPhone", ownerProfile.map(Profile::getPhone).orElse(null));
+            }
             context.setVariable("ownerMessage", booking.getOwnerMessage());
             context.setVariable("bookingUrl", frontendUrl.replaceAll("/$", "") + "/bookings/" + booking.getId());
 
@@ -62,11 +72,12 @@ public class BookingDecisionMailService {
             if (ownerProfile.isPresent()) {
                 helper.setReplyTo(ownerProfile.get().getEmail());
             }
-            helper.setSubject("Broneering kinnitatud: " + booking.getTool().getName());
-            helper.setText(templateEngine.process("email/booking-confirmed", context), true);
+            helper.setSubject("Broneering " + (confirmed ? "kinnitatud: " : "tagasi lükatud: ") + booking.getTool().getName());
+            String templateName = confirmed ? "email/booking-confirmed" : "email/booking-rejected";
+            helper.setText(templateEngine.process(templateName, context), true);
             mailSender.send(message);
         } catch (MailException | MessagingException exception) {
-            log.error("Broneeringu {} kinnituse e-kirja saatmine ebaõnnestus", booking.getId(), exception);
+            log.error("Broneeringu {} otsuse e-kirja saatmine ebaõnnestus", booking.getId(), exception);
         }
     }
 }
