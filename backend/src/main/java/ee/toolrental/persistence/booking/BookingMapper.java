@@ -2,6 +2,7 @@ package ee.toolrental.persistence.booking;
 
 import ee.toolrental.controller.booking.dto.BookingCreateRequestDto;
 import ee.toolrental.controller.booking.dto.BookingResponseDto;
+import ee.toolrental.controller.common.dto.MyToolBookingDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 
@@ -27,4 +28,14 @@ public interface BookingMapper {
     @Mapping(source = "status", target = "status")
     @Mapping(source = "ownerMessage", target = "ownerMessage")
     BookingResponseDto toBookingResponseDto(Booking booking);
+
+    @Mapping(target = "toolId", source = "booking.tool.id")
+    @Mapping(target = "toolName", source = "booking.tool.name")
+    @Mapping(target = "toolStatus", source = "booking.tool.status")
+    @Mapping(target = "imageData", expression = "java(imageData == null ? null : java.util.Base64.getEncoder().encodeToString(imageData))")
+    @Mapping(target = "bookingId", source = "booking.id")
+    @Mapping(target = "startDate", source = "booking.startDate")
+    @Mapping(target = "endDate", source = "booking.endDate")
+    @Mapping(target = "bookingStatus", source = "booking.status")
+    MyToolBookingDto toMyToolBookingDto(Booking booking, byte[] imageData);
 }
