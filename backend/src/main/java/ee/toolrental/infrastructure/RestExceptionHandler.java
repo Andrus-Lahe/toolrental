@@ -3,10 +3,13 @@ package ee.toolrental.infrastructure;
 import ee.toolrental.infrastructure.error.ApiError;
 import ee.toolrental.infrastructure.exception.DataNotFoundException;
 import ee.toolrental.infrastructure.exception.ForbiddenException;
+import ee.toolrental.infrastructure.exception.IncorrectInputException;
 import ee.toolrental.infrastructure.exception.InternalServerErrorException;
 import ee.toolrental.infrastructure.exception.PrimaryKeyNotFoundException;
 import ee.toolrental.infrastructure.exception.CategoryLoadingException;
 import lombok.extern.slf4j.Slf4j;
+import tools.jackson.core.JacksonException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.jspecify.annotations.NonNull;
 import org.springframework.beans.TypeMismatchException;
 import org.springframework.http.HttpStatus;
@@ -53,6 +56,34 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         apiError.setMessage(exception.getMessage());
         apiError.setErrorCode(exception.getErrorCode());
         return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiError> handleIncorrectInputException(IncorrectInputException exception) {
+        ApiError apiError = new ApiError();
+        apiError.setMessage(exception.getMessage());
+        apiError.setErrorCode("INCORRECT_INPUT");
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex,
+            org.springframework.http.@NonNull HttpHeaders headers,
+            @NonNull HttpStatusCode status,
+            org.springframework.web.context.request.@NonNull WebRequest request) {
+        String field = "body";
+        for (Throwable cause = ex.getCause(); cause != null; cause = cause.getCause()) {
+            if (cause instanceof JacksonException jacksonException && !jacksonException.getPath().isEmpty()) {
+                String propertyName = jacksonException.getPath().getFirst().getPropertyName();
+                if (propertyName != null) field = propertyName;
+                break;
+            }
+        }
+        ApiError apiError = new ApiError();
+        apiError.setMessage(field + ": vigane väärtus või JSON vorming");
+        apiError.setErrorCode("INCORRECT_INPUT");
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
     @Override

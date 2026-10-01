@@ -1,0 +1,40 @@
+package ee.toolrental.controller.booking;
+
+import ee.toolrental.controller.booking.dto.BookingCreateRequestDto;
+import ee.toolrental.controller.booking.dto.BookingResponseDto;
+import ee.toolrental.infrastructure.error.ApiError;
+import ee.toolrental.infrastructure.security.AppUserPrincipal;
+import ee.toolrental.service.BookingService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api")
+@RequiredArgsConstructor
+public class BookingController {
+    private final BookingService bookingService;
+
+    @PostMapping("/bookings")
+    @Operation(summary = "Laenutaotluse loomine")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Laenutaotlus loodi"),
+            @ApiResponse(responseCode = "400", description = "Vigane sisend", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "401", description = "Kasutaja pole sisse logitud"),
+            @ApiResponse(responseCode = "403", description = "Tööriista laenamine on keelatud", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "404", description = "Tööriista ei leitud", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "500", description = "Salvestamine ebaõnnestus", content = @Content(schema = @Schema(implementation = ApiError.class)))})
+    public BookingResponseDto createBooking(@AuthenticationPrincipal AppUserPrincipal principal,
+                                            @RequestBody @Valid BookingCreateRequestDto request) {
+        return bookingService.createBooking(principal.getUserId(), request);
+    }
+}
