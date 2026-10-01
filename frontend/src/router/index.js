@@ -9,6 +9,7 @@ import MyToolsView from '@/views/MyToolsView.vue'
 import BookingFormView from '@/views/BookingFormView.vue'
 import AdminView from '@/views/AdminView.vue'
 import BookingApprovalView from '@/views/BookingApprovalView.vue'
+import ToolDetailView from '@/views/ToolDetailView.vue'
 
 
 const router = createRouter({
@@ -38,6 +39,11 @@ const router = createRouter({
       path: '/tools/:toolId/booking',
       name: 'bookingFormRoute',
       component: BookingFormView,
+    },
+    {
+      path: '/tools/:toolId',
+      name: 'toolDetailRoute',
+      component: ToolDetailView,
     },
     {
       path: '/bookings/:bookingId',

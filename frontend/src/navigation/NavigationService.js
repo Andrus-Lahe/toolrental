@@ -19,6 +19,10 @@ export default {
     return router.push({ path: `/tools/${toolId}` })
   },
 
+  navigateToBookingFormView(router, toolId) {
+    return router.push({ name: 'bookingFormRoute', params: { toolId } })
+  },
+
   navigateToBookingDetails(router, bookingId) {
     return router.push({ path: `/bookings/${bookingId}` })
   },

@@ -9,6 +9,10 @@ export default {
     return axios.post('/api/tools', tool)
   },
 
+  sendDeleteToolRequest(toolId) {
+    return axios.delete(`/api/tools/${toolId}`)
+  },
+
   sendGetToolsRequest(params) {
     return axios.get('/api/tools', { params })
   },
