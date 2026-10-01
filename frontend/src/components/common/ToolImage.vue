@@ -14,6 +14,8 @@
 </template>
 
 <script>
+import { toImageDataUrl } from '@/utils/imageDataUrl'
+
 export default {
   name: 'ToolImage',
   props: {
@@ -25,8 +27,7 @@ export default {
   },
   computed: {
     imageSource() {
-      const imageData = this.imageData?.trim()
-      return imageData ? `data:image/svg+xml;base64,${imageData}` : ''
+      return toImageDataUrl(this.imageData)
     },
   },
   watch: {
