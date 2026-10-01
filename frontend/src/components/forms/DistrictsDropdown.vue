@@ -1,12 +1,16 @@
 <template>
   <select
     class="form-select"
-    :value="selectedDistrictId"
     :disabled="isDisabled"
     @change="$emit('event-new-district-selected', Number($event.target.value))"
   >
-    <option :value="0">{{ firstOptionLabel }}</option>
-    <option v-for="district in districts" :key="district.districtId" :value="district.districtId">
+    <option :value="0" :selected="selectedDistrictId === 0">{{ firstOptionLabel }}</option>
+    <option
+      v-for="district in districts"
+      :key="district.districtId"
+      :value="district.districtId"
+      :selected="district.districtId === selectedDistrictId"
+    >
       {{ district.districtName }}
     </option>
   </select>

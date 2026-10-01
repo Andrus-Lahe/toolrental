@@ -1,11 +1,15 @@
 <template>
   <select
     class="form-select"
-    :value="selectedCityId"
     @change="$emit('event-new-city-selected', Number($event.target.value))"
   >
-    <option :value="0">{{ firstOptionLabel }}</option>
-    <option v-for="city in cities" :key="city.cityId" :value="city.cityId">
+    <option :value="0" :selected="selectedCityId === 0">{{ firstOptionLabel }}</option>
+    <option
+      v-for="city in cities"
+      :key="city.cityId"
+      :value="city.cityId"
+      :selected="city.cityId === selectedCityId"
+    >
       {{ city.cityName }}
     </option>
   </select>
