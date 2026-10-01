@@ -12,6 +12,6 @@ public interface ToolImageRepository extends JpaRepository<ToolImage, Integer> {
     @Query("select i from ToolImage i join fetch i.tool t where i.main = true and t.id in :toolIds")
     List<ToolImage> findMainToolImagesByToolIds(@Param("toolIds") Collection<Integer> toolIds);
 
-    @Query("select i from ToolImage i where i.tool.id = :toolId and i.main = true")
+    @Query("select i from ToolImage i where i.tool.id = :toolId and i.main = true order by i.id desc limit 1")
     Optional<ToolImage> findMainToolImageBy(@Param("toolId") Integer toolId);
 }
