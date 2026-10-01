@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="et" xmlns:th="http://www.thymeleaf.org">
+<head><meta charset="UTF-8"><title>Laenutuse taotlus</title></head>
+<body>
+<h1>Sulle on saabunud uus laenutuse taotlus</h1>
+<h2>Laenutuse taotlus</h2>
+<p>Taotleja: <span th:text="${renterName}"></span></p>
+<p>Tööriist: <span th:text="${toolName}"></span></p>
+<p>Broneeringu number: <span th:text="${bookingId}"></span></p>
+<p>Periood: <span th:text="${startDate}"></span> kuni <span th:text="${endDate}"></span></p>
+<p>Palun kinnita või tühista taotlus.</p>
+<p><a th:href="${bookingUrl}">Vaata taotlust</a></p>
+</body>
+</html>
