@@ -17,6 +17,10 @@ public class SecurityConfig {
 
     private final AppUserOidcService appUserOidcService;
 
+    // Seadistab, kes mis päringuid teha tohib: avalikud GET-päringud (tööriistad, kategooriad, linnad, Swagger) on lahti,
+    // admin-teed vajavad rolli admin ning broneerimine ja tööriista lisamine rolle customer/admin; ülejäänu nõuab sisselogimist.
+    // Sisselogimine käib Google OIDC-ga (AppUserOidcService) ja suunab edu/vea korral frontendi.
+    // Autentimata /api/users/me/tools päring saab 401 koos JSON veateatega; väljalogimine suunab avalehele, CSRF on välja lülitatud.
     @Bean
     SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
