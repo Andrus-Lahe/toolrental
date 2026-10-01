@@ -2,6 +2,7 @@ package ee.toolrental.persistence.tool;
 
 import ee.toolrental.controller.common.dto.MyToolCardDto;
 import ee.toolrental.controller.tool.dto.ToolCreateRequestDto;
+import ee.toolrental.controller.tool.dto.ToolDetailResponse;
 import ee.toolrental.controller.tool.dto.ToolListItemDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -33,6 +34,15 @@ public interface ToolMapper {
     ToolListItemDto toToolListItemDto(ToolListRow toolListRow);
 
     List<ToolListItemDto> toToolListItemDtos(List<ToolListRow> toolListRows);
+
+    @Mapping(target = "toolId", source = "tool.id")
+    @Mapping(target = "ownerId", source = "tool.owner.id")
+    @Mapping(target = "toolName", source = "tool.name")
+    @Mapping(target = "categoryName", source = "tool.category.categoryName")
+    @Mapping(target = "description", source = "tool.description")
+    @Mapping(target = "imageData", expression = "java(toBase64(imageData))")
+    @Mapping(target = "status", source = "tool.status")
+    ToolDetailResponse toToolDetailResponse(Tool tool, byte[] imageData);
 
     default String toBase64(byte[] imageData) {
         return imageData == null ? null : Base64.getEncoder().encodeToString(imageData);

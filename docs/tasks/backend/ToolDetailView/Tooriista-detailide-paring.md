@@ -42,7 +42,7 @@ Näide on sildilt ja ühtib failiga `3_import.sql` (`tool.id = 1`, omanik Marko 
 | `ownerId` | `Integer` | `tool.owner_id` | Frontend kasutab seda `GET /api/users/{userId}` päringus (ainult sisse logitud kasutajale) |
 | `toolName` | `String` | `tool.name` | |
 | `categoryName` | `String` | `category.category_name` (`tool.category_id`) | |
-| `categoryDescription` | `String` | `tool.description` | Võib olla `null` |
+| `description` | `String` | `tool.description` | Võib olla `null` |
 | `imageData` | `String` | `tool_image.image_data`, kus `is_main = true` | Baitide Base64 (`Base64.getEncoder().encodeToString(...)`); `null`, kui põhipilti pole |
 | `status` | `String` | `tool.status` | `A` = saadaval, `U` = pole saadaval |
 
@@ -124,12 +124,12 @@ Vastuse kuju on olemasolev `ApiError` (`message`, `errorCode`).
 | Andmebaasipäring ebaõnnestub ootamatult. | 500 Internal Server Error | `{"errorCode":"INTERNAL_SERVER_ERROR","message":"Tööriista laadimine ebaõnnestus. Palun proovi hiljem uuesti."}` |
 
 - 404 tuleb olemasolevast `PrimaryKeyNotFoundException` klassist.
-- Path variable'i 400 ja ühtne 500 kuju tuleb teostamisel tagada, sest praegune `RestExceptionHandler` neid automaatselt ei käsitle. SQL-i ega stack trace'i ei tagastata.
+- Path variable'i 400 käsitleb juba olemasolev `RestExceptionHandler.handleTypeMismatch`. Ühtne 500 kuju tuleb teostamisel tagada service'is (`DataAccessException` → `InternalServerErrorException`). SQL-i ega stack trace'i ei tagastata.
 
 ## Vastuvõtu kriteeriumid
 
 - [ ] Avalik `GET /api/tools/{toolId}` töötab ka sisse logimata kasutajale.
-- [ ] Vastus sisaldab täpselt välju `toolId`, `ownerId`, `toolName`, `categoryName`, `categoryDescription`, `imageData`, `status`.
+- [ ] Vastus sisaldab täpselt välju `toolId`, `ownerId`, `toolName`, `categoryName`, `description`, `imageData`, `status`.
 - [ ] `toolId = 1` annab näites toodud väärtused ja `imageData` on `tool_image` rea 1 baitide Base64 kuju; dekodeerimisel saadakse täpselt andmebaasi baidid.
 - [ ] `toolId = 2` (status `U`) tagastatakse samuti 200-ga.
 - [ ] Ainult `is_main = true` pilt läheb vastusesse; pildita tööriistal on `imageData = null`.

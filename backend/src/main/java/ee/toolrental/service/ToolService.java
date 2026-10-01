@@ -1,11 +1,13 @@
 package ee.toolrental.service;
 
 import ee.toolrental.controller.tool.dto.ToolCreateRequestDto;
+import ee.toolrental.controller.tool.dto.ToolDetailResponse;
 import ee.toolrental.controller.tool.dto.ToolListItemDto;
 import ee.toolrental.controller.tool.dto.ToolsResponse;
 import ee.toolrental.infrastructure.exception.ForbiddenException;
 import ee.toolrental.infrastructure.exception.IncorrectInputException;
 import ee.toolrental.infrastructure.exception.InternalServerErrorException;
+import ee.toolrental.infrastructure.exception.PrimaryKeyNotFoundException;
 import ee.toolrental.persistence.profile.ProfileRepository;
 import ee.toolrental.persistence.tool.Tool;
 import ee.toolrental.persistence.tool.ToolListRow;
@@ -32,6 +34,7 @@ import java.util.Set;
 public class ToolService {
     private static final String SAVE_FAILED = "Tööriista lisamine ebaõnnestus. Palun proovi hiljem uuesti.";
     private static final String TOOLS_LOADING_FAILED = "Tööriistade laadimine ebaõnnestus. Palun proovi hiljem uuesti.";
+    private static final String TOOL_LOADING_FAILED = "Tööriista laadimine ebaõnnestus. Palun proovi hiljem uuesti.";
     private static final Set<String> ALLOWED_STATUSES = Set.of("A", "U", "0");
     private final ToolRepository toolRepository;
     private final ToolImageRepository toolImageRepository;
@@ -118,5 +121,24 @@ public class ToolService {
     private int parseInteger(String name, String value) {
         try { return Integer.parseInt(value); }
         catch (NumberFormatException exception) { throw new IncorrectInputException(name + ": peab olema Integer-tüüpi täisarv"); }
+    }
+
+    @Transactional(readOnly = true)
+    public ToolDetailResponse getToolDetail(Integer toolId) {
+        try {
+            Tool tool = getValidToolBy(toolId);
+            byte[] imageData = toolImageRepository.findMainToolImageBy(toolId)
+                    .map(ToolImage::getImageData)
+                    .orElse(null);
+            return toolMapper.toToolDetailResponse(tool, imageData);
+        } catch (DataAccessException exception) {
+            log.error("Tööriista laadimine ebaõnnestus (toolId={})", toolId, exception);
+            throw new InternalServerErrorException(TOOL_LOADING_FAILED);
+        }
+    }
+
+    public Tool getValidToolBy(Integer toolId) {
+        return toolRepository.findById(toolId)
+                .orElseThrow(() -> new PrimaryKeyNotFoundException("toolId", toolId));
     }
 }
