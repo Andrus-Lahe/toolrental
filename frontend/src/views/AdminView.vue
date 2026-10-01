@@ -171,6 +171,9 @@ export default {
       return `Kas oled kindel, et soovid kategooria ${this.categoryToDelete.categoryName} kustutada?`
     },
   },
+  beforeMount() {
+    this.checkAccess()
+  },
   methods: {
     checkAccess() {
       this.accessStatus = 'checking'
@@ -203,14 +206,26 @@ export default {
         .finally(() => (this.isLoading = false))
     },
 
-    handleGetUsersResponse(users) {
-      this.users = Array.isArray(users) ? users : []
-    },
-
     // Loendi laadimise vea korral jäävad varem laetud andmed nähtavale.
     handleGetUsersError(error) {
       this.loadFailed = true
       this.handleApiError(error, USERS_LOADING_FAILED)
+    },
+
+    getCategories() {
+      this.isCategoriesLoading = true
+      this.categoriesLoadFailed = false
+      this.categoriesReloadFailed = false
+      AdminCategoryService.sendGetAdminCategoriesRequest()
+        .then((response) => this.handleGetCategoriesResponse(response.data))
+        .catch((error) => this.handleGetCategoriesError(error))
+        .finally(() => (this.isCategoriesLoading = false))
+    },
+
+    // Loendi laadimise vea korral jäävad varem laetud andmed nähtavale.
+    handleGetCategoriesError(error) {
+      this.categoriesLoadFailed = true
+      this.categoryErrorMessage = this.createCategoryErrorMessage(error, CATEGORIES_LOADING_FAILED)
     },
 
     handleBlockUser(userId) {
@@ -250,34 +265,6 @@ export default {
     finishDelete() {
       this.pendingUserId = 0
       this.userToDelete = null
-    },
-
-    // Muutmine õnnestus; ainult loendi värskendamise tõrge ei tohi väita, et muutmine ebaõnnestus.
-    reloadUsersAfterChange() {
-      this.reloadFailed = false
-      return AdminUserService.sendGetAdminUsersRequest()
-        .then((response) => this.handleGetUsersResponse(response.data))
-        .catch(() => (this.reloadFailed = true))
-    },
-
-    getCategories() {
-      this.isCategoriesLoading = true
-      this.categoriesLoadFailed = false
-      this.categoriesReloadFailed = false
-      AdminCategoryService.sendGetAdminCategoriesRequest()
-        .then((response) => this.handleGetCategoriesResponse(response.data))
-        .catch((error) => this.handleGetCategoriesError(error))
-        .finally(() => (this.isCategoriesLoading = false))
-    },
-
-    handleGetCategoriesResponse(categories) {
-      this.categories = Array.isArray(categories) ? categories : []
-    },
-
-    // Loendi laadimise vea korral jäävad varem laetud andmed nähtavale.
-    handleGetCategoriesError(error) {
-      this.categoriesLoadFailed = true
-      this.categoryErrorMessage = this.createCategoryErrorMessage(error, CATEGORIES_LOADING_FAILED)
     },
 
     handleAddCategory() {
@@ -356,11 +343,27 @@ export default {
     },
 
     // Muutmine õnnestus; ainult loendi värskendamise tõrge ei tohi väita, et muutmine ebaõnnestus.
+    reloadUsersAfterChange() {
+      this.reloadFailed = false
+      return AdminUserService.sendGetAdminUsersRequest()
+        .then((response) => this.handleGetUsersResponse(response.data))
+        .catch(() => (this.reloadFailed = true))
+    },
+
+    handleGetUsersResponse(users) {
+      this.users = Array.isArray(users) ? users : []
+    },
+
+    // Muutmine õnnestus; ainult loendi värskendamise tõrge ei tohi väita, et muutmine ebaõnnestus.
     reloadCategoriesAfterChange() {
       this.categoriesReloadFailed = false
       return AdminCategoryService.sendGetAdminCategoriesRequest()
         .then((response) => this.handleGetCategoriesResponse(response.data))
         .catch(() => (this.categoriesReloadFailed = true))
+    },
+
+    handleGetCategoriesResponse(categories) {
+      this.categories = Array.isArray(categories) ? categories : []
     },
 
     // Tagastab kasutajale näidatava teksti; 401 ja tühja body'ga 403 muudavad vaate ligipääsu olekut.
@@ -395,9 +398,6 @@ export default {
         this.errorMessage = response.data?.message ?? fallbackMessage
       }
     },
-  },
-  beforeMount() {
-    this.checkAccess()
   },
 }
 </script>

@@ -182,7 +182,116 @@ export default {
       }
     },
   },
+  beforeMount() {
+    this.getCategories()
+    this.getCities()
+    this.loadToolsFromRoute()
+  },
   methods: {
+
+    getCategories() {
+      this.isCategoriesLoading = true
+      this.categoriesErrorMessage = ''
+      CategoryService.sendGetCategoriesRequest()
+        .then((response) => this.handleGetCategoriesResponse(response.data))
+        .catch((error) => this.handleGetCategoriesError(error))
+        .finally(() => {
+          this.isCategoriesLoading = false
+        })
+    },
+
+    handleGetCategoriesResponse(categories) {
+      this.categories = categories
+      this.isCategoriesLoaded = true
+    },
+
+    handleGetCategoriesError(error) {
+      this.categoriesErrorMessage = this.getErrorMessage(error, CATEGORIES_LOADING_FAILED)
+      console.error('Categories request failed', error)
+    },
+
+    getCities() {
+      this.isCitiesLoading = true
+      this.citiesErrorMessage = ''
+      CityService.sendGetCitiesRequest()
+        .then((response) => this.handleGetCitiesResponse(response.data))
+        .catch((error) => this.handleGetCitiesError(error))
+        .finally(() => {
+          this.isCitiesLoading = false
+        })
+    },
+
+    handleGetCitiesResponse(cities) {
+      this.cities = cities
+    },
+
+    handleGetCitiesError(error) {
+      this.citiesErrorMessage = this.getErrorMessage(error, CITIES_LOADING_FAILED)
+      console.error('Cities request failed', error)
+    },
+
+    handleCategoryChanged(categoryId) {
+      this.formFilters.categoryId = categoryId
+    },
+
+    handleCityChanged(cityId) {
+      this.formFilters.cityId = cityId
+      this.formFilters.districtId = 0
+      this.getDistricts(cityId)
+    },
+
+    handleDistrictChanged(districtId) {
+      this.formFilters.districtId = districtId
+    },
+
+    handleApplyFilters() {
+      this.navigateWithFilters({ ...this.formFilters, pageNumber: 1 })
+    },
+
+    handleResetFilters() {
+      this.formFilters = { categoryId: 0, cityId: 0, districtId: 0 }
+      if (this.districtsCityId !== 0) {
+        this.getDistricts(0)
+      }
+      this.navigateWithFilters({ ...DEFAULT_FILTERS })
+    },
+
+    handleGoToLastPage() {
+      this.handlePageChanged(this.toolsResponse.totalPages)
+    },
+
+    handlePageChanged(pageNumber) {
+      this.navigateWithFilters({ ...this.appliedFilters, pageNumber })
+    },
+
+    handleViewDetails(toolId) {
+      NavigationService.navigateToToolDetail(this.$router, toolId)
+    },
+
+    navigateWithFilters(filters) {
+      const query = this.buildQuery(filters)
+      if (this.isSameQuery(query, this.$route.query)) {
+        this.loadToolsFromRoute()
+      } else {
+        NavigationService.navigateToToolsSearch(this.$router, query)
+      }
+    },
+
+    buildQuery(filters) {
+      const query = {}
+      for (const key of Object.keys(DEFAULT_FILTERS)) {
+        if (filters[key] !== DEFAULT_FILTERS[key]) {
+          query[key] = String(filters[key])
+        }
+      }
+      return query
+    },
+
+    isSameQuery(query, routeQuery) {
+      const keys = Object.keys(query)
+      const routeKeys = Object.keys(routeQuery)
+      return keys.length === routeKeys.length && keys.every((key) => query[key] === routeQuery[key])
+    },
     loadToolsFromRoute() {
       const { filters, errorMessage } = this.parseRouteQuery(this.$route.query)
       if (errorMessage) {
@@ -243,74 +352,6 @@ export default {
       }
     },
 
-    getTools() {
-      const requestId = ++this.toolsRequestId
-      this.isToolsLoading = true
-      ToolService.sendGetToolsRequest({ ...this.appliedFilters })
-        .then((response) => {
-          if (requestId === this.toolsRequestId) this.handleGetToolsResponse(response.data)
-        })
-        .catch((error) => {
-          if (requestId === this.toolsRequestId) this.handleGetToolsError(error)
-        })
-        .finally(() => {
-          if (requestId === this.toolsRequestId) this.isToolsLoading = false
-        })
-    },
-
-    handleGetToolsResponse(toolsResponse) {
-      this.toolsResponse = toolsResponse
-      this.toolsErrorMessage = ''
-      this.isToolsResultStale = false
-    },
-
-    handleGetToolsError(error) {
-      this.toolsErrorMessage = this.getErrorMessage(error, TOOLS_LOADING_FAILED)
-      this.isToolsResultStale = this.toolsResponse !== null
-      console.error('Tools request failed', error)
-    },
-
-    getCategories() {
-      this.isCategoriesLoading = true
-      this.categoriesErrorMessage = ''
-      CategoryService.sendGetCategoriesRequest()
-        .then((response) => this.handleGetCategoriesResponse(response.data))
-        .catch((error) => this.handleGetCategoriesError(error))
-        .finally(() => {
-          this.isCategoriesLoading = false
-        })
-    },
-
-    handleGetCategoriesResponse(categories) {
-      this.categories = categories
-      this.isCategoriesLoaded = true
-    },
-
-    handleGetCategoriesError(error) {
-      this.categoriesErrorMessage = this.getErrorMessage(error, CATEGORIES_LOADING_FAILED)
-      console.error('Categories request failed', error)
-    },
-
-    getCities() {
-      this.isCitiesLoading = true
-      this.citiesErrorMessage = ''
-      CityService.sendGetCitiesRequest()
-        .then((response) => this.handleGetCitiesResponse(response.data))
-        .catch((error) => this.handleGetCitiesError(error))
-        .finally(() => {
-          this.isCitiesLoading = false
-        })
-    },
-
-    handleGetCitiesResponse(cities) {
-      this.cities = cities
-    },
-
-    handleGetCitiesError(error) {
-      this.citiesErrorMessage = this.getErrorMessage(error, CITIES_LOADING_FAILED)
-      console.error('Cities request failed', error)
-    },
-
     getDistricts(cityId) {
       const requestId = ++this.districtsRequestId
       this.districtsCityId = cityId
@@ -350,73 +391,32 @@ export default {
       return error.response.data?.message ?? fallbackMessage
     },
 
-    handleCategoryChanged(categoryId) {
-      this.formFilters.categoryId = categoryId
+    getTools() {
+      const requestId = ++this.toolsRequestId
+      this.isToolsLoading = true
+      ToolService.sendGetToolsRequest({ ...this.appliedFilters })
+        .then((response) => {
+          if (requestId === this.toolsRequestId) this.handleGetToolsResponse(response.data)
+        })
+        .catch((error) => {
+          if (requestId === this.toolsRequestId) this.handleGetToolsError(error)
+        })
+        .finally(() => {
+          if (requestId === this.toolsRequestId) this.isToolsLoading = false
+        })
     },
 
-    handleCityChanged(cityId) {
-      this.formFilters.cityId = cityId
-      this.formFilters.districtId = 0
-      this.getDistricts(cityId)
+    handleGetToolsResponse(toolsResponse) {
+      this.toolsResponse = toolsResponse
+      this.toolsErrorMessage = ''
+      this.isToolsResultStale = false
     },
 
-    handleDistrictChanged(districtId) {
-      this.formFilters.districtId = districtId
+    handleGetToolsError(error) {
+      this.toolsErrorMessage = this.getErrorMessage(error, TOOLS_LOADING_FAILED)
+      this.isToolsResultStale = this.toolsResponse !== null
+      console.error('Tools request failed', error)
     },
-
-    handleApplyFilters() {
-      this.navigateWithFilters({ ...this.formFilters, pageNumber: 1 })
-    },
-
-    handleResetFilters() {
-      this.formFilters = { categoryId: 0, cityId: 0, districtId: 0 }
-      if (this.districtsCityId !== 0) {
-        this.getDistricts(0)
-      }
-      this.navigateWithFilters({ ...DEFAULT_FILTERS })
-    },
-
-    handlePageChanged(pageNumber) {
-      this.navigateWithFilters({ ...this.appliedFilters, pageNumber })
-    },
-
-    handleGoToLastPage() {
-      this.handlePageChanged(this.toolsResponse.totalPages)
-    },
-
-    navigateWithFilters(filters) {
-      const query = this.buildQuery(filters)
-      if (this.isSameQuery(query, this.$route.query)) {
-        this.loadToolsFromRoute()
-      } else {
-        NavigationService.navigateToToolsSearch(this.$router, query)
-      }
-    },
-
-    buildQuery(filters) {
-      const query = {}
-      for (const key of Object.keys(DEFAULT_FILTERS)) {
-        if (filters[key] !== DEFAULT_FILTERS[key]) {
-          query[key] = String(filters[key])
-        }
-      }
-      return query
-    },
-
-    isSameQuery(query, routeQuery) {
-      const keys = Object.keys(query)
-      const routeKeys = Object.keys(routeQuery)
-      return keys.length === routeKeys.length && keys.every((key) => query[key] === routeQuery[key])
-    },
-
-    handleViewDetails(toolId) {
-      NavigationService.navigateToToolDetail(this.$router, toolId)
-    },
-  },
-  beforeMount() {
-    this.getCategories()
-    this.getCities()
-    this.loadToolsFromRoute()
   },
 }
 </script>

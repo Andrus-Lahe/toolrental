@@ -66,6 +66,26 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ApiError> handleException(Exception exception) {
+        log.error("Unexpected request failure", exception);
+        ApiError apiError = new ApiError();
+        apiError.setMessage("Toiming ebaõnnestus. Palun proovi hiljem uuesti.");
+        apiError.setErrorCode("INTERNAL_SERVER_ERROR");
+
+        return new ResponseEntity<>(apiError,
+                HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiError> handleCategoryLoadingException(CategoryLoadingException exception) {
+        ApiError apiError = new ApiError();
+        apiError.setMessage(exception.getMessage());
+        apiError.setErrorCode(exception.getErrorCode());
+
+        return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
     @Override
     protected ResponseEntity<Object> handleHttpMessageNotReadable(
             HttpMessageNotReadableException ex,
@@ -119,26 +139,6 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         apiError.setErrorCode("INCORRECT_INPUT");
 
         return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<ApiError> handleException(Exception exception) {
-        log.error("Unexpected request failure", exception);
-        ApiError apiError = new ApiError();
-        apiError.setMessage("Toiming ebaõnnestus. Palun proovi hiljem uuesti.");
-        apiError.setErrorCode("INTERNAL_SERVER_ERROR");
-
-        return new ResponseEntity<>(apiError,
-                HttpStatus.INTERNAL_SERVER_ERROR);
-    }
-
-    @ExceptionHandler
-    public ResponseEntity<ApiError> handleCategoryLoadingException(CategoryLoadingException exception) {
-        ApiError apiError = new ApiError();
-        apiError.setMessage(exception.getMessage());
-        apiError.setErrorCode(exception.getErrorCode());
-
-        return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
 }

@@ -128,21 +128,6 @@ class AdminUserDeleteRepositoryTest {
     }
 
     /**
-     * Loob ja salvestab testkasutaja customer-rolliga (transaktsioon võetakse testi lõpus tagasi).
-     */
-    private AppUser persistAppUser(String googleSub) {
-        AppUser appUser = new AppUser();
-        appUser.setRole(entityManager.find(Role.class, 2));
-        appUser.setFirstName("Test");
-        appUser.setLastName("Kasutaja");
-        appUser.setGoogleSub(googleSub);
-        appUser.setStatus("A");
-        entityManager.persist(appUser);
-        entityManager.flush();
-        return appUser;
-    }
-
-    /**
      * Loob ja salvestab antud kasutajale ühe tööriista olemasolevas kategoorias 1.
      */
     private void persistTool(AppUser owner) {
@@ -155,5 +140,20 @@ class AdminUserDeleteRepositoryTest {
         tool.setUpdatedAt(Instant.now());
         entityManager.persist(tool);
         entityManager.flush();
+    }
+
+    /**
+     * Loob ja salvestab testkasutaja customer-rolliga (transaktsioon võetakse testi lõpus tagasi).
+     */
+    private AppUser persistAppUser(String googleSub) {
+        AppUser appUser = new AppUser();
+        appUser.setRole(entityManager.find(Role.class, 2));
+        appUser.setFirstName("Test");
+        appUser.setLastName("Kasutaja");
+        appUser.setGoogleSub(googleSub);
+        appUser.setStatus("A");
+        entityManager.persist(appUser);
+        entityManager.flush();
+        return appUser;
     }
 }

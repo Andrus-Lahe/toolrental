@@ -135,22 +135,6 @@ class BookingServiceTest {
         assertEquals("Broneeringu laadimine ebaõnnestus. Palun proovi hiljem uuesti.", error.getMessage());
     }
 
-    private Booking booking() {
-        Booking booking = new Booking();
-        booking.setId(4);
-        booking.setTool(tool);
-        AppUser renter = new AppUser();
-        renter.setId(3);
-        renter.setFirstName("Liis");
-        renter.setLastName("Kask");
-        booking.setRenter(renter);
-        booking.setStartDate(LocalDate.of(2026, 10, 2));
-        booking.setEndDate(LocalDate.of(2026, 10, 4));
-        booking.setStatus("P");
-        booking.setOwnerMessage(null);
-        return booking;
-    }
-
     @Test
     void ownerConfirmsPendingBookingAndSavesMessageAndTimestampBeforeEmail() {
         Booking booking = booking();
@@ -318,5 +302,21 @@ class BookingServiceTest {
         assertEquals("INTERNAL_SERVER_ERROR", error.getErrorCode());
         assertEquals("Laenutuse taotluse saatmine ebaõnnestus. Palun proovi hiljem uuesti.", error.getMessage());
         verifyNoInteractions(mailService);
+    }
+
+    private Booking booking() {
+        Booking booking = new Booking();
+        booking.setId(4);
+        booking.setTool(tool);
+        AppUser renter = new AppUser();
+        renter.setId(3);
+        renter.setFirstName("Liis");
+        renter.setLastName("Kask");
+        booking.setRenter(renter);
+        booking.setStartDate(LocalDate.of(2026, 10, 2));
+        booking.setEndDate(LocalDate.of(2026, 10, 4));
+        booking.setStatus("P");
+        booking.setOwnerMessage(null);
+        return booking;
     }
 }

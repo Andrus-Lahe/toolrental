@@ -102,6 +102,9 @@ export default {
       this.loadPageData()
     },
   },
+  beforeMount() {
+    this.loadPageData()
+  },
   methods: {
     loadPageData() {
       const generation = ++this.loadGeneration
@@ -171,16 +174,16 @@ export default {
       this.pageStatus = 'ready'
     },
 
-    handleToolLoadError(error, generation) {
-      if (generation !== this.loadGeneration) return
-      this.pageStatus = 'load-error'
-      this.loadError = error?.response?.data?.message ?? 'Tööriista laadimine ebaõnnestus. Proovi uuesti.'
-    },
-
     handleOwnerLoadError(error, generation) {
       if (generation !== this.loadGeneration) return
       this.pageStatus = 'load-error'
       this.loadError = error?.response?.data?.message ?? 'Omaniku kontaktandmete laadimine ebaõnnestus. Proovi uuesti.'
+    },
+
+    handleToolLoadError(error, generation) {
+      if (generation !== this.loadGeneration) return
+      this.pageStatus = 'load-error'
+      this.loadError = error?.response?.data?.message ?? 'Tööriista laadimine ebaõnnestus. Proovi uuesti.'
     },
 
     handleSubmit(formData) {
@@ -235,9 +238,6 @@ export default {
       this.isConfirmationOpen = false
       NavigationService.navigateToMyTools(this.$router)
     },
-  },
-  beforeMount() {
-    this.loadPageData()
   },
 }
 </script>

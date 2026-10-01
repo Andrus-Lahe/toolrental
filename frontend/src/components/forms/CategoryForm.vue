@@ -88,10 +88,6 @@ export default {
       }
     },
 
-    cancel() {
-      if (!this.isSaving) this.$emit('event-cancel')
-    },
-
     // Tagastab esimese vea teksti või tühja sõne, kui vorm on korrektne. Arv 0 ja negatiivsed täisarvud on lubatud.
     validate() {
       const categoryName = this.form.categoryName.trim()
@@ -117,6 +113,10 @@ export default {
         description: this.form.description.trim() || null,
         sequence: Number(String(this.form.sequence).trim()),
       }
+    },
+
+    cancel() {
+      if (!this.isSaving) this.$emit('event-cancel')
     },
   },
 }

@@ -119,6 +119,13 @@ class ToolDetailServiceTest {
         verify(toolImageRepository, never()).save(any());
     }
 
+    private ToolImage createToolImage(byte[] imageBytes) {
+        ToolImage toolImage = new ToolImage();
+        toolImage.setImageData(imageBytes);
+        toolImage.setIsMain(true);
+        return toolImage;
+    }
+
     private Tool createTool(Integer toolId, String description, String status) {
         AppUser owner = new AppUser();
         owner.setId(7);
@@ -133,12 +140,5 @@ class ToolDetailServiceTest {
         tool.setDescription(description);
         tool.setStatus(status);
         return tool;
-    }
-
-    private ToolImage createToolImage(byte[] imageBytes) {
-        ToolImage toolImage = new ToolImage();
-        toolImage.setImageData(imageBytes);
-        toolImage.setIsMain(true);
-        return toolImage;
     }
 }

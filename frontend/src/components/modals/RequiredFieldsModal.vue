@@ -43,17 +43,17 @@ export default {
       else window.removeEventListener('keydown', this.handleKeydown)
     },
   },
+  beforeUnmount() {
+    window.removeEventListener('keydown', this.handleKeydown)
+  },
   methods: {
-    closeModal() {
-      this.$emit('event-modal-closed')
-    },
 
     handleKeydown(event) {
       if (event.key === 'Escape') this.closeModal()
     },
-  },
-  beforeUnmount() {
-    window.removeEventListener('keydown', this.handleKeydown)
+    closeModal() {
+      this.$emit('event-modal-closed')
+    },
   },
 }
 </script>

@@ -55,36 +55,6 @@ public class BookingService {
         decideBooking(ownerId, bookingId, ownerMessage, STATUS_REJECTED);
     }
 
-    private void decideBooking(Integer ownerId, Integer bookingId, String ownerMessage, String targetStatus) {
-        try {
-            Booking booking = getValidBookingForDecisionBy(bookingId);
-            if (!booking.getTool().getOwner().getId().equals(ownerId)) {
-                throw new ForbiddenException("Ainult tööriista omanik saab taotlust kinnitada või tagasi lükata", "BOOKING_NOT_OWNER");
-            }
-            if (!STATUS_PENDING.equals(booking.getStatus())) {
-                throw new ForbiddenException("Taotlus on juba kinnitatud või tagasi lükatud", "BOOKING_NOT_PENDING");
-            }
-
-            booking.setStatus(targetStatus);
-            booking.setOwnerMessage(ownerMessage);
-            booking.setUpdatedAt(Instant.now());
-            booking = bookingRepository.saveAndFlush(booking);
-            if (STATUS_CONFIRMED.equals(targetStatus)) {
-                bookingDecisionMailService.sendBookingConfirmed(booking);
-            } else {
-                bookingDecisionMailService.sendBookingRejected(booking);
-            }
-        } catch (DataAccessException exception) {
-            String errorMessage = STATUS_CONFIRMED.equals(targetStatus) ? CONFIRMATION_FAILED : REJECTION_FAILED;
-            throw new InternalServerErrorException(errorMessage);
-        }
-    }
-
-    private Booking getValidBookingForDecisionBy(Integer bookingId) {
-        return bookingRepository.findBookingForDecisionById(bookingId)
-                .orElseThrow(() -> new PrimaryKeyNotFoundException("bookingId", bookingId));
-    }
-
     @Transactional(readOnly = true)
     public BookingApprovalDto getBooking(Integer actorId, Integer bookingId) {
         try {
@@ -102,16 +72,6 @@ public class BookingService {
         } catch (DataAccessException exception) {
             throw new InternalServerErrorException(BOOKING_LOAD_FAILED);
         }
-    }
-
-    private void handleContactDetails(BookingApprovalDto response, Booking booking, boolean isOwner) {
-        AppUser contact = isOwner ? booking.getRenter() : booking.getTool().getOwner();
-        response.setIsOwner(isOwner);
-        response.setContactName(contact.getFirstName() + " " + contact.getLastName());
-        profileRepository.findProfileByUserId(contact.getId()).ifPresent(profile -> {
-            response.setContactEmail(profile.getEmail());
-            response.setContactPhone(profile.getPhone());
-        });
     }
 
     @Transactional
@@ -152,6 +112,16 @@ public class BookingService {
                 .orElseThrow(() -> new PrimaryKeyNotFoundException("toolId", toolId));
     }
 
+    private void handleContactDetails(BookingApprovalDto response, Booking booking, boolean isOwner) {
+        AppUser contact = isOwner ? booking.getRenter() : booking.getTool().getOwner();
+        response.setIsOwner(isOwner);
+        response.setContactName(contact.getFirstName() + " " + contact.getLastName());
+        profileRepository.findProfileByUserId(contact.getId()).ifPresent(profile -> {
+            response.setContactEmail(profile.getEmail());
+            response.setContactPhone(profile.getPhone());
+        });
+    }
+
     private void validateDates(BookingCreateRequestDto request) {
         LocalDate startDate = request.getStartDate();
         LocalDate endDate = request.getEndDate();
@@ -164,5 +134,35 @@ public class BookingService {
         if (endDate.isBefore(startDate)) {
             throw new IncorrectInputException("endDate: peab olema startDate'iga samal päeval või hiljem");
         }
+    }
+
+    private void decideBooking(Integer ownerId, Integer bookingId, String ownerMessage, String targetStatus) {
+        try {
+            Booking booking = getValidBookingForDecisionBy(bookingId);
+            if (!booking.getTool().getOwner().getId().equals(ownerId)) {
+                throw new ForbiddenException("Ainult tööriista omanik saab taotlust kinnitada või tagasi lükata", "BOOKING_NOT_OWNER");
+            }
+            if (!STATUS_PENDING.equals(booking.getStatus())) {
+                throw new ForbiddenException("Taotlus on juba kinnitatud või tagasi lükatud", "BOOKING_NOT_PENDING");
+            }
+
+            booking.setStatus(targetStatus);
+            booking.setOwnerMessage(ownerMessage);
+            booking.setUpdatedAt(Instant.now());
+            booking = bookingRepository.saveAndFlush(booking);
+            if (STATUS_CONFIRMED.equals(targetStatus)) {
+                bookingDecisionMailService.sendBookingConfirmed(booking);
+            } else {
+                bookingDecisionMailService.sendBookingRejected(booking);
+            }
+        } catch (DataAccessException exception) {
+            String errorMessage = STATUS_CONFIRMED.equals(targetStatus) ? CONFIRMATION_FAILED : REJECTION_FAILED;
+            throw new InternalServerErrorException(errorMessage);
+        }
+    }
+
+    private Booking getValidBookingForDecisionBy(Integer bookingId) {
+        return bookingRepository.findBookingForDecisionById(bookingId)
+                .orElseThrow(() -> new PrimaryKeyNotFoundException("bookingId", bookingId));
     }
 }

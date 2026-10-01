@@ -43,21 +43,21 @@ export default {
       else window.removeEventListener('keydown', this.handleKeydown)
     },
   },
+  beforeUnmount() {
+    window.removeEventListener('keydown', this.handleKeydown)
+  },
   methods: {
     confirm() {
       this.$emit('event-confirm')
     },
 
-    cancel() {
-      if (!this.isBusy) this.$emit('event-cancel')
-    },
-
     handleKeydown(event) {
       if (event.key === 'Escape') this.cancel()
     },
-  },
-  beforeUnmount() {
-    window.removeEventListener('keydown', this.handleKeydown)
+
+    cancel() {
+      if (!this.isBusy) this.$emit('event-cancel')
+    },
   },
 }
 </script>

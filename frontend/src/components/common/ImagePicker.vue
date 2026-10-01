@@ -63,6 +63,10 @@ export default {
       readGeneration: 0,
     }
   },
+  beforeUnmount() {
+    this.readGeneration += 1
+    this.releasePreviewUrl()
+  },
   methods: {
     handleFileSelected(event) {
       const file = event.target.files?.[0]
@@ -113,23 +117,6 @@ export default {
       }
     },
 
-    // Pilt on vähendatud ja valmis: eelvaade näitab täpselt seda, mis salvestatakse.
-    handleImageShrunk(generation, fileName, shrunkDataUrl) {
-      if (generation !== this.readGeneration) return
-      this.releasePreviewUrl()
-      this.previewUrl = shrunkDataUrl
-      this.fileName = fileName
-      this.imageData = shrunkDataUrl.slice(shrunkDataUrl.indexOf(',') + 1)
-      this.$emit('event-image-selected', { fileName: this.fileName, imageData: this.imageData })
-      this.$emit('event-image-reading', false)
-    },
-
-    handleImageShrinkFailed(generation) {
-      if (generation !== this.readGeneration) return
-      this.$emit('event-image-error', IMAGE_SHRINK_FAILED)
-      this.$emit('event-image-reading', false)
-    },
-
     // Vähendab pildi JPEG-iks, mille suurus on kuni MAX_IMAGE_BYTES: proovib suurimat mõõtu ja kõrgeimat kvaliteeti.
     shrinkImage(dataUrl) {
       return this.loadImage(dataUrl).then((image) => {
@@ -172,6 +159,23 @@ export default {
       return Math.floor((base64.length * 3) / 4) - padding
     },
 
+    // Pilt on vähendatud ja valmis: eelvaade näitab täpselt seda, mis salvestatakse.
+    handleImageShrunk(generation, fileName, shrunkDataUrl) {
+      if (generation !== this.readGeneration) return
+      this.releasePreviewUrl()
+      this.previewUrl = shrunkDataUrl
+      this.fileName = fileName
+      this.imageData = shrunkDataUrl.slice(shrunkDataUrl.indexOf(',') + 1)
+      this.$emit('event-image-selected', { fileName: this.fileName, imageData: this.imageData })
+      this.$emit('event-image-reading', false)
+    },
+
+    handleImageShrinkFailed(generation) {
+      if (generation !== this.readGeneration) return
+      this.$emit('event-image-error', IMAGE_SHRINK_FAILED)
+      this.$emit('event-image-reading', false)
+    },
+
     clearImage() {
       this.readGeneration += 1
       this.$emit('event-image-reading', false)
@@ -185,10 +189,6 @@ export default {
       if (this.previewUrl) URL.revokeObjectURL(this.previewUrl)
       this.previewUrl = ''
     },
-  },
-  beforeUnmount() {
-    this.readGeneration += 1
-    this.releasePreviewUrl()
   },
 }
 </script>

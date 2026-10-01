@@ -91,6 +91,10 @@ public class MyToolsService {
         }
     }
 
+    private void addBookingToolIds(Set<Integer> toolIds, List<Booking> bookings) {
+        for (Booking booking : bookings) toolIds.add(booking.getTool().getId());
+    }
+
     private Map<Integer, byte[]> loadMainImageData(Set<Integer> toolIds) {
         if (toolIds.isEmpty()) return Map.of();
         List<ToolImage> mainImages = toolImageRepository.findMainToolImagesByToolIds(toolIds);
@@ -99,10 +103,6 @@ public class MyToolsService {
             imageDataByToolId.put(mainImage.getTool().getId(), mainImage.getImageData());
         }
         return imageDataByToolId;
-    }
-
-    private void addBookingToolIds(Set<Integer> toolIds, List<Booking> bookings) {
-        for (Booking booking : bookings) toolIds.add(booking.getTool().getId());
     }
 
     private List<MyToolBookingDto> mapBookingCards(List<Booking> bookings, Map<Integer, byte[]> imageDataByToolId) {

@@ -60,6 +60,14 @@ class ToolImageRepositoryTest {
         assertTrue(toolImageRepository.findMainToolImageBy(tool.getId()).isEmpty());
     }
 
+    private void saveToolImage(Tool tool, String content, Boolean isMain) {
+        ToolImage toolImage = new ToolImage();
+        toolImage.setTool(tool);
+        toolImage.setImageData(content.getBytes(StandardCharsets.UTF_8));
+        toolImage.setIsMain(isMain);
+        toolImageRepository.saveAndFlush(toolImage);
+    }
+
     private Tool saveTool(String name) {
         Tool tool = new Tool();
         tool.setOwner(appUserRepository.findById(1).orElseThrow());
@@ -69,13 +77,5 @@ class ToolImageRepositoryTest {
         tool.setCreatedAt(Instant.now());
         tool.setUpdatedAt(Instant.now());
         return toolRepository.saveAndFlush(tool);
-    }
-
-    private void saveToolImage(Tool tool, String content, Boolean isMain) {
-        ToolImage toolImage = new ToolImage();
-        toolImage.setTool(tool);
-        toolImage.setImageData(content.getBytes(StandardCharsets.UTF_8));
-        toolImage.setIsMain(isMain);
-        toolImageRepository.saveAndFlush(toolImage);
     }
 }

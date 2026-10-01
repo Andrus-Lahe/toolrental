@@ -154,12 +154,12 @@ export default {
     }
   },
   computed: {
-    isCompletingProfile() {
-      return this.$route.query.completeProfile === 'true'
-    },
 
     shouldHighlightMissingFields() {
       return this.hasAttemptedSave || this.isCompletingProfile
+    },
+    isCompletingProfile() {
+      return this.$route.query.completeProfile === 'true'
     },
 
     isFormValid() {
@@ -176,6 +176,11 @@ export default {
     isDistrictsDisabled() {
       return this.selectedCityId === 0
     },
+  },
+  beforeMount() {
+    this.isRequiredFieldsModalOpen = this.isCompletingProfile
+    this.getMyProfile()
+    this.getCities()
   },
   methods: {
     handleRequiredFieldsModalClosed() {
@@ -212,27 +217,6 @@ export default {
       CityService.sendGetCitiesRequest()
         .then((response) => (this.cities = response.data))
         .catch((error) => this.handleApiError(error))
-    },
-
-    getCityDistricts() {
-      const requestedCityId = this.selectedCityId
-      CityService.sendGetCityDistrictsRequest(requestedCityId)
-        .then((response) => this.handleGetCityDistrictsResponse(requestedCityId, response.data))
-        .catch((error) => this.handleGetCityDistrictsError(requestedCityId, error))
-    },
-
-    // Aegunud vastus (kasutaja on vahepeal teise linna valinud) jäetakse tähelepanuta.
-    handleGetCityDistrictsResponse(requestedCityId, districts) {
-      if (requestedCityId === this.selectedCityId) {
-        this.districts = districts
-      }
-    },
-
-    handleGetCityDistrictsError(requestedCityId, error) {
-      if (requestedCityId === this.selectedCityId) {
-        this.districts = []
-        this.handleApiError(error)
-      }
     },
 
     handleCitySelected(cityId) {
@@ -285,6 +269,27 @@ export default {
       NavigationService.navigateToHomeView(this.$router)
     },
 
+    getCityDistricts() {
+      const requestedCityId = this.selectedCityId
+      CityService.sendGetCityDistrictsRequest(requestedCityId)
+        .then((response) => this.handleGetCityDistrictsResponse(requestedCityId, response.data))
+        .catch((error) => this.handleGetCityDistrictsError(requestedCityId, error))
+    },
+
+    // Aegunud vastus (kasutaja on vahepeal teise linna valinud) jäetakse tähelepanuta.
+    handleGetCityDistrictsResponse(requestedCityId, districts) {
+      if (requestedCityId === this.selectedCityId) {
+        this.districts = districts
+      }
+    },
+
+    handleGetCityDistrictsError(requestedCityId, error) {
+      if (requestedCityId === this.selectedCityId) {
+        this.districts = []
+        this.handleApiError(error)
+      }
+    },
+
     handleApiError(error) {
       if (!error.response) {
         this.errorMessage = NETWORK_ERROR_MESSAGE
@@ -296,11 +301,6 @@ export default {
         this.errorMessage = error.response.data?.message ?? NETWORK_ERROR_MESSAGE
       }
     },
-  },
-  beforeMount() {
-    this.isRequiredFieldsModalOpen = this.isCompletingProfile
-    this.getMyProfile()
-    this.getCities()
   },
 }
 </script>

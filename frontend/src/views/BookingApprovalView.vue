@@ -109,9 +109,89 @@ export default {
       this.loadBooking()
     },
   },
+  beforeMount() {
+    this.loadBooking()
+  },
+  beforeUnmount() {
+    this.loadGeneration += 1
+  },
   methods: {
     openBookingLogin() {
       this.openLoginModal(this.$route.fullPath)
+    },
+
+    formatDate(date) {
+      if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return '—'
+      const [year, month, day] = date.split('-')
+      return `${day}.${month}.${year}`
+    },
+
+    handleConfirm(request) {
+      return this.submitDecision('confirmed', request)
+    },
+
+    handleReject(request) {
+      return this.submitDecision('rejected', request)
+    },
+
+    handleDecisionModalClosed() {
+      this.isDecisionModalOpen = false
+      NavigationService.navigateToMyTools(this.$router)
+    },
+
+    submitDecision(decision, request) {
+      if (this.isSubmitting || !this.canDecide || !this.booking) return
+      const ownerMessage = request?.ownerMessage ?? null
+      if (typeof ownerMessage === 'string' && ownerMessage.length > 500) {
+        this.errorMessage = 'Sõnum võib olla kuni 500 märki'
+        return
+      }
+
+      const bookingId = this.bookingId
+      const generation = this.loadGeneration
+      const body = { ownerMessage }
+      this.errorMessage = ''
+      this.isSubmitting = true
+
+      const requestPromise = decision === 'confirmed'
+        ? BookingService.sendConfirmBookingRequest(bookingId, body)
+        : BookingService.sendRejectBookingRequest(bookingId, body)
+
+      return requestPromise
+        .then((response) => this.handleDecisionResponse(response, decision, body, generation))
+        .catch((error) => this.handleDecisionError(error, generation))
+        .finally(() => {
+          if (generation === this.loadGeneration) this.isSubmitting = false
+        })
+    },
+
+    handleDecisionResponse(response, decision, request, generation) {
+      if (generation !== this.loadGeneration) return
+      if (response?.status !== 200 || !this.booking) throw new Error('Decision request failed')
+      this.booking.status = decision === 'confirmed' ? 'C' : 'R'
+      this.booking.ownerMessage = request.ownerMessage
+      this.completedDecision = decision
+      this.isDecisionModalOpen = true
+    },
+
+    handleDecisionError(error, generation) {
+      if (generation !== this.loadGeneration) return
+      const status = error?.response?.status
+      const apiError = error?.response?.data
+      this.errorMessage = apiError?.message || REQUEST_FAILED
+
+      if (status === 401) {
+        this.errorMessage = 'Palun logi sisse.'
+        this.openLoginModal(this.$route.fullPath)
+      } else if (status === 404 || apiError?.errorCode === 'BOOKING_NOT_OWNER') {
+        this.booking = null
+        this.pageStatus = 'error'
+      } else if (apiError?.errorCode === 'BOOKING_NOT_PENDING') {
+        this.decisionBlocked = true
+        return this.loadBooking({ keepError: true, preserveDecisionBlock: true })
+      } else if (status >= 500 || !error?.response) {
+        return this.loadBooking({ keepError: true, preserveDecisionBlock: true })
+      }
     },
 
     loadBooking({ keepError = false, preserveDecisionBlock = false } = {}) {
@@ -177,86 +257,6 @@ export default {
         this.errorMessage = error?.response?.data?.message || REQUEST_FAILED
       }
     },
-
-    formatDate(date) {
-      if (typeof date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(date)) return '—'
-      const [year, month, day] = date.split('-')
-      return `${day}.${month}.${year}`
-    },
-
-    handleConfirm(request) {
-      return this.submitDecision('confirmed', request)
-    },
-
-    handleReject(request) {
-      return this.submitDecision('rejected', request)
-    },
-
-    submitDecision(decision, request) {
-      if (this.isSubmitting || !this.canDecide || !this.booking) return
-      const ownerMessage = request?.ownerMessage ?? null
-      if (typeof ownerMessage === 'string' && ownerMessage.length > 500) {
-        this.errorMessage = 'Sõnum võib olla kuni 500 märki'
-        return
-      }
-
-      const bookingId = this.bookingId
-      const generation = this.loadGeneration
-      const body = { ownerMessage }
-      this.errorMessage = ''
-      this.isSubmitting = true
-
-      const requestPromise = decision === 'confirmed'
-        ? BookingService.sendConfirmBookingRequest(bookingId, body)
-        : BookingService.sendRejectBookingRequest(bookingId, body)
-
-      return requestPromise
-        .then((response) => this.handleDecisionResponse(response, decision, body, generation))
-        .catch((error) => this.handleDecisionError(error, generation))
-        .finally(() => {
-          if (generation === this.loadGeneration) this.isSubmitting = false
-        })
-    },
-
-    handleDecisionResponse(response, decision, request, generation) {
-      if (generation !== this.loadGeneration) return
-      if (response?.status !== 200 || !this.booking) throw new Error('Decision request failed')
-      this.booking.status = decision === 'confirmed' ? 'C' : 'R'
-      this.booking.ownerMessage = request.ownerMessage
-      this.completedDecision = decision
-      this.isDecisionModalOpen = true
-    },
-
-    handleDecisionError(error, generation) {
-      if (generation !== this.loadGeneration) return
-      const status = error?.response?.status
-      const apiError = error?.response?.data
-      this.errorMessage = apiError?.message || REQUEST_FAILED
-
-      if (status === 401) {
-        this.errorMessage = 'Palun logi sisse.'
-        this.openLoginModal(this.$route.fullPath)
-      } else if (status === 404 || apiError?.errorCode === 'BOOKING_NOT_OWNER') {
-        this.booking = null
-        this.pageStatus = 'error'
-      } else if (apiError?.errorCode === 'BOOKING_NOT_PENDING') {
-        this.decisionBlocked = true
-        return this.loadBooking({ keepError: true, preserveDecisionBlock: true })
-      } else if (status >= 500 || !error?.response) {
-        return this.loadBooking({ keepError: true, preserveDecisionBlock: true })
-      }
-    },
-
-    handleDecisionModalClosed() {
-      this.isDecisionModalOpen = false
-      NavigationService.navigateToMyTools(this.$router)
-    },
-  },
-  beforeMount() {
-    this.loadBooking()
-  },
-  beforeUnmount() {
-    this.loadGeneration += 1
   },
 }
 </script>

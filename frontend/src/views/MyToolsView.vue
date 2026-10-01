@@ -197,6 +197,12 @@ export default {
       return this.accessStatus === 'ready' && this.session.user?.roleName === 'customer'
     },
   },
+  beforeMount() {
+    this.checkAccess()
+  },
+  beforeUnmount() {
+    this.requestGeneration += 1
+  },
   methods: {
     checkAccess() {
       this.accessStatus = 'checking'
@@ -227,6 +233,78 @@ export default {
     handleSessionError(error) {
       this.accessStatus = 'session-error'
       this.errorMessage = error?.response?.data?.message ?? NETWORK_ERROR_MESSAGE
+    },
+
+    handleRetry() {
+      if (this.isLoading || this.isBlocked) return
+      this.getMyTools()
+    },
+
+    handleEditProfile() {
+      if (this.isBlocked) return
+      NavigationService.navigateToProfile(this.$router)
+    },
+
+    handleAddTool() {
+      if (!this.canAddTool || this.isBlocked) return
+      NavigationService.navigateToAddTool(this.$router)
+    },
+
+    handleViewBookingDetails(booking) {
+      if (this.isBlocked || !Number.isInteger(booking?.bookingId)) return
+      NavigationService.navigateToBookingDetails(this.$router, booking.bookingId)
+    },
+
+    handleApproveBooking(booking) {
+      if (this.isBlocked || !Number.isInteger(booking?.bookingId)) return
+      NavigationService.navigateToBookingApproval(this.$router, booking.bookingId)
+    },
+
+    handleDeleteToolRequested(tool) {
+      if (this.isBlocked || this.isToolDeleting || !Number.isInteger(tool?.toolId)) return
+      this.toolDeletedMessage = ''
+      this.toolToDelete = { toolId: tool.toolId, toolName: tool.toolName }
+    },
+
+    handleDeleteToolCancelled() {
+      if (!this.isToolDeleting) this.toolToDelete = null
+    },
+
+    // Saadab DELETE valitud tööriista ID-ga; edu korral laaditakse loend uuesti, vea korral jääb tööriist alles.
+    handleDeleteToolConfirmed() {
+      if (!this.toolToDelete || this.isToolDeleting) return
+      const { toolId, toolName } = this.toolToDelete
+      this.errorMessage = ''
+      this.isToolDeleting = true
+      ToolService.sendDeleteToolRequest(toolId)
+        .then(() => this.handleToolDeleted(toolName))
+        .catch((error) => this.handleDeleteToolError(error))
+        .finally(() => {
+          this.isToolDeleting = false
+          this.toolToDelete = null
+        })
+    },
+
+    handleToolDeleted(toolName) {
+      this.toolDeletedMessage = `Tööriist ${toolName} kustutati`
+      this.getMyTools()
+    },
+
+    handleDeleteToolError(error) {
+      const status = error?.response?.status
+      const apiError = error?.response?.data
+      if (status === 401) {
+        this.errorMessage = apiError?.message ?? LOGIN_REQUIRED_MESSAGE
+        this.openLoginModal()
+        return
+      }
+      this.errorMessage =
+        apiError?.message ?? (error?.response ? TOOL_DELETING_FAILED : NETWORK_ERROR_MESSAGE)
+    },
+
+    handleViewToolDetails(tool) {
+      if (this.isBlocked || !Number.isInteger(tool?.toolId)) return
+      NavigationService.navigateToToolDetail(this.$router, tool.toolId)
     },
 
     getMyTools() {
@@ -306,84 +384,6 @@ export default {
         ?? (error?.response ? MY_TOOLS_LOADING_FAILED : NETWORK_ERROR_MESSAGE)
       this.loadFailed = true
     },
-
-    handleRetry() {
-      if (this.isLoading || this.isBlocked) return
-      this.getMyTools()
-    },
-
-    handleEditProfile() {
-      if (this.isBlocked) return
-      NavigationService.navigateToProfile(this.$router)
-    },
-
-    handleAddTool() {
-      if (!this.canAddTool || this.isBlocked) return
-      NavigationService.navigateToAddTool(this.$router)
-    },
-
-    handleViewBookingDetails(booking) {
-      if (this.isBlocked || !Number.isInteger(booking?.bookingId)) return
-      NavigationService.navigateToBookingDetails(this.$router, booking.bookingId)
-    },
-
-    handleApproveBooking(booking) {
-      if (this.isBlocked || !Number.isInteger(booking?.bookingId)) return
-      NavigationService.navigateToBookingApproval(this.$router, booking.bookingId)
-    },
-
-    handleDeleteToolRequested(tool) {
-      if (this.isBlocked || this.isToolDeleting || !Number.isInteger(tool?.toolId)) return
-      this.toolDeletedMessage = ''
-      this.toolToDelete = { toolId: tool.toolId, toolName: tool.toolName }
-    },
-
-    handleDeleteToolCancelled() {
-      if (!this.isToolDeleting) this.toolToDelete = null
-    },
-
-    // Saadab DELETE valitud tööriista ID-ga; edu korral laaditakse loend uuesti, vea korral jääb tööriist alles.
-    handleDeleteToolConfirmed() {
-      if (!this.toolToDelete || this.isToolDeleting) return
-      const { toolId, toolName } = this.toolToDelete
-      this.errorMessage = ''
-      this.isToolDeleting = true
-      ToolService.sendDeleteToolRequest(toolId)
-        .then(() => this.handleToolDeleted(toolName))
-        .catch((error) => this.handleDeleteToolError(error))
-        .finally(() => {
-          this.isToolDeleting = false
-          this.toolToDelete = null
-        })
-    },
-
-    handleToolDeleted(toolName) {
-      this.toolDeletedMessage = `Tööriist ${toolName} kustutati`
-      this.getMyTools()
-    },
-
-    handleDeleteToolError(error) {
-      const status = error?.response?.status
-      const apiError = error?.response?.data
-      if (status === 401) {
-        this.errorMessage = apiError?.message ?? LOGIN_REQUIRED_MESSAGE
-        this.openLoginModal()
-        return
-      }
-      this.errorMessage =
-        apiError?.message ?? (error?.response ? TOOL_DELETING_FAILED : NETWORK_ERROR_MESSAGE)
-    },
-
-    handleViewToolDetails(tool) {
-      if (this.isBlocked || !Number.isInteger(tool?.toolId)) return
-      NavigationService.navigateToToolDetail(this.$router, tool.toolId)
-    },
-  },
-  beforeMount() {
-    this.checkAccess()
-  },
-  beforeUnmount() {
-    this.requestGeneration += 1
   },
 }
 </script>

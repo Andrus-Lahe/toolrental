@@ -71,14 +71,6 @@ public class ToolService {
         }
     }
 
-    private byte[] decodeImageData(String imageData) {
-        try {
-            return imageData.isEmpty() ? new byte[0] : Base64.getDecoder().decode(imageData);
-        } catch (IllegalArgumentException exception) {
-            throw new IncorrectInputException("imageData: peab olema korrektne Base64");
-        }
-    }
-
     @Transactional(readOnly = true)
     public ToolsResponse getTools(String categoryId, String cityId, String districtId, String status, String pageNumber, String pageSize) {
         int validCategoryId = getValidIdFilter("categoryId", categoryId);
@@ -98,6 +90,33 @@ public class ToolService {
         } catch (DataAccessException exception) {
             log.error("Tööriistade laadimine ebaõnnestus", exception);
             throw new InternalServerErrorException(TOOLS_LOADING_FAILED);
+        }
+    }
+
+    @Transactional(readOnly = true)
+    public ToolDetailResponse getToolDetail(Integer toolId) {
+        try {
+            Tool tool = getValidToolBy(toolId);
+            byte[] imageData = toolImageRepository.findMainToolImageBy(toolId)
+                    .map(ToolImage::getImageData)
+                    .orElse(null);
+            return toolMapper.toToolDetailResponse(tool, imageData);
+        } catch (DataAccessException exception) {
+            log.error("Tööriista laadimine ebaõnnestus (toolId={})", toolId, exception);
+            throw new InternalServerErrorException(TOOL_LOADING_FAILED);
+        }
+    }
+
+    public Tool getValidToolBy(Integer toolId) {
+        return toolRepository.findById(toolId)
+                .orElseThrow(() -> new PrimaryKeyNotFoundException("toolId", toolId));
+    }
+
+    private byte[] decodeImageData(String imageData) {
+        try {
+            return imageData.isEmpty() ? new byte[0] : Base64.getDecoder().decode(imageData);
+        } catch (IllegalArgumentException exception) {
+            throw new IncorrectInputException("imageData: peab olema korrektne Base64");
         }
     }
 
@@ -121,24 +140,5 @@ public class ToolService {
     private int parseInteger(String name, String value) {
         try { return Integer.parseInt(value); }
         catch (NumberFormatException exception) { throw new IncorrectInputException(name + ": peab olema Integer-tüüpi täisarv"); }
-    }
-
-    @Transactional(readOnly = true)
-    public ToolDetailResponse getToolDetail(Integer toolId) {
-        try {
-            Tool tool = getValidToolBy(toolId);
-            byte[] imageData = toolImageRepository.findMainToolImageBy(toolId)
-                    .map(ToolImage::getImageData)
-                    .orElse(null);
-            return toolMapper.toToolDetailResponse(tool, imageData);
-        } catch (DataAccessException exception) {
-            log.error("Tööriista laadimine ebaõnnestus (toolId={})", toolId, exception);
-            throw new InternalServerErrorException(TOOL_LOADING_FAILED);
-        }
-    }
-
-    public Tool getValidToolBy(Integer toolId) {
-        return toolRepository.findById(toolId)
-                .orElseThrow(() -> new PrimaryKeyNotFoundException("toolId", toolId));
     }
 }

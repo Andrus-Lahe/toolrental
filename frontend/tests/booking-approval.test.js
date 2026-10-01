@@ -11,6 +11,35 @@ import {
   rememberLoginReturnPath,
 } from '../src/auth/loginReturnPath.js'
 
+async function createView(routeId = '1', bookingService = {}, navigationService = { navigateToMyTools: () => Promise.resolve() }) {
+  const service = {
+    sendGetBookingRequest: async (bookingId) => ({ status: 200, data: validBooking(bookingId) }),
+    sendConfirmBookingRequest: async () => ({ status: 200, data: '' }),
+    sendRejectBookingRequest: async () => ({ status: 200, data: '' }),
+    ...bookingService,
+  }
+  const options = await loadOptions('views/BookingApprovalView.vue', {
+    BookingService: service,
+    AlertDanger: {},
+    BookingContactCard: {},
+    BookingDecisionForm: {},
+    BookingDecisionModal: {},
+    NavigationService: navigationService,
+  })
+  const context = {
+    $route: { params: { bookingId: routeId } },
+    $router: {},
+    openLoginModal: () => {},
+    ...options.data(),
+  }
+  Object.assign(context, options.methods)
+  Object.defineProperties(context, {
+    bookingId: { get: () => options.computed.bookingId.call(context) },
+    canDecide: { get: () => options.computed.canDecide.call(context) },
+  })
+  return { context, options, service }
+}
+
 async function loadOptions(relativePath, dependencies = {}) {
   const source = await readFile(new URL(`../src/${relativePath}`, import.meta.url), 'utf8')
   const { descriptor, errors } = parse(source, { filename: relativePath })
@@ -47,35 +76,6 @@ const validBooking = (bookingId = 1, overrides = {}) => ({
   contactPhone: '55501002',
   ...overrides,
 })
-
-async function createView(routeId = '1', bookingService = {}, navigationService = { navigateToMyTools: () => Promise.resolve() }) {
-  const service = {
-    sendGetBookingRequest: async (bookingId) => ({ status: 200, data: validBooking(bookingId) }),
-    sendConfirmBookingRequest: async () => ({ status: 200, data: '' }),
-    sendRejectBookingRequest: async () => ({ status: 200, data: '' }),
-    ...bookingService,
-  }
-  const options = await loadOptions('views/BookingApprovalView.vue', {
-    BookingService: service,
-    AlertDanger: {},
-    BookingContactCard: {},
-    BookingDecisionForm: {},
-    BookingDecisionModal: {},
-    NavigationService: navigationService,
-  })
-  const context = {
-    $route: { params: { bookingId: routeId } },
-    $router: {},
-    openLoginModal: () => {},
-    ...options.data(),
-  }
-  Object.assign(context, options.methods)
-  Object.defineProperties(context, {
-    bookingId: { get: () => options.computed.bookingId.call(context) },
-    canDecide: { get: () => options.computed.canDecide.call(context) },
-  })
-  return { context, options, service }
-}
 
 test('route booking IDs accept positive Java Integers only and invalid IDs do not call the API', async () => {
   let getCalls = 0

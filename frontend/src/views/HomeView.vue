@@ -90,6 +90,9 @@ export default {
       session,
     }
   },
+  beforeMount() {
+    this.getCategories()
+  },
   methods: {
     getCategories() {
       CategoryService.sendGetCategoriesDetailedInfoRequest()
@@ -113,9 +116,6 @@ export default {
         this.openLoginModal()
       }
     },
-  },
-  beforeMount() {
-    this.getCategories()
   },
 }
 </script>

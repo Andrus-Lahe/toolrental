@@ -88,6 +88,9 @@ export default {
       session,
     }
   },
+  beforeMount() {
+    this.checkAccess()
+  },
   methods: {
     checkAccess() {
       this.accessStatus = 'checking'
@@ -116,32 +119,6 @@ export default {
 
       this.accessStatus = 'allowed'
       this.loadCategories()
-    },
-
-    loadCategories() {
-      this.categoryStatus = 'loading'
-      this.categoryError = ''
-      CategoryService.sendGetCategoriesRequest()
-        .then((response) => this.handleCategoriesLoaded(response.data))
-        .catch((error) => this.handleCategoriesError(error))
-        .finally(() => {
-          if (this.categoryStatus === 'loading') this.categoryStatus = 'error'
-        })
-    },
-
-    handleCategoriesLoaded(categories) {
-      if (!Array.isArray(categories)) {
-        this.handleCategoriesError(null)
-        return
-      }
-      this.categories = categories
-      this.categoryStatus = 'loaded'
-    },
-
-    handleCategoriesError(error) {
-      this.categories = []
-      this.categoryStatus = 'error'
-      this.categoryError = error?.response?.data?.message ?? CATEGORY_LOADING_FAILED
     },
 
     handleSave(request) {
@@ -192,9 +169,32 @@ export default {
       this.isImageReadFailed = false
       this.errorMessage = ''
     },
-  },
-  beforeMount() {
-    this.checkAccess()
+
+    loadCategories() {
+      this.categoryStatus = 'loading'
+      this.categoryError = ''
+      CategoryService.sendGetCategoriesRequest()
+        .then((response) => this.handleCategoriesLoaded(response.data))
+        .catch((error) => this.handleCategoriesError(error))
+        .finally(() => {
+          if (this.categoryStatus === 'loading') this.categoryStatus = 'error'
+        })
+    },
+
+    handleCategoriesLoaded(categories) {
+      if (!Array.isArray(categories)) {
+        this.handleCategoriesError(null)
+        return
+      }
+      this.categories = categories
+      this.categoryStatus = 'loaded'
+    },
+
+    handleCategoriesError(error) {
+      this.categories = []
+      this.categoryStatus = 'error'
+      this.categoryError = error?.response?.data?.message ?? CATEGORY_LOADING_FAILED
+    },
   },
 }
 </script>

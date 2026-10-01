@@ -75,14 +75,14 @@ export default {
     toolId() {
       return String(this.$route.params.toolId ?? '')
     },
-    isLoggedIn() {
-      return this.session.status === 'authenticated'
+    isLendDisabled() {
+      return this.isLoading || this.session.status === 'loading' || this.isOwnTool
     },
     isOwnTool() {
       return this.isLoggedIn && Number(this.session.user?.userId) === Number(this.tool?.ownerId)
     },
-    isLendDisabled() {
-      return this.isLoading || this.session.status === 'loading' || this.isOwnTool
+    isLoggedIn() {
+      return this.session.status === 'authenticated'
     },
     isToolUnavailable() {
       return this.tool?.status === 'U'
@@ -103,6 +103,12 @@ export default {
         this.ownerRequestStarted = false
       }
     },
+  },
+  beforeMount() {
+    this.loadTool()
+  },
+  beforeUnmount() {
+    this.loadGeneration += 1
   },
   methods: {
     loadTool() {
@@ -132,15 +138,6 @@ export default {
       }
       this.tool = tool
       this.loadOwnerIfReady()
-    },
-
-    handleToolError(error, generation) {
-      if (generation !== this.loadGeneration) return
-      if (!error?.response) {
-        this.errorMessage = NETWORK_ERROR_MESSAGE
-        return
-      }
-      this.errorMessage = error.response.data?.message || TOOL_LOAD_FAILED
     },
 
     loadOwnerIfReady() {
@@ -183,6 +180,15 @@ export default {
       this.ownerErrorMessage = error.response.data?.message || OWNER_LOAD_FAILED
     },
 
+    handleToolError(error, generation) {
+      if (generation !== this.loadGeneration) return
+      if (!error?.response) {
+        this.errorMessage = NETWORK_ERROR_MESSAGE
+        return
+      }
+      this.errorMessage = error.response.data?.message || TOOL_LOAD_FAILED
+    },
+
     handleLendClick() {
       if (!this.tool || this.isLendDisabled) return
       if (this.isLoggedIn) {
@@ -190,12 +196,6 @@ export default {
       }
       return this.openLoginModal()
     },
-  },
-  beforeMount() {
-    this.loadTool()
-  },
-  beforeUnmount() {
-    this.loadGeneration += 1
   },
 }
 </script>

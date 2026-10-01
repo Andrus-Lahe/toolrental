@@ -75,12 +75,12 @@ export default {
     return { session }
   },
   computed: {
-    isLoggedIn() {
-      return this.session.status === 'authenticated'
-    },
 
     isAdmin() {
       return this.isLoggedIn && isAdmin()
+    },
+    isLoggedIn() {
+      return this.session.status === 'authenticated'
     },
   },
   watch: {
@@ -88,6 +88,9 @@ export default {
     'session.status'() {
       this.handleProfileRedirect()
     },
+  },
+  beforeMount() {
+    this.handleProfileRedirect()
   },
   methods: {
     loadSession,
@@ -98,9 +101,6 @@ export default {
         this.$router.push({ name: 'profileRoute', query: { completeProfile: 'true' } })
       }
     },
-  },
-  beforeMount() {
-    this.handleProfileRedirect()
   },
 }
 </script>

@@ -15,10 +15,6 @@ export default {
     return router.push({ path: '/profile' })
   },
 
-  navigateToToolDetail(router, toolId) {
-    return router.push({ path: `/tools/${toolId}` })
-  },
-
   navigateToBookingFormView(router, toolId) {
     return router.push({ name: 'bookingFormRoute', params: { toolId } })
   },
@@ -34,6 +30,10 @@ export default {
   navigateBackOrToToolDetail(router, toolId) {
     if (window.history.state?.back) return router.back()
     return this.navigateToToolDetail(router, toolId)
+  },
+
+  navigateToToolDetail(router, toolId) {
+    return router.push({ path: `/tools/${toolId}` })
   },
 
   navigateToHomeView(router) {

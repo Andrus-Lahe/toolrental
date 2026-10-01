@@ -7,28 +7,6 @@ import ToolService from '../src/api-services/ToolService.js'
 import UserService from '../src/api-services/UserService.js'
 import NavigationService from '../src/navigation/NavigationService.js'
 
-async function loadOptions(relativePath, dependencies = {}) {
-  const source = await readFile(new URL(`../src/${relativePath}`, import.meta.url), 'utf8')
-  const { descriptor, errors } = parse(source, { filename: relativePath })
-  assert.deepEqual(errors, [])
-  const script = descriptor.script.content
-    .replace(/^import .* from .*\n/gm, '')
-    .replace(/export default\s*\{/, 'return {')
-  const dependencyNames = Object.keys(dependencies)
-  return new Function(...dependencyNames, script)(...dependencyNames.map((name) => dependencies[name]))
-}
-
-const validTool = (overrides = {}) => ({
-  toolId: 1,
-  ownerId: 4,
-  toolName: 'Akutrell',
-  categoryName: 'Ehitustööd',
-  categoryDescription: 'Akutrell koos akudega',
-  imageData: 'c3Zn',
-  status: 'A',
-  ...overrides,
-})
-
 async function createView({ toolService = {}, userService = {}, sessionStatus = 'guest', routeId = '1' } = {}) {
   const currentSession = {
     status: sessionStatus,
@@ -67,6 +45,28 @@ async function createView({ toolService = {}, userService = {}, sessionStatus = 
   }
   return { context, tools, users, calls }
 }
+
+async function loadOptions(relativePath, dependencies = {}) {
+  const source = await readFile(new URL(`../src/${relativePath}`, import.meta.url), 'utf8')
+  const { descriptor, errors } = parse(source, { filename: relativePath })
+  assert.deepEqual(errors, [])
+  const script = descriptor.script.content
+    .replace(/^import .* from .*\n/gm, '')
+    .replace(/export default\s*\{/, 'return {')
+  const dependencyNames = Object.keys(dependencies)
+  return new Function(...dependencyNames, script)(...dependencyNames.map((name) => dependencies[name]))
+}
+
+const validTool = (overrides = {}) => ({
+  toolId: 1,
+  ownerId: 4,
+  toolName: 'Akutrell',
+  categoryName: 'Ehitustööd',
+  categoryDescription: 'Akutrell koos akudega',
+  imageData: 'c3Zn',
+  status: 'A',
+  ...overrides,
+})
 
 function deferred() {
   let resolve

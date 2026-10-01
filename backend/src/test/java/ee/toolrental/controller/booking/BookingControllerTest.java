@@ -208,22 +208,6 @@ class BookingControllerTest {
                 .andExpect(jsonPath("$.message").value("Broneeringu laadimine ebaõnnestus. Palun proovi hiljem uuesti."));
     }
 
-    private static BookingApprovalDto bookingApprovalResponse() {
-        BookingApprovalDto response = new BookingApprovalDto();
-        response.setBookingId(4);
-        response.setToolId(5);
-        response.setToolName("Muruniiduk");
-        response.setStartDate(LocalDate.of(2026, 10, 2));
-        response.setEndDate(LocalDate.of(2026, 10, 4));
-        response.setStatus("P");
-        response.setOwnerMessage(null);
-        response.setIsOwner(true);
-        response.setContactName("Liis Kask");
-        response.setContactEmail("liis@example.com");
-        response.setContactPhone("55501002");
-        return response;
-    }
-
     @Test
     void customerGets200AndRenterComesFromSession() throws Exception {
         BookingResponseDto response = new BookingResponseDto();
@@ -308,6 +292,22 @@ class BookingControllerTest {
         mockMvc.perform(postBooking(validJson()).with(loggedInUser(3, "customer")))
                 .andExpect(status().isInternalServerError())
                 .andExpect(jsonPath("$.errorCode").value("INTERNAL_SERVER_ERROR"));
+    }
+
+    private static BookingApprovalDto bookingApprovalResponse() {
+        BookingApprovalDto response = new BookingApprovalDto();
+        response.setBookingId(4);
+        response.setToolId(5);
+        response.setToolName("Muruniiduk");
+        response.setStartDate(LocalDate.of(2026, 10, 2));
+        response.setEndDate(LocalDate.of(2026, 10, 4));
+        response.setStatus("P");
+        response.setOwnerMessage(null);
+        response.setIsOwner(true);
+        response.setContactName("Liis Kask");
+        response.setContactEmail("liis@example.com");
+        response.setContactPhone("55501002");
+        return response;
     }
 
     private static org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder postBooking(String json) {

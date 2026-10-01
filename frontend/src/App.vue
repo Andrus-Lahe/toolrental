@@ -49,6 +49,9 @@ export default {
       if (status === 'authenticated') this.restoreLoginReturnPath()
     },
   },
+  beforeMount() {
+    this.loadSession()
+  },
   methods: {
     loadSession() {
       return loadSession().then(() => this.restoreLoginReturnPath())
@@ -74,9 +77,6 @@ export default {
       this.$router.replace({ path: this.$route.path })
       this.isLoginModalOpen = true
     },
-  },
-  beforeMount() {
-    this.loadSession()
   },
 }
 </script>

@@ -95,9 +95,6 @@ export default {
     }
   },
   computed: {
-    hasValidCategory() {
-      return this.categories.some((category) => String(category.categoryId) === this.categoryId)
-    },
 
     canSave() {
       return this.categoryStatus === 'loaded'
@@ -105,6 +102,9 @@ export default {
         && !this.submitting
         && !this.imageReading
         && !this.imageError
+    },
+    hasValidCategory() {
+      return this.categories.some((category) => String(category.categoryId) === this.categoryId)
     },
   },
   methods: {

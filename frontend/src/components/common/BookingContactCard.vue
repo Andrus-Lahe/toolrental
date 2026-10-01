@@ -29,11 +29,11 @@ export default {
     displayName() {
       return this.contactName?.trim() || '—'
     },
-    emailAddress() {
-      return this.contactEmail?.trim() || ''
-    },
     emailComposeUrl() {
       return `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(this.emailAddress)}`
+    },
+    emailAddress() {
+      return this.contactEmail?.trim() || ''
     },
   },
 }
