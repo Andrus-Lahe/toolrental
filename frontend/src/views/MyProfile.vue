@@ -40,6 +40,26 @@
         <input id="phone" v-model="profile.phone" type="text" class="form-control" maxlength="32" />
       </div>
       <div class="mb-3">
+        <label class="form-label">Linn</label>
+        <CitiesDropdown
+          first-option-label="Vali linn"
+          :cities="cities"
+          :selected-city-id="selectedCityId"
+          @event-new-city-selected="handleCitySelected"
+        />
+      </div>
+
+      <div class="mb-3">
+        <label class="form-label">Linnaosa</label>
+        <DistrictsDropdown
+          first-option-label="Vali linnaosa"
+          :districts="districts"
+          :selected-district-id="profile.districtId"
+          :is-disabled="isDistrictsDisabled"
+          @event-new-district-selected="handleDistrictSelected"
+        />
+      </div>
+      <div class="mb-3">
         <label for="streetName" class="form-label">Tänava nimi</label>
         <input
           id="streetName"
@@ -59,7 +79,7 @@
           maxlength="20"
         />
       </div>
-      <div class="mb-3">
+      <div class="mb-4">
         <label for="apartmentNumber" class="form-label">Korteri number (valikuline)</label>
         <input
           id="apartmentNumber"
@@ -67,25 +87,6 @@
           type="text"
           class="form-control"
           maxlength="20"
-        />
-      </div>
-      <div class="mb-3">
-        <label class="form-label">Linnaosa</label>
-        <DistrictsDropdown
-          first-option-label="Vali linnaosa"
-          :districts="districts"
-          :selected-district-id="profile.districtId"
-          :is-disabled="isDistrictsDisabled"
-          @event-new-district-selected="handleDistrictSelected"
-        />
-      </div>
-      <div class="mb-4">
-        <label class="form-label">Linn</label>
-        <CitiesDropdown
-          first-option-label="Vali linn"
-          :cities="cities"
-          :selected-city-id="selectedCityId"
-          @event-new-city-selected="handleCitySelected"
         />
       </div>
 
