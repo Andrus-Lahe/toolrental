@@ -4,6 +4,8 @@ import TestView from "@/views/TestView.vue";
 import MyProfile from '@/views/MyProfile.vue'
 import AiSearchView from '@/views/AiSearchView.vue'
 import ToolsView from '@/views/ToolsView.vue'
+import AddToolView from '@/views/AddToolView.vue'
+import MyToolsView from '@/views/MyToolsView.vue'
 
 
 const router = createRouter({
@@ -30,9 +32,19 @@ const router = createRouter({
       component: AiSearchView,
     },
     {
+      path: '/tools/new',
+      name: 'addToolRoute',
+      component: AddToolView,
+    },
+    {
       path: '/tools',
       name: 'toolsRoute',
       component: ToolsView,
+    },
+    {
+      path: '/my-tools',
+      name: 'myToolsRoute',
+      component: MyToolsView,
     },
   ],
 })
