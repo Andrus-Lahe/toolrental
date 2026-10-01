@@ -29,7 +29,7 @@
             <RouterLink class="nav-link" active-class="active" to="/profile">Profiil</RouterLink>
           </template>
           <RouterLink v-if="isAdmin" class="nav-link" active-class="active" to="/admin">
-            Admin
+            Haldus
           </RouterLink>
         </div>
 
