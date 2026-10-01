@@ -15,14 +15,25 @@
 
     <div class="card-body d-flex flex-column">
       <h4 class="card-title h6">{{ tool.toolName }}</h4>
-      <button
-        type="button"
-        class="btn btn-outline-primary btn-sm mt-auto"
-        :disabled="isDetailsDisabled"
-        @click="$emit('event-view-details', tool)"
-      >
-        Vaata detaile
-      </button>
+      <div class="d-grid gap-2 mt-auto">
+        <button
+          type="button"
+          class="btn btn-outline-primary btn-sm"
+          :disabled="isDetailsDisabled"
+          @click="$emit('event-view-details', tool)"
+        >
+          Vaata detaile
+        </button>
+        <button
+          v-if="isDeletable"
+          type="button"
+          class="btn btn-outline-danger btn-sm"
+          :disabled="isDeleteDisabled"
+          @click="$emit('event-delete-tool', tool)"
+        >
+          Kustuta tööriist
+        </button>
+      </div>
     </div>
   </article>
 </template>
@@ -33,8 +44,10 @@ export default {
   props: {
     tool: { type: Object, required: true },
     isDetailsDisabled: { type: Boolean, default: false },
+    isDeletable: { type: Boolean, default: false },
+    isDeleteDisabled: { type: Boolean, default: false },
   },
-  emits: ['event-view-details'],
+  emits: ['event-view-details', 'event-delete-tool'],
   data() {
     return { imageFailed: false }
   },
