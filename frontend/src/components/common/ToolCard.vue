@@ -33,6 +33,8 @@
 </template>
 
 <script>
+import { toImageDataUrl } from '@/utils/imageDataUrl'
+
 export default {
   name: 'ToolCard',
   props: {
@@ -49,8 +51,7 @@ export default {
   },
   computed: {
     imageUrl() {
-      const imageData = this.tool.imageData?.trim()
-      return imageData ? `data:image/svg+xml;base64,${imageData}` : ''
+      return toImageDataUrl(this.tool.imageData)
     },
   },
   watch: {
