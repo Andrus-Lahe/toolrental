@@ -79,6 +79,16 @@ class BookingRepositoryTest {
         assertEquals(tool.getId(), toolRepository.findToolForBookingBy(tool.getId()).orElseThrow().getId());
     }
 
+    @Test
+    void findsBookingAndFetchesToolOwnerAndRenter() {
+        Integer bookingId = persistBooking("P");
+        Booking booking = bookingRepository.findBookingWithPartiesById(bookingId).orElseThrow();
+        assertEquals(tool.getId(), booking.getTool().getId());
+        assertEquals("Test", booking.getTool().getOwner().getFirstName());
+        assertEquals(renter.getId(), booking.getRenter().getId());
+        assertTrue(bookingRepository.findBookingWithPartiesById(-1).isEmpty());
+    }
+
     private AppUser user(Role role, String uniqueSuffix) {
         AppUser user = new AppUser();
         user.setRole(role);

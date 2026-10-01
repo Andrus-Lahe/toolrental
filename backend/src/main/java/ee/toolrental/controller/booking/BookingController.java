@@ -1,5 +1,6 @@
 package ee.toolrental.controller.booking;
 
+import ee.toolrental.controller.booking.dto.BookingApprovalDto;
 import ee.toolrental.controller.booking.dto.BookingCreateRequestDto;
 import ee.toolrental.controller.booking.dto.BookingResponseDto;
 import ee.toolrental.infrastructure.error.ApiError;
@@ -13,6 +14,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -23,6 +26,20 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class BookingController {
     private final BookingService bookingService;
+
+    @GetMapping("/bookings/{bookingId}")
+    @Operation(summary = "Broneeringu andmete päring")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Broneeringu andmed ja kontaktid", content = @Content(schema = @Schema(implementation = BookingApprovalDto.class))),
+            @ApiResponse(responseCode = "400", description = "Vigane bookingId", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "401", description = "Kasutaja pole sisse logitud"),
+            @ApiResponse(responseCode = "403", description = "Broneeringu vaatamine on keelatud", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "404", description = "Broneeringut ei leitud", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "500", description = "Broneeringu laadimine ebaõnnestus", content = @Content(schema = @Schema(implementation = ApiError.class)))})
+    public BookingApprovalDto getBooking(@AuthenticationPrincipal AppUserPrincipal principal,
+                                         @PathVariable Integer bookingId) {
+        return bookingService.getBooking(principal.getUserId(), bookingId);
+    }
 
     @PostMapping("/bookings")
     @Operation(summary = "Laenutaotluse loomine")

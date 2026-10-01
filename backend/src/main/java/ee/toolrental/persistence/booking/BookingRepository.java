@@ -1,13 +1,17 @@
 package ee.toolrental.persistence.booking;
 
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Optional;
 
 public interface BookingRepository extends JpaRepository<Booking, Integer> {
+    @Query("select b from Booking b join fetch b.tool t join fetch t.owner join fetch b.renter where b.id = :bookingId")
+    Optional<Booking> findBookingWithPartiesById(@Param("bookingId") Integer bookingId);
+
     @Query("select (count(b) > 0) from Booking b where b.tool.id = :toolId " +
             "and b.status in ('P', 'C') and b.startDate <= :endDate and b.endDate >= :startDate")
     boolean existsActiveBookingOverlapping(@Param("toolId") Integer toolId,

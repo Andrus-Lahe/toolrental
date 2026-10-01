@@ -1,6 +1,7 @@
 package ee.toolrental.controller.booking;
 
 import ee.toolrental.controller.booking.dto.BookingResponseDto;
+import ee.toolrental.controller.booking.dto.BookingApprovalDto;
 import ee.toolrental.infrastructure.exception.ForbiddenException;
 import ee.toolrental.infrastructure.exception.InternalServerErrorException;
 import ee.toolrental.infrastructure.exception.PrimaryKeyNotFoundException;
@@ -29,6 +30,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -41,6 +43,73 @@ class BookingControllerTest {
     @Autowired MockMvc mockMvc;
     @MockitoBean BookingService bookingService;
     @MockitoBean AppUserOidcService appUserOidcService;
+
+    @Test
+    void bookingCanBeReadByAuthenticatedOwnerAndReturnsContactFields() throws Exception {
+        BookingApprovalDto response = bookingApprovalResponse();
+        when(bookingService.getBooking(1, 4)).thenReturn(response);
+        mockMvc.perform(get("/api/bookings/4").with(loggedInUser(1, "customer")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.bookingId").value(4))
+                .andExpect(jsonPath("$.toolId").value(5))
+                .andExpect(jsonPath("$.toolName").value("Muruniiduk"))
+                .andExpect(jsonPath("$.isOwner").value(true))
+                .andExpect(jsonPath("$.contactName").value("Liis Kask"))
+                .andExpect(jsonPath("$.contactEmail").value("liis@example.com"))
+                .andExpect(jsonPath("$.contactPhone").value("55501002"))
+                .andExpect(jsonPath("$.ownerMessage").doesNotExist());
+        verify(bookingService).getBooking(1, 4);
+    }
+
+    @Test
+    void bookingRequiresLoginAndRejectsMalformedId() throws Exception {
+        mockMvc.perform(get("/api/bookings/4")).andExpect(status().isUnauthorized());
+        mockMvc.perform(get("/api/bookings/not-an-integer").with(loggedInUser(1, "customer")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value("INCORRECT_INPUT"))
+                .andExpect(jsonPath("$.message").value("bookingId: peab olema Integer-tüüpi täisarv"));
+        verifyNoInteractions(bookingService);
+    }
+
+    @Test
+    void bookingReadErrorsKeepTheirContract() throws Exception {
+        when(bookingService.getBooking(99, 4)).thenThrow(new ForbiddenException(
+                "Sul pole õigust seda broneeringut vaadata", "BOOKING_ACCESS_DENIED"));
+        mockMvc.perform(get("/api/bookings/4").with(loggedInUser(99, "admin")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("BOOKING_ACCESS_DENIED"))
+                .andExpect(jsonPath("$.message").value("Sul pole õigust seda broneeringut vaadata"));
+
+        reset(bookingService);
+        when(bookingService.getBooking(1, 404)).thenThrow(new PrimaryKeyNotFoundException("bookingId", 404));
+        mockMvc.perform(get("/api/bookings/404").with(loggedInUser(1, "customer")))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorCode").value("PRIMARY_KEY_NOT_FOUND"));
+
+        reset(bookingService);
+        when(bookingService.getBooking(1, 4)).thenThrow(new InternalServerErrorException(
+                "Broneeringu laadimine ebaõnnestus. Palun proovi hiljem uuesti."));
+        mockMvc.perform(get("/api/bookings/4").with(loggedInUser(1, "customer")))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.errorCode").value("INTERNAL_SERVER_ERROR"))
+                .andExpect(jsonPath("$.message").value("Broneeringu laadimine ebaõnnestus. Palun proovi hiljem uuesti."));
+    }
+
+    private static BookingApprovalDto bookingApprovalResponse() {
+        BookingApprovalDto response = new BookingApprovalDto();
+        response.setBookingId(4);
+        response.setToolId(5);
+        response.setToolName("Muruniiduk");
+        response.setStartDate(LocalDate.of(2026, 10, 2));
+        response.setEndDate(LocalDate.of(2026, 10, 4));
+        response.setStatus("P");
+        response.setOwnerMessage(null);
+        response.setIsOwner(true);
+        response.setContactName("Liis Kask");
+        response.setContactEmail("liis@example.com");
+        response.setContactPhone("55501002");
+        return response;
+    }
 
     @Test
     void customerGets200AndRenterComesFromSession() throws Exception {
