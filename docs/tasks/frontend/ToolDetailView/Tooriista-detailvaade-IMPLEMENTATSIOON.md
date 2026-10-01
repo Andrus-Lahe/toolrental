@@ -2,190 +2,108 @@
 
 **Seotud task:** [Tooriista-detailvaade.md](./Tooriista-detailvaade.md)
 
-**Vaade:** `ToolDetailView.vue`, route `/tools/{toolId}`
+**Vaade:** `ToolDetailView.vue`, route `/tools/:toolId` (`toolDetailRoute`)
 
 **API:** `GET /api/tools/{toolId}` (avalik), `GET /api/users/{userId}` (ainult sisse logitud)
 
+> Plaan on 2026-10-01 ümber kirjutatud. Eelmine versioon eeldas, et kõik failid puuduvad. Tegelikult on vaade master'is suures osas valmis (Jaroslav, commit `10208bb` „BE-49-new classes“), seega on see plaan **lünkade analüüs**: mis on olemas, mis vajab parandamist.
+
 ## Hetkeseis (mis on juba olemas)
 
-- `frontend/src/main.js` — Vue app, Pinia, router, Bootstrap 5; Axios globaalselt (`this.$axios`).
-- `frontend/src/App.vue` — toorikprojekti `<nav>` ja `<RouterView />`.
-- `frontend/src/router/index.js` — rajad `/` ja `/test`.
-- `frontend/vite.config.js` — proxy `/api` → `http://localhost:8080`.
-- `@phosphor-icons/vue` on sõltuvustes (ikoonid ümbriku ja telefoni jaoks).
+**Backend (mõlemad endpointid valmis):**
 
-Puuduvad: `api-services/`, `navigation/`, `auth/`, `components/common/`, `ToolDetailView.vue`, rajad `/tools/:toolId` ja `/tools/:toolId/booking`. Backendis pole controllereid, seega kuni backendi valmimiseni saab katsetada ainult mock-andmetega.
+- `backend/.../controller/tool/ToolController.java` — `GET /api/tools/{toolId}` → `ToolDetailResponse` (`toolId`, `ownerId`, `toolName`, `categoryName`, `description`, `imageData`, `status`). BE-47.
+- `backend/.../controller/appuser/UserDetailController.java` — `GET /api/users/{userId}` → `UserDetailResponse` (`userId`, `firstName`, `lastName`, `email`, `phone`).
+- `backend/.../controller/appuser/AppUserController.java` — `GET /api/me` → `CurrentUserDto` (sh `userId`).
 
-**Paralleelsed taskid, mis loovad samu faile:** MyProfile (`AlertDanger.vue`, `NavigationService.js`), GoogleLoginView (`auth/`, `GoogleLoginModal.vue`), ToolsView/BookingFormView (`ToolService.js`). Enne faili loomist kontrolli, kas see on juba olemas, ja täienda olemasolevat.
+**Frontend:**
+
+| Fail | Seis |
+|---|---|
+| `frontend/src/views/ToolDetailView.vue` | **Olemas.** Laeb tööriista, sisse logitud kasutajale omaniku; laadimise olek; 404/400/500 → backendi `message`, tööriista ja nuppu ei näidata; staatus `U` → teade; „Laenuta“ → booking või `openLoginModal()`; `$route.params.toolId` watch; vana vastuse ignoreerimine (`loadGeneration`); omaniku 401 → `session.status = 'guest'`. |
+| `frontend/src/components/common/ToolImage.vue` | **Olemas.** Base64 → `data:image/svg+xml`, `@error` → kohatäitja. |
+| `frontend/src/components/common/OwnerContactCard.vue` | **Olemas.** Nimi, `mailto:` e-mail ja `tel:` telefon, `null` read peidetud. Kasutab ainult ToolDetailView. |
+| `frontend/src/components/common/AlertDanger.vue` | Olemas. |
+| `frontend/src/api-services/ToolService.js` | `sendGetToolDetailsRequest(toolId)` olemas. |
+| `frontend/src/api-services/UserService.js` | `sendGetUserDetailsRequest(userId)` olemas. |
+| `frontend/src/navigation/NavigationService.js` | `navigateToBookingFormView(router, toolId)` olemas. |
+| `frontend/src/router/index.js` | `/tools/:toolId` (`toolDetailRoute`) ja `/tools/:toolId/booking` olemas. |
+| `frontend/src/auth/session.js` | Ühine olek (`session.status`: `loading`/`authenticated`/`guest`/`error`, `session.user.userId`). |
+| `frontend/src/App.vue` | `provide('openLoginModal', returnPath)`; `auth/loginReturnPath.js` lubab tagasipöördumist **ainult** `/bookings/<id>` radadele. |
+
+## Merge-konfliktide analüüs (teised harud)
+
+- `KERSTI-FE-49-TOOLFRONTEND` on `origin/master`-iga samal seisul (0/0). `git fetch` järel ükski remote haru pole master'ist ees.
+- **Risk:** `ToolDetailView.vue`, `ToolImage.vue`, `OwnerContactCard.vue` on Jaroslavi kirjutatud (BE-49 / WIP commitid). Kui Jaroslavil on kohalikus harus nende failide pooleli muudatusi, tekib konflikt. **Enne alustamist lepi Jaroslaviga kokku**, et ToolDetailView fail on nüüd sinu käes.
+- Muudatused on väikesed ja lokaalsed (ühe faili sees), seega ka konflikti korral lihtsalt lahendatavad.
+- `auth/loginReturnPath.js`, `App.vue`, `session.js` on jagatud failid (BookingApprovalView kasutab) — puudutada ainult otsuse p 3 korral.
+- Tööpuus olevad CRLF-ainult muudatused jäävad commitist välja.
+
+## Puuduv/muudetav
+
+| # | Lünk | Fail | Taski viide |
+|---|---|---|---|
+| 1 | `toolDescription` loeb `categoryDescription ?? description` — `categoryDescription` välja pole (otsus: `description`). | `ToolDetailView.vue` | Kasutajaliidese elemendid |
+| 2 | Võrguvea (`!error.response`) korral näidatakse 500-ga sama teadet; taski järgi üldine võrguviga. Teistes vaadetes on `NETWORK_ERROR_MESSAGE`. | `ToolDetailView.vue` | Veatabelid „Vastus puudub“ |
+| 3 | Taski „Komponendid ja failistruktuur“ tabel ja API lõigud väidavad, et failid/controllerid puuduvad; meetodinimed (`sendGetToolRequest`, `sendGetUserRequest`) erinevad tegelikest. | `Tooriista-detailvaade.md` | — |
+| 4 | Lahtised otsad (oma tööriist, e-posti link, tagasipöördumine pärast sisselogimist) — vt „Avatud küsimused“. | — | Täpsusta enne implementeerimist |
 
 ## Sammud
 
-### 1. API teenused
+1. **Kirjeldus ainult `description` väljast** — fail: `frontend/src/views/ToolDetailView.vue`
 
-**`frontend/src/api-services/ToolService.js`** (lisa meetod, kui fail on juba olemas)
+   ```js
+   toolDescription() {
+     return this.tool?.description ?? ''
+   },
+   ```
 
-```js
-import axios from 'axios'
+2. **Võrguvea teade** — fail: `frontend/src/views/ToolDetailView.vue`
+   - Lisa konstant `const NETWORK_ERROR_MESSAGE = 'Serveriga ei saanud ühendust. Palun proovi hiljem uuesti.'` (sama tekst nagu `MyProfile.vue`, `MyToolsView.vue`, `ToolsView.vue`).
+   - `handleToolError`: `if (!error?.response) { this.errorMessage = NETWORK_ERROR_MESSAGE; return }`, edasi nagu praegu.
+   - `handleOwnerError`: sama, `ownerErrorMessage`-iga (tööriista andmed jäävad).
 
-export default {
-  sendGetToolRequest(toolId) {
-    return axios.get(`/api/tools/${toolId}`)
-  },
-}
-```
+3. **Taskifaili uuendamine** — fail: `docs/tasks/frontend/ToolDetailView/Tooriista-detailvaade.md` (CRLF säilib)
+   - API lõikudest eemalda „Backendi controllerit veel pole“.
+   - „Komponendid ja failistruktuur“: kõik read „Olemas“, õiged meetodinimed (`sendGetToolDetailsRequest`, `sendGetUserDetailsRequest`, `navigateToBookingFormView(router, toolId)`), lause „Olemasolevat koodi ... ei muudetud“ asenda viitega sellele plaanile.
+   - Lahtiste otste lõik: lisa otsused (vt „Avatud küsimused“).
 
-**`frontend/src/api-services/UserService.js`**
+4. **Valikulised muudatused** — ainult kasutaja otsuse järgi (vt „Avatud küsimused“ p 1–3).
 
-```js
-import axios from 'axios'
+5. **Lint ja vormindus** — `npx eslint` ja `npx prettier --check` muudetud failidele (oxlint ja `npm run build` ei tööta WSL-is Windowsi `node_modules` tõttu — käivita Windowsis).
 
-export default {
-  sendGetUserRequest(userId) {
-    return axios.get(`/api/users/${userId}`)
-  },
-}
-```
+## Veakäsitlus
 
-### 2. Navigatsioon
+| Päring | Olukord | Praegu | Pärast |
+|---|---|---|---|
+| `GET /api/tools/{id}` | 404 / 400 / 500 | backendi `message`, tööriista ja nuppu pole | muutmata |
+| `GET /api/tools/{id}` | võrguviga | `TOOL_LOAD_FAILED` | `NETWORK_ERROR_MESSAGE` |
+| `GET /api/users/{id}` | 401 | `session.status = 'guest'`, kontaktikast peidus | muutmata |
+| `GET /api/users/{id}` | 404 / 500 | `message` kontaktikasti asemel, tööriist jääb | muutmata |
+| `GET /api/users/{id}` | võrguviga | `OWNER_LOAD_FAILED` | `NETWORK_ERROR_MESSAGE` |
 
-**`frontend/src/navigation/NavigationService.js`** — lisa:
+## Testid / käsitsi kontroll
 
-```js
-navigateToBookingFormView(toolId) {
-  router.push({ name: 'bookingFormRoute', params: { toolId } })
-},
-```
+Frontendis automaattestide raamistikku pole. Käsitsi (`npm run dev` Windowsis, backend + `3_import.sql`):
 
-### 3. Ühised komponendid
+1. Külastaja `/tools/1` → Akutrell, „Ehitustööd“, pilt; kontaktikasti pole; Network'is pole `GET /api/users/1`; „Laenuta“ → sisselogimise modaal.
+2. Sisse logitud `/tools/1` → Marko Tamm, e-mail, telefon; „Laenuta“ → `/tools/1/booking`.
+3. `/tools/2` → „Tööriist pole hetkel saadaval“, nupp aktiivne.
+4. `/tools/999` → 404 teade, nuppu pole. `/tools/abc` → 400 teade.
+5. Pildita / kirjelduseta tööriist → kohatäitja ja „Kirjeldus puudub“.
+6. Profiilita omanik → e-posti ja telefoni ridu pole.
+7. Backend maas → võrguvea teade.
+8. ToolsView „Vaata detaile“ → õige detailvaade; tagasi-nupp → otsing säilib.
 
-**`frontend/src/components/common/ToolImage.vue`**
+## Otsused (kasutajaga kinnitatud)
 
-- `props: { imageData: String, altText: String }`
-- `computed.imageSource()` — `imageData ? 'data:image/svg+xml;base64,' + imageData : ''` (MIME-tüüp on taski lahtine ots; hoia see ühes kohas, et hiljem oleks lihtne muuta).
-- Template: `<img v-if="imageSource" :src="imageSource" :alt="altText" class="img-fluid">`, muidu kohatäitja (`<div class="bg-light border ...">`).
+1. **Oma tööriist:** „Laenuta“ on keelatud, kui `session.user.userId === tool.ownerId`; nupu all selgitus „See on sinu tööriist. Oma tööriista laenutada ei saa.“ (`ToolDetailView.vue`, computed `isOwnTool`).
+2. **E-posti link:** `mailto:`/`tel:` lingid jäävad; taski tekst parandatud.
+3. **Tagasipöördumine pärast sisselogimist:** praegu ei muudeta (`auth/loginReturnPath.js` jääb puutumata).
+4. **Staatus `U`:** „Laenuta“ jääb aktiivseks, teade näidatakse.
 
-**`frontend/src/components/common/OwnerContactCard.vue`**
+## Teostus (2026-10-01)
 
-- `props: { owner: Object }` (kuju nagu `UserDetailResponse`)
-- `computed.ownerFullName()` — `owner.firstName + ' ' + owner.lastName`
-- Template (Bootstrap `card`): pealkiri „Omaniku kontaktinfo“, nimi, `v-if="owner.email"` rida `PhEnvelope` ikooniga, `v-if="owner.phone"` rida `PhDeviceMobile` ikooniga (`@phosphor-icons/vue`).
-
-**`frontend/src/components/common/AlertDanger.vue`** — nagu MyProfile plaanis (prop `errorMessage`, `alert alert-danger`).
-
-### 4. Vaade
-
-**`frontend/src/views/ToolDetailView.vue`**
-
-`data()`:
-
-```js
-data() {
-  return {
-    errorMessage: '',
-    ownerErrorMessage: '',
-    isLoading: true,
-    toolId: 0,
-    tool: {
-      toolId: 0,
-      ownerId: 0,
-      toolName: '',
-      categoryName: '',
-      description: '',
-      imageData: '',
-      status: '',
-    },
-    owner: null,
-  }
-},
-```
-
-`computed`:
-
-- `isLoggedIn()` — ühisest kasutajaolekust (samm 6).
-- `isToolLoaded()` — `tool.toolId !== 0`.
-- `isToolUnavailable()` — `tool.status === 'U'`.
-
-`methods`:
-
-- `getTool()` → `ToolService.sendGetToolRequest(this.toolId)` → `handleGetToolResponse(response.data)` / `handleGetToolError(error)` / `.finally(() => (this.isLoading = false))`.
-- `handleGetToolResponse(toolResponse)` — `this.tool = toolResponse`; kui `isLoggedIn`, kutsu `getOwner()`.
-- `handleGetToolError(error)` — `!error.response` → üldine võrguvea teade; muidu `errorMessage = error.response.data.message` (404, 400, 500).
-- `getOwner()` → `UserService.sendGetUserRequest(this.tool.ownerId)` → `this.owner = response.data` / `handleGetOwnerError(error)`.
-- `handleGetOwnerError(error)` — `owner = null`; 401 → tühjenda ühine kasutajaolek (samm 6); muu → `ownerErrorMessage = error.response?.data?.message ?? <üldine teade>`.
-- `handleLendClick()` — kui `isLoggedIn` → `NavigationService.navigateToBookingFormView(this.toolId)`; muidu ava ühine sisselogimise modaal (samm 6).
-
-`beforeMount()`:
-
-```js
-beforeMount() {
-  this.toolId = Number(this.$route.params.toolId)
-  this.getTool()
-},
-```
-
-`toolId` saadetakse backendile ka siis, kui see pole number (`NaN` → backend annab 400); eraldi frontendi valideerimist pole vaja, sest veateate annab backend.
-
-Template:
-
-- `<h1>Tööriista detailid</h1>`, `<AlertDanger :error-message="errorMessage" />`
-- `v-if="isToolLoaded"` plokk (Bootstrap `row`):
-  - vasak veerg: `<ToolImage :image-data="tool.imageData" :alt-text="tool.toolName" />`, nimi, kategooria, kirjeldus (kirjutuskaitstud tekst, mitte `<input>`), `v-if="isToolUnavailable"` teade „Tööriist pole hetkel saadaval“;
-  - parem veerg: `v-if="isLoggedIn"` → `<AlertDanger :error-message="ownerErrorMessage" />` ja `<OwnerContactCard v-if="owner" :owner="owner" />`.
-- `<button v-if="isToolLoaded" class="btn btn-primary" :disabled="isLoading" @click="handleLendClick">Laenuta</button>`
-- Lehekülgede riba ei implementeerita (skoobist väljas).
-
-### 5. Router
-
-**`frontend/src/router/index.js`** — lisa:
-
-```js
-import ToolDetailView from '@/views/ToolDetailView.vue'
-// ...
-{
-  path: '/tools/:toolId',
-  name: 'toolDetailRoute',
-  component: ToolDetailView,
-},
-```
-
-Rada `/tools/:toolId/booking` (`bookingFormRoute`) lisab BookingFormView task. Kui seda veel pole, lisa see koos platsihoidjaga või jäta `navigateToBookingFormView` kutse `TODO`-ga, et navigeerimine ei viskaks viga.
-
-Kui kasutaja liigub ühelt tööriistalt teisele sama komponendi sees (rada muutub, komponent jääb), ei käivitu `beforeMount` uuesti. Praegu selliseid linke vaates pole; kui need lisanduvad, lisa `watch: { '$route.params.toolId' }` või `:key="$route.fullPath"` `<RouterView>`-ile.
-
-### 6. Ühine kasutajaolek ja sisselogimine (sõltuvus)
-
-`isLoggedIn`, 401 käsitlemine ja sisselogimise modaal kuuluvad GoogleLoginView taski (`frontend/src/auth/`, `GoogleLoginModal.vue`, `GET /api/me`).
-
-- Kui need on olemas: `isLoggedIn` loe ühisest olekust; külastaja „Laenuta“ avab `GoogleLoginModal.vue`.
-- Kui neid veel pole: ajutiselt `isLoggedIn` = `false` ja külastaja „Laenuta“ → `window.location.href = '/oauth2/authorization/google'` (sama link, mida modaal kasutaks), koos `TODO` kommentaariga. Paralleelset kasutajaolekut ära loo.
-
-Oluline: omaniku päring tehakse alles siis, kui kasutajaolek on teada. Kui `GET /api/me` vastus saabub pärast tööriista vastust, kutsu `getOwner()` kasutajaoleku muutumisel (nt `watch` ühise oleku `isLoggedIn` peale).
-
-### 7. Lint ja vormindus
-
-```sh
-cd frontend
-npm run lint
-npm run format
-```
-
-## Kontroll
-
-Frontendis automaattestide raamistikku pole, seega kontrolli käsitsi (`npm run dev`, http://localhost:8081/tools/1):
-
-1. **Backendita:** API teenustes ajutiselt `Promise.resolve({ data: ... })` taski JSON näidetega; `isLoggedIn` ajutiselt `true`/`false`, et kontrollida mõlemat varianti. Eemalda mock enne commit'i.
-2. **Backendiga:**
-   - külastaja: `/tools/1` → Akutrell ja pilt; kontaktikasti pole; Network'is pole `GET /api/users/1`; „Laenuta“ → sisselogimine;
-   - sisse logitud: kontaktikastis Marko Tamm, email@Gmail.com, 56565656; „Laenuta“ → `/tools/1/booking`;
-   - `/tools/2` → teade „Tööriist pole hetkel saadaval“;
-   - `/tools/999` → „Ei leidnud primary keyd 'toolId' väärtusega: 999“, nuppu pole;
-   - `/tools/abc` → 400 teade;
-   - profiilita omanik (testandmetega) → e-posti ja telefoni ridu pole.
-3. `npm run lint` lõpeb vigadeta.
-
-## Riskid ja sõltuvused
-
-- Backendi `GET /api/tools/{toolId}` ja `GET /api/users/{userId}` pole implementeeritud.
-- Sisselogimise olek ja modaal sõltuvad GoogleLoginView taskist.
-- Pildi MIME-tüüp on lahtine (praegu eeldatakse SVG-d impordiandmete järgi).
-- Pärast Google'iga sisselogimist suunab backend avalehele, mitte tagasi tööriista lehele.
+- `ToolDetailView.vue`: `description` ilma `categoryDescription` varuvariandita; `NETWORK_ERROR_MESSAGE` tööriista ja omaniku päringu võrguveale; `isOwnTool` + keelatud nupp + selgitus.
+- `Tooriista-detailvaade.md`: komponentide tabel, API lõigud, lahtised otsad → otsused, uus vastuvõtu kriteerium.
+- Prettieri hoiatused failis (kolm pikka rida) on varasemast koodist ja jäeti konfliktide vältimiseks muutmata.

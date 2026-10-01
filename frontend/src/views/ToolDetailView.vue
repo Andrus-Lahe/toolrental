@@ -24,6 +24,9 @@
           >
             Laenuta
           </button>
+          <p v-if="isOwnTool" class="form-text mb-0">
+            See on sinu tööriist. Oma tööriista laenutada ei saa.
+          </p>
         </div>
       </div>
 
@@ -49,6 +52,7 @@ import NavigationService from '@/navigation/NavigationService.js'
 
 const TOOL_LOAD_FAILED = 'Tööriista laadimine ebaõnnestus. Palun proovi hiljem uuesti.'
 const OWNER_LOAD_FAILED = 'Omaniku kontaktandmete laadimine ebaõnnestus. Palun proovi hiljem uuesti.'
+const NETWORK_ERROR_MESSAGE = 'Serveriga ei saanud ühendust. Palun proovi hiljem uuesti.'
 
 export default {
   name: 'ToolDetailView',
@@ -74,14 +78,17 @@ export default {
     isLoggedIn() {
       return this.session.status === 'authenticated'
     },
+    isOwnTool() {
+      return this.isLoggedIn && Number(this.session.user?.userId) === Number(this.tool?.ownerId)
+    },
     isLendDisabled() {
-      return this.isLoading || this.session.status === 'loading'
+      return this.isLoading || this.session.status === 'loading' || this.isOwnTool
     },
     isToolUnavailable() {
       return this.tool?.status === 'U'
     },
     toolDescription() {
-      return this.tool?.categoryDescription ?? this.tool?.description ?? ''
+      return this.tool?.description ?? ''
     },
   },
   watch: {
@@ -129,7 +136,11 @@ export default {
 
     handleToolError(error, generation) {
       if (generation !== this.loadGeneration) return
-      this.errorMessage = error?.response?.data?.message || TOOL_LOAD_FAILED
+      if (!error?.response) {
+        this.errorMessage = NETWORK_ERROR_MESSAGE
+        return
+      }
+      this.errorMessage = error.response.data?.message || TOOL_LOAD_FAILED
     },
 
     loadOwnerIfReady() {
@@ -159,13 +170,17 @@ export default {
     handleOwnerError(error, generation) {
       if (generation !== this.loadGeneration) return
       this.owner = null
-      if (error?.response?.status === 401) {
+      if (!error?.response) {
+        this.ownerErrorMessage = NETWORK_ERROR_MESSAGE
+        return
+      }
+      if (error.response.status === 401) {
         this.session.user = null
         this.session.status = 'guest'
         this.ownerErrorMessage = ''
         return
       }
-      this.ownerErrorMessage = error?.response?.data?.message || OWNER_LOAD_FAILED
+      this.ownerErrorMessage = error.response.data?.message || OWNER_LOAD_FAILED
     },
 
     handleLendClick() {
