@@ -14,6 +14,7 @@ import ee.toolrental.persistence.tool.ToolRepository;
 import ee.toolrental.persistence.toolimage.ToolImage;
 import ee.toolrental.persistence.toolimage.ToolImageRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -25,6 +26,7 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Set;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ToolService {
@@ -61,6 +63,7 @@ public class ToolService {
                 toolImageRepository.saveAndFlush(toolImage);
             }
         } catch (DataAccessException exception) {
+            log.error("Tööriista lisamine ebaõnnestus (ownerId={}, categoryId={})", ownerId, request.getCategoryId(), exception);
             throw new InternalServerErrorException(SAVE_FAILED);
         }
     }
@@ -90,6 +93,7 @@ public class ToolService {
             List<ToolListItemDto> items = toolMapper.toToolListItemDtos(page.getContent());
             return new ToolsResponse(validPageNumber, validPageSize, page.getTotalPages(), page.getTotalElements(), items);
         } catch (DataAccessException exception) {
+            log.error("Tööriistade laadimine ebaõnnestus", exception);
             throw new InternalServerErrorException(TOOLS_LOADING_FAILED);
         }
     }
