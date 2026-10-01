@@ -1,6 +1,8 @@
 package ee.toolrental.service;
 
+import ee.toolrental.controller.booking.dto.BookingApprovalDto;
 import ee.toolrental.controller.booking.dto.BookingCreateRequestDto;
+import ee.toolrental.infrastructure.mail.BookingDecisionMailService;
 import ee.toolrental.controller.booking.dto.BookingResponseDto;
 import ee.toolrental.infrastructure.exception.ForbiddenException;
 import ee.toolrental.infrastructure.exception.IncorrectInputException;
@@ -11,6 +13,7 @@ import ee.toolrental.persistence.appuser.AppUser;
 import ee.toolrental.persistence.booking.Booking;
 import ee.toolrental.persistence.booking.BookingMapper;
 import ee.toolrental.persistence.booking.BookingRepository;
+import ee.toolrental.persistence.profile.ProfileRepository;
 import ee.toolrental.persistence.tool.Tool;
 import ee.toolrental.persistence.tool.ToolRepository;
 import lombok.RequiredArgsConstructor;
@@ -27,12 +30,89 @@ import java.time.ZoneId;
 public class BookingService {
     private static final ZoneId TALLINN = ZoneId.of("Europe/Tallinn");
     private static final String SAVE_FAILED = "Laenutuse taotluse saatmine ebaõnnestus. Palun proovi hiljem uuesti.";
+    private static final String BOOKING_LOAD_FAILED = "Broneeringu laadimine ebaõnnestus. Palun proovi hiljem uuesti.";
+    private static final String CONFIRMATION_FAILED = "Taotluse kinnitamine ebaõnnestus. Palun proovi hiljem uuesti.";
+    private static final String REJECTION_FAILED = "Taotluse tagasilükkamine ebaõnnestus. Palun proovi hiljem uuesti.";
+    private static final String STATUS_PENDING = "P";
+    private static final String STATUS_CONFIRMED = "C";
+    private static final String STATUS_REJECTED = "R";
 
     private final BookingRepository bookingRepository;
     private final ToolRepository toolRepository;
     private final BookingMapper bookingMapper;
     private final AppUserService appUserService;
     private final BookingRequestMailService bookingRequestMailService;
+    private final ProfileRepository profileRepository;
+    private final BookingDecisionMailService bookingDecisionMailService;
+
+    @Transactional
+    public void confirmBooking(Integer ownerId, Integer bookingId, String ownerMessage) {
+        decideBooking(ownerId, bookingId, ownerMessage, STATUS_CONFIRMED);
+    }
+
+    @Transactional
+    public void rejectBooking(Integer ownerId, Integer bookingId, String ownerMessage) {
+        decideBooking(ownerId, bookingId, ownerMessage, STATUS_REJECTED);
+    }
+
+    private void decideBooking(Integer ownerId, Integer bookingId, String ownerMessage, String targetStatus) {
+        try {
+            Booking booking = getValidBookingForDecisionBy(bookingId);
+            if (!booking.getTool().getOwner().getId().equals(ownerId)) {
+                throw new ForbiddenException("Ainult tööriista omanik saab taotlust kinnitada või tagasi lükata", "BOOKING_NOT_OWNER");
+            }
+            if (!STATUS_PENDING.equals(booking.getStatus())) {
+                throw new ForbiddenException("Taotlus on juba kinnitatud või tagasi lükatud", "BOOKING_NOT_PENDING");
+            }
+
+            booking.setStatus(targetStatus);
+            booking.setOwnerMessage(ownerMessage);
+            booking.setUpdatedAt(Instant.now());
+            booking = bookingRepository.saveAndFlush(booking);
+            if (STATUS_CONFIRMED.equals(targetStatus)) {
+                bookingDecisionMailService.sendBookingConfirmed(booking);
+            } else {
+                bookingDecisionMailService.sendBookingRejected(booking);
+            }
+        } catch (DataAccessException exception) {
+            String errorMessage = STATUS_CONFIRMED.equals(targetStatus) ? CONFIRMATION_FAILED : REJECTION_FAILED;
+            throw new InternalServerErrorException(errorMessage);
+        }
+    }
+
+    private Booking getValidBookingForDecisionBy(Integer bookingId) {
+        return bookingRepository.findBookingForDecisionById(bookingId)
+                .orElseThrow(() -> new PrimaryKeyNotFoundException("bookingId", bookingId));
+    }
+
+    @Transactional(readOnly = true)
+    public BookingApprovalDto getBooking(Integer actorId, Integer bookingId) {
+        try {
+            Booking booking = bookingRepository.findBookingWithPartiesById(bookingId)
+                    .orElseThrow(() -> new PrimaryKeyNotFoundException("bookingId", bookingId));
+            Integer ownerId = booking.getTool().getOwner().getId();
+            Integer renterId = booking.getRenter().getId();
+            if (!ownerId.equals(actorId) && !renterId.equals(actorId)) {
+                throw new ForbiddenException("Sul pole õigust seda broneeringut vaadata", "BOOKING_ACCESS_DENIED");
+            }
+
+            BookingApprovalDto response = bookingMapper.toBookingApprovalDto(booking);
+            handleContactDetails(response, booking, actorId.equals(ownerId));
+            return response;
+        } catch (DataAccessException exception) {
+            throw new InternalServerErrorException(BOOKING_LOAD_FAILED);
+        }
+    }
+
+    private void handleContactDetails(BookingApprovalDto response, Booking booking, boolean isOwner) {
+        AppUser contact = isOwner ? booking.getRenter() : booking.getTool().getOwner();
+        response.setIsOwner(isOwner);
+        response.setContactName(contact.getFirstName() + " " + contact.getLastName());
+        profileRepository.findProfileByUserId(contact.getId()).ifPresent(profile -> {
+            response.setContactEmail(profile.getEmail());
+            response.setContactPhone(profile.getPhone());
+        });
+    }
 
     @Transactional
     public BookingResponseDto createBooking(Integer actorId, BookingCreateRequestDto request) {

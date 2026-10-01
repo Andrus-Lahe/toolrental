@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="et" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Broneering kinnitatud</title>
+</head>
+<body>
+<h1>Sinu laenutuse taotlus on kinnitatud</h1>
+<h2>Laenutuse taotlus</h2>
+<p>Palun võta ühendust omanikuga.</p>
+<p><strong>Omanik:</strong> <span th:text="${ownerName}"></span></p>
+<p th:if="${ownerEmail != null and !ownerEmail.isEmpty()}"><strong>E-mail:</strong> <span th:text="${ownerEmail}"></span></p>
+<p th:if="${ownerPhone != null and !ownerPhone.isEmpty()}"><strong>Telefon:</strong> <span th:text="${ownerPhone}"></span></p>
+<p><strong>Tööriist:</strong> <span th:text="${toolName}"></span></p>
+<p><strong>Periood:</strong> <span th:text="${startDate}"></span> kuni <span th:text="${endDate}"></span></p>
+<p th:if="${ownerMessage != null and !ownerMessage.isEmpty()}">
+    <strong>Lisainfo omanikult:</strong> <span th:text="${ownerMessage}"></span>
+</p>
+<p><strong>Broneeringu number:</strong> <span th:text="${bookingId}"></span></p>
+<p><a th:href="${bookingUrl}">Vaata taotlust</a></p>
+</body>
+</html>
