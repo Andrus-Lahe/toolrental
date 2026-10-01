@@ -8,6 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test:booking-approval": "node --test tests/booking-approval.test.js",
+    "test:tool-detail": "node --test tests/tool-detail.test.js",
     "lint": "run-s lint:*",
     "lint:oxlint": "oxlint . --fix",
     "lint:eslint": "eslint . --fix --cache",
