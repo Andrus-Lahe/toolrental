@@ -7,6 +7,7 @@ import ee.toolrental.infrastructure.exception.IncorrectInputException;
 import ee.toolrental.infrastructure.exception.InternalServerErrorException;
 import ee.toolrental.infrastructure.exception.PrimaryKeyNotFoundException;
 import ee.toolrental.infrastructure.mail.BookingRequestMailService;
+import ee.toolrental.infrastructure.mail.BookingDecisionMailService;
 import ee.toolrental.persistence.appuser.AppUser;
 import ee.toolrental.persistence.booking.Booking;
 import ee.toolrental.persistence.booking.BookingMapperImpl;
@@ -32,6 +33,7 @@ class BookingServiceTest {
     private ToolRepository toolRepository;
     private AppUserService appUserService;
     private BookingRequestMailService mailService;
+    private BookingDecisionMailService decisionMailService;
     private ProfileRepository profileRepository;
     private BookingService service;
     private Tool tool;
@@ -43,8 +45,9 @@ class BookingServiceTest {
         toolRepository = mock(ToolRepository.class);
         appUserService = mock(AppUserService.class);
         mailService = mock(BookingRequestMailService.class);
+        decisionMailService = mock(BookingDecisionMailService.class);
         profileRepository = mock(ProfileRepository.class);
-        service = new BookingService(bookingRepository, toolRepository, new BookingMapperImpl(), appUserService, mailService, profileRepository);
+        service = new BookingService(bookingRepository, toolRepository, new BookingMapperImpl(), appUserService, mailService, profileRepository, decisionMailService);
 
         AppUser owner = new AppUser();
         owner.setId(1);
@@ -146,6 +149,70 @@ class BookingServiceTest {
         booking.setStatus("P");
         booking.setOwnerMessage(null);
         return booking;
+    }
+
+    @Test
+    void ownerConfirmsPendingBookingAndSavesMessageAndTimestampBeforeEmail() {
+        Booking booking = booking();
+        when(bookingRepository.findBookingForDecisionById(4)).thenReturn(Optional.of(booking));
+        service.confirmBooking(1, 4, "Palun tagasta tööriist esmaspäeval.");
+
+        assertEquals("C", booking.getStatus());
+        assertEquals("Palun tagasta tööriist esmaspäeval.", booking.getOwnerMessage());
+        assertNotNull(booking.getUpdatedAt());
+        verify(bookingRepository).saveAndFlush(booking);
+        verify(decisionMailService).sendBookingConfirmed(booking);
+    }
+
+    @Test
+    void confirmationAllowsNullMessageAndReturnsNotFoundBeforeAuthorization() {
+        Booking booking = booking();
+        when(bookingRepository.findBookingForDecisionById(4)).thenReturn(Optional.of(booking));
+        service.confirmBooking(1, 4, null);
+        assertNull(booking.getOwnerMessage());
+
+        when(bookingRepository.findBookingForDecisionById(404)).thenReturn(Optional.empty());
+        PrimaryKeyNotFoundException missing = assertThrows(PrimaryKeyNotFoundException.class,
+                () -> service.confirmBooking(99, 404, null));
+        assertEquals("Ei leidnud primary keyd 'bookingId' väärtusega: 404", missing.getMessage());
+    }
+
+    @Test
+    void onlyOwnerCanConfirmPendingBooking() {
+        when(bookingRepository.findBookingForDecisionById(4)).thenReturn(Optional.of(booking()));
+        ForbiddenException notOwner = assertThrows(ForbiddenException.class,
+                () -> service.confirmBooking(3, 4, "sõnum"));
+        assertEquals("BOOKING_NOT_OWNER", notOwner.getErrorCode());
+        verify(bookingRepository, never()).saveAndFlush(any());
+        verifyNoInteractions(decisionMailService);
+    }
+
+    @Test
+    void confirmedOrRejectedBookingCannotBeConfirmedAgain() {
+        Booking booking = booking();
+        booking.setStatus("C");
+        when(bookingRepository.findBookingForDecisionById(4)).thenReturn(Optional.of(booking));
+        ForbiddenException error = assertThrows(ForbiddenException.class,
+                () -> service.confirmBooking(1, 4, "sõnum"));
+        assertEquals("BOOKING_NOT_PENDING", error.getErrorCode());
+        verify(bookingRepository, never()).saveAndFlush(any());
+        verifyNoInteractions(decisionMailService);
+
+        booking.setStatus("R");
+        ForbiddenException rejected = assertThrows(ForbiddenException.class,
+                () -> service.confirmBooking(1, 4, "sõnum"));
+        assertEquals("BOOKING_NOT_PENDING", rejected.getErrorCode());
+        verifyNoInteractions(decisionMailService);
+    }
+
+    @Test
+    void confirmationDatabaseFailureUsesContractError() {
+        when(bookingRepository.findBookingForDecisionById(4)).thenThrow(new DataAccessResourceFailureException("DB down"));
+        InternalServerErrorException error = assertThrows(InternalServerErrorException.class,
+                () -> service.confirmBooking(1, 4, "sõnum"));
+        assertEquals("INTERNAL_SERVER_ERROR", error.getErrorCode());
+        assertEquals("Taotluse kinnitamine ebaõnnestus. Palun proovi hiljem uuesti.", error.getMessage());
+        verifyNoInteractions(decisionMailService);
     }
 
     @Test

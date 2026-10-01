@@ -2,6 +2,7 @@ package ee.toolrental.controller.booking;
 
 import ee.toolrental.controller.booking.dto.BookingApprovalDto;
 import ee.toolrental.controller.booking.dto.BookingCreateRequestDto;
+import ee.toolrental.controller.booking.dto.BookingDecisionRequest;
 import ee.toolrental.controller.booking.dto.BookingResponseDto;
 import ee.toolrental.infrastructure.error.ApiError;
 import ee.toolrental.infrastructure.security.AppUserPrincipal;
@@ -16,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -26,6 +28,21 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class BookingController {
     private final BookingService bookingService;
+
+    @PatchMapping("/bookings/{bookingId}/confirm")
+    @Operation(summary = "Broneeringu kinnitamine")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Broneering kinnitati"),
+            @ApiResponse(responseCode = "400", description = "Vigane omaniku sõnum", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "401", description = "Kasutaja pole sisse logitud"),
+            @ApiResponse(responseCode = "403", description = "Broneeringu kinnitamine on keelatud", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "404", description = "Broneeringut ei leitud", content = @Content(schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "500", description = "Kinnitamine ebaõnnestus", content = @Content(schema = @Schema(implementation = ApiError.class)))})
+    public void confirmBooking(@AuthenticationPrincipal AppUserPrincipal principal,
+                               @PathVariable Integer bookingId,
+                               @RequestBody @Valid BookingDecisionRequest request) {
+        bookingService.confirmBooking(principal.getUserId(), bookingId, request.ownerMessage());
+    }
 
     @GetMapping("/bookings/{bookingId}")
     @Operation(summary = "Broneeringu andmete päring")

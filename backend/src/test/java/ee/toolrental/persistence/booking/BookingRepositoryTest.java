@@ -87,6 +87,9 @@ class BookingRepositoryTest {
         assertEquals("Test", booking.getTool().getOwner().getFirstName());
         assertEquals(renter.getId(), booking.getRenter().getId());
         assertTrue(bookingRepository.findBookingWithPartiesById(-1).isEmpty());
+
+        Booking decisionBooking = bookingRepository.findBookingForDecisionById(bookingId).orElseThrow();
+        assertEquals("P", decisionBooking.getStatus());
     }
 
     private AppUser user(Role role, String uniqueSuffix) {

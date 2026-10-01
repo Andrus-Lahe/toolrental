@@ -31,6 +31,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -43,6 +44,63 @@ class BookingControllerTest {
     @Autowired MockMvc mockMvc;
     @MockitoBean BookingService bookingService;
     @MockitoBean AppUserOidcService appUserOidcService;
+
+    @Test
+    void ownerCanConfirmAndAnonymousCannot() throws Exception {
+        mockMvc.perform(patch("/api/bookings/4/confirm").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"ownerMessage\":\"Palun helista enne tulekut\"}")
+                        .with(loggedInUser(1, "customer")))
+                .andExpect(status().isOk())
+                .andExpect(content().string(""));
+        verify(bookingService).confirmBooking(1, 4, "Palun helista enne tulekut");
+
+        mockMvc.perform(patch("/api/bookings/4/confirm").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"ownerMessage\":null}"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void confirmationValidatesMessageAndReportsBookingErrors() throws Exception {
+        mockMvc.perform(patch("/api/bookings/4/confirm").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"ownerMessage\":\"" + "x".repeat(501) + "\"}")
+                        .with(loggedInUser(1, "customer")))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value("INCORRECT_INPUT"))
+                .andExpect(jsonPath("$.message").value("ownerMessage: Sõnum võib olla kuni 500 märki"));
+        verifyNoInteractions(bookingService);
+
+        doThrow(new ForbiddenException("Ainult tööriista omanik saab taotlust kinnitada või tagasi lükata", "BOOKING_NOT_OWNER"))
+                .when(bookingService).confirmBooking(3, 4, null);
+        mockMvc.perform(patch("/api/bookings/4/confirm").contentType(MediaType.APPLICATION_JSON)
+                        .content("{}").with(loggedInUser(3, "customer")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("BOOKING_NOT_OWNER"));
+
+        reset(bookingService);
+        doThrow(new ForbiddenException("Taotlus on juba kinnitatud või tagasi lükatud", "BOOKING_NOT_PENDING"))
+                .when(bookingService).confirmBooking(1, 4, null);
+        mockMvc.perform(patch("/api/bookings/4/confirm").contentType(MediaType.APPLICATION_JSON)
+                        .content("{}").with(loggedInUser(1, "customer")))
+                .andExpect(status().isForbidden())
+                .andExpect(jsonPath("$.errorCode").value("BOOKING_NOT_PENDING"));
+
+        reset(bookingService);
+        doThrow(new PrimaryKeyNotFoundException("bookingId", 404))
+                .when(bookingService).confirmBooking(1, 404, null);
+        mockMvc.perform(patch("/api/bookings/404/confirm").contentType(MediaType.APPLICATION_JSON)
+                        .content("{}").with(loggedInUser(1, "customer")))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.errorCode").value("PRIMARY_KEY_NOT_FOUND"));
+
+        reset(bookingService);
+        doThrow(new InternalServerErrorException("Taotluse kinnitamine ebaõnnestus. Palun proovi hiljem uuesti."))
+                .when(bookingService).confirmBooking(1, 4, null);
+        mockMvc.perform(patch("/api/bookings/4/confirm").contentType(MediaType.APPLICATION_JSON)
+                        .content("{}").with(loggedInUser(1, "customer")))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.errorCode").value("INTERNAL_SERVER_ERROR"))
+                .andExpect(jsonPath("$.message").value("Taotluse kinnitamine ebaõnnestus. Palun proovi hiljem uuesti."));
+    }
 
     @Test
     void bookingCanBeReadByAuthenticatedOwnerAndReturnsContactFields() throws Exception {

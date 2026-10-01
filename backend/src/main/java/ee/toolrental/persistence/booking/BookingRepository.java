@@ -1,14 +1,20 @@
 package ee.toolrental.persistence.booking;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import jakarta.persistence.LockModeType;
 
 public interface BookingRepository extends JpaRepository<Booking, Integer> {
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("select b from Booking b join fetch b.tool t join fetch t.owner join fetch b.renter where b.id = :bookingId")
+    Optional<Booking> findBookingForDecisionById(@Param("bookingId") Integer bookingId);
+
     @Query("select b from Booking b join fetch b.tool t join fetch t.owner join fetch b.renter where b.id = :bookingId")
     Optional<Booking> findBookingWithPartiesById(@Param("bookingId") Integer bookingId);
 
