@@ -23,4 +23,8 @@ export default {
     if (window.history.state?.back) return router.back()
     return this.navigateToToolDetail(router, toolId)
   },
+
+  navigateToHomeView(router) {
+    return router.push({ name: 'homeRoute' })
+  },
 }
