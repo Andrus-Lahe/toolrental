@@ -1,8 +1,9 @@
-package ee.toolrental.controller.district;
+package ee.toolrental.controller.tool;
 
+import ee.toolrental.controller.tool.dto.ToolsResponse;
 import ee.toolrental.infrastructure.security.AppUserOidcService;
 import ee.toolrental.infrastructure.security.SecurityConfig;
-import ee.toolrental.service.DistrictService;
+import ee.toolrental.service.ToolService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
@@ -15,31 +16,31 @@ import java.util.List;
 
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@WebMvcTest(DistrictController.class)
+@WebMvcTest(ToolController.class)
 @Import(SecurityConfig.class)
 @TestPropertySource(properties = {
         "spring.security.oauth2.client.registration.google.client-id=test-client-id",
         "spring.security.oauth2.client.registration.google.client-secret=test-client-secret"})
-class DistrictPublicAccessTest {
+class ToolPublicAccessTest {
 
     @Autowired
     private MockMvc mockMvc;
 
     @MockitoBean
-    private DistrictService districtService;
+    private ToolService toolService;
 
     @MockitoBean
     private AppUserOidcService appUserOidcService;
 
     @Test
-    void guestCanReadCityDistricts() throws Exception {
-        when(districtService.getDistricts(1)).thenReturn(List.of());
+    void guestCanReadToolList() throws Exception {
+        when(toolService.getTools(null, null, null, null, null, null)).thenReturn(new ToolsResponse(1, 12, 0, 0L, List.of()));
 
-        mockMvc.perform(get("/api/cities/1/districts"))
+        mockMvc.perform(get("/api/tools"))
                 .andExpect(status().isOk())
-                .andExpect(content().json("[]"));
+                .andExpect(jsonPath("$.tools.length()").value(0));
     }
 }

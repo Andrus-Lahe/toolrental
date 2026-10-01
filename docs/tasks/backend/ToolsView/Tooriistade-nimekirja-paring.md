@@ -19,9 +19,9 @@ Path variable'id ja request body puuduvad. Endpoint on avalik: maketi rollid on 
 | `districtId` | `Integer` | Ei | `0` | `0` või puudumine jätab linnaosafiltri rakendamata; positiivne väärtus filtreerib omaniku aadressi linnaosa järgi. |
 | `status` | `String` | Ei | `A` | `A` = saadaval, `U` = pole saadaval, `0` = staatusefiltrit ei rakendata. `0` on ainult päringu eriväärtus, mitte andmebaasi staatus. |
 | `pageNumber` | `Integer` | Ei | `1` | Lehenumber algab ühest; peab olema vähemalt 1. |
-| `pageSize` | `Integer` | Ei | `6` | Kirjete arv lehel; peab olema vähemalt 1. |
+| `pageSize` | `Integer` | Ei | `12` | Kirjete arv lehel; peab olema vähemalt 1. |
 
-**Kasutajaga kinnitatud:** puuduv `status` tähendab `A`, `status=0` tähendab kõiki staatusi; vaikimisi `pageNumber=1`, `pageSize=6`; tulemused järjestatakse `tool.id ASC`.
+**Kasutajaga kinnitatud:** puuduv `status` tähendab `A`, `status=0` tähendab kõiki staatusi; vaikimisi `pageNumber=1`, `pageSize=12`; tulemused järjestatakse `tool.id ASC`.
 
 Kõik etteantud filtrid ühendatakse AND-tingimusega. `districtId` võib olla antud ka ilma `cityId`-ta. `cityId` ja `districtId` vastuoluline kombinatsioon annab tühja tulemuse, mitte teise linna tööriistu. Positiivne filter, mille ID-d andmebaasis pole, annab samuti tühja tulemuse; see loendipäring ei kasuta puuduva filtriväärtuse jaoks 404. Need servajuhtumid on taski tehnilised täpsustused, mida PDF eraldi ei kirjelda.
 
@@ -30,7 +30,7 @@ Negatiivne ID-filter, alla ühe lehenumber või lehe suurus, Integer-iks teisend
 Näidispäring, mille täielik vastus on allpool:
 
 ```http
-GET /api/tools?categoryId=2&cityId=1&districtId=1&status=A&pageNumber=1&pageSize=6
+GET /api/tools?categoryId=2&cityId=1&districtId=1&status=A&pageNumber=1&pageSize=12
 ```
 
 ## Väljund
@@ -40,7 +40,7 @@ GET /api/tools?categoryId=2&cityId=1&districtId=1&status=A&pageNumber=1&pageSize
 ```json
 {
   "pageNumber": 1,
-  "pageSize": 6,
+  "pageSize": 12,
   "totalPages": 1,
   "totalElements": 1,
   "tools": [
@@ -73,7 +73,7 @@ Näite ainus sobiv tööriist on impordi Akutrell. Sama kategooria Redel on staa
 |---|---|---|
 | `toolId` | `Integer` | `tool.id`. |
 | `toolName` | `String` | `tool.name`. |
-| `categoryDescription` | `String` | `tool.description`, võib olla NULL. |
+| `description` | `String` | `tool.description`, võib olla NULL. |
 | `imageData` | `String` | `tool_image.image_data` Base64-na, ainult kirjest `is_main = true`; põhipildi puudumisel NULL. |
 | `status` | `String` | `tool.status`, `A` või `U`. |
 | `cityName` | `String` | Omaniku profiili aadressi linna nimi; profiili puudumisel NULL. |
@@ -81,14 +81,14 @@ Näite ainus sobiv tööriist on impordi Akutrell. Sama kategooria Redel on staa
 
 **Kasutajaga kinnitatud:** kui omanikul puudub profiil, säilib tema tööriist loendis, kui ülejäänud filtrid sobivad ja asukohafiltreid pole; `cityName` ning `districtName` on `null`. Positiivse linna- või linnaosafiltri korral selline tööriist ei sobitu.
 
-Põhipildi puudumine ei eemalda tööriista loendist. Ka siis, kui lisapilte on olemas, ei valita suvalist lisapilti põhipildi asemele. `imageData` sisaldab Base64-baite ilma data-URI prefiksita; `categoryDescription`, `imageData`, `cityName` ja `districtName` NULL-välju JSON-ist ei eemaldata. Impordipildid on SVG-d; MIME-tüübi ega pildi üleslaadimise uut lepingut see task ei lisa.
+Põhipildi puudumine ei eemalda tööriista loendist. Ka siis, kui lisapilte on olemas, ei valita suvalist lisapilti põhipildi asemele. `imageData` sisaldab Base64-baite ilma data-URI prefiksita; `description`, `imageData`, `cityName` ja `districtName` NULL-välju JSON-ist ei eemaldata. Impordipildid on SVG-d; MIME-tüübi ega pildi üleslaadimise uut lepingut see task ei lisa.
 
 Lehekülgjaotus rakendub pärast filtreerimist. `tools` sisaldab iga tööriista kõige rohkem ühe korra; pildiseosed ei tohi suurendada `totalElements` väärtust. Viimasest lehest suurem positiivne `pageNumber` annab 200 ja `tools: []`, säilitades tegelikud `totalElements` ning `totalPages` väärtused. Täiesti tühja tulemuse näide:
 
 ```json
 {
   "pageNumber": 1,
-  "pageSize": 6,
+  "pageSize": 12,
   "totalPages": 0,
   "totalElements": 0,
   "tools": []
@@ -97,16 +97,16 @@ Lehekülgjaotus rakendub pärast filtreerimist. `tools` sisaldab iga tööriista
 
 Kontrollnäited kogu praeguse [3_import.sql](../../../database/3_import.sql) kohta:
 
-| Päringu tingimus | totalElements | totalPages (pageSize=6) | Esimese lehe toolId-d |
+| Päringu tingimus | totalElements | totalPages (pageSize=12) | Esimese lehe toolId-d |
 |---|---|---|---|
-| Vaikimisi `status=A` | 7 | 2 | 1, 3, 4, 5, 6, 7 |
-| `status=0` | 8 | 2 | 1, 2, 3, 4, 5, 6 |
+| Vaikimisi `status=A` | 7 | 1 | 1, 3, 4, 5, 6, 7, 8 |
+| `status=0` | 8 | 1 | 1, 2, 3, 4, 5, 6, 7, 8 |
 | `status=U` | 1 | 1 | 2 |
 | `categoryId=2&status=A` | 1 | 1 | 1 |
 | `cityId=1&districtId=2&status=A` | 3 | 1 | 3, 4, 8 |
 | `cityId=2&status=0` | 0 | 0 | tühi |
 
-Vaikimisi päringu teisel lehel on ainult `toolId=8`. PDF-i `totalElements=8` näide sobib `status=0` päringule; vaikimisi `A` korral on andmebaasis 7 sobivat kirjet. PDF-i kaardil olevat hinda ei lisata API-sse: kirjeldatud DTO ega SQL ei sisalda hinnavälja.
+Vaikimisi päringu teine leht (`pageNumber=2`) annab `tools: []`, säilitades `totalElements=7` ja `totalPages=1`. Ka väga suur `pageNumber`, mille nihe `(pageNumber - 1) * pageSize` ületab Integer vahemiku, annab samamoodi 200 tühja `tools` loendi ja tegelikud koguarvud. PDF-i `totalElements=8` näide sobib `status=0` päringule; vaikimisi `A` korral on andmebaasis 7 sobivat kirjet. PDF-i kaardil olevat hinda ei lisata API-sse: kirjeldatud DTO ega SQL ei sisalda hinnavälja.
 
 ## Eesmärk
 
@@ -279,7 +279,7 @@ Avalik päring ei nõua 401/403 vastuseid. Puuduv positiivne filtri-ID, omavahel
 ## Vastuvõtu kriteeriumid
 
 - [ ] `GET /api/tools` on avalik, ilma body ja path variable'ita; tagastab HTTP 200 ja `ToolsResponse`.
-- [ ] Vaikeväärtused on `categoryId=0`, `cityId=0`, `districtId=0`, `status=A`, `pageNumber=1`, `pageSize=6`.
+- [ ] Vaikeväärtused on `categoryId=0`, `cityId=0`, `districtId=0`, `status=A`, `pageNumber=1`, `pageSize=12`.
 - [ ] ID-filtri `0` tähendab filtri puudumist; `status=0` lubab A/U tööriistad. Filtrid toimivad eraldi ja AND-kombinatsioonina.
 - [ ] Tulemused on `tool.id ASC` järjekorras; lehenumber on API-s 1-põhine. Loendus vastab samadele filtritele nagu kaardipäring.
 - [ ] Vastus sisaldab täpselt kirjeldatud metaandmeid ning tööriista seitset välja; kontakti-, Google- ja täpseid aadressiandmeid ei väljastata.
@@ -287,7 +287,7 @@ Avalik päring ei nõua 401/403 vastuseid. Puuduv positiivne filtri-ID, omavahel
 - [ ] Pildita tööriist säilib `imageData: null` väärtusega ning NULL-kirjeldus säilib JSON-is.
 - [ ] Profiilita omaniku sobiv tööriist säilib ilma asukohafiltrita, asukohanimed on NULL. Positiivse asukohafiltri korral see ei sobitu.
 - [ ] Tööriist ei kordu mitme pildi tõttu ning lehekülje koguarv loendab erinevaid tööriistu.
-- [ ] Impordiandmetega vastavad vaikepäring, status=0, status=U ja filtrinäited eespool toodud kontrolltabelile; vaikimisi teisel lehel on ainult Projektor (8).
+- [ ] Impordiandmetega vastavad vaikepäring, status=0, status=U ja filtrinäited eespool toodud kontrolltabelile; vaikimisi teine leht annab `tools: []`, `totalElements=7` ja `totalPages=1`.
 - [ ] Puuduv filtri-ID ja vastuoluline linn/linnaosa annavad tühja loendi. `totalElements=0` korral on `totalPages=0`.
 - [ ] Viimasest lehest suurem positiivne lehenumber annab tühja `tools` loendi, säilitades tegeliku koguarvu ja lehtede arvu.
 - [ ] Vigased sisendid annavad kirjeldatud 400 ja andmebaasi tõrge 500 `ApiError` vastuse.

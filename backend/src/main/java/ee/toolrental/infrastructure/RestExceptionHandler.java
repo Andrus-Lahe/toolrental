@@ -3,6 +3,7 @@ package ee.toolrental.infrastructure;
 import ee.toolrental.infrastructure.error.ApiError;
 import ee.toolrental.infrastructure.exception.DataNotFoundException;
 import ee.toolrental.infrastructure.exception.ForbiddenException;
+import ee.toolrental.infrastructure.exception.IncorrectInputException;
 import ee.toolrental.infrastructure.exception.InternalServerErrorException;
 import ee.toolrental.infrastructure.exception.PrimaryKeyNotFoundException;
 import ee.toolrental.infrastructure.exception.CategoryLoadingException;
@@ -53,6 +54,14 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         apiError.setMessage(exception.getMessage());
         apiError.setErrorCode(exception.getErrorCode());
         return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiError> handleIncorrectInputException(IncorrectInputException exception) {
+        ApiError apiError = new ApiError();
+        apiError.setMessage(exception.getMessage());
+        apiError.setErrorCode(exception.getErrorCode());
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
     @Override
