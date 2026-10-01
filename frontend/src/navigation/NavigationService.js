@@ -19,6 +19,14 @@ export default {
     return router.push({ path: `/tools/${toolId}` })
   },
 
+  navigateToBookingDetails(router, bookingId) {
+    return router.push({ path: `/bookings/${bookingId}` })
+  },
+
+  navigateToBookingApproval(router, bookingId) {
+    return router.push({ path: `/bookings/${bookingId}` })
+  },
+
   navigateBackOrToToolDetail(router, toolId) {
     if (window.history.state?.back) return router.back()
     return this.navigateToToolDetail(router, toolId)
