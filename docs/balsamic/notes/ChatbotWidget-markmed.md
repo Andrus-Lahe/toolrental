@@ -72,6 +72,10 @@ HTTP: 400
 errorCode: INCORRECT_INPUT
 message: "question: ei tohi olla pikem kui 500 märki"
 
+HTTP: 400
+errorCode: QUESTION_REJECTED
+message: "Küsimus lükati turvakontrolli tõttu tagasi. Palun sõnasta küsimus ümber."
+
 HTTP: 500
 errorCode: INTERNAL_SERVER_ERROR
 message: "Toiming ebaõnnestus. Palun proovi hiljem uuesti."
@@ -82,4 +86,5 @@ message: "Toiming ebaõnnestus. Palun proovi hiljem uuesti."
 - `401` tuleb `SecurityConfig` failist (`anyRequest().authenticated()`). `authenticationEntryPoint` kirjutab JSON-vastuse `AUTHENTICATION_REQUIRED` päringutele `GET /api/users/me/tools` ja `POST /api/ai/ask`.
 - `400` teated tulevad failis `ToolAskRequest.java` olevatest `@NotBlank` ja `@Size` `message` väärtustest.
 - Kõiki neid juhtumeid kontrollib `ToolAskControllerTest`.
+- `QUESTION_REJECTED` on plaanitud ja koodis seda veel pole. Selle teeb task [Tooriistade-otsing-vestlusrobotiga.md](../../tasks/backend/ChatbotWidget/Tooriistade-otsing-vestlusrobotiga.md) (`RegexJailbreakAdvisor` lükkab küsimuse tagasi enne Gemini kutset).
 - `500` tuleb üldisest `handleException` handlerist. See juhtub siis, kui Gemini kutse ebaõnnestub või tagastab tühja vastuse (`IllegalStateException`).

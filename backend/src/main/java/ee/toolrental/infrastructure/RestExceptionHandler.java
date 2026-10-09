@@ -3,6 +3,7 @@ package ee.toolrental.infrastructure;
 import ee.toolrental.infrastructure.error.ApiError;
 import ee.toolrental.infrastructure.exception.DataNotFoundException;
 import ee.toolrental.infrastructure.exception.ForbiddenException;
+import ee.toolrental.infrastructure.exception.GuardrailViolationException;
 import ee.toolrental.infrastructure.exception.IncorrectInputException;
 import ee.toolrental.infrastructure.exception.InternalServerErrorException;
 import ee.toolrental.infrastructure.exception.PrimaryKeyNotFoundException;
@@ -60,6 +61,15 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     @ExceptionHandler
     public ResponseEntity<ApiError> handleIncorrectInputException(IncorrectInputException exception) {
+        ApiError apiError = new ApiError();
+        apiError.setMessage(exception.getMessage());
+        apiError.setErrorCode(exception.getErrorCode());
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler
+    public ResponseEntity<ApiError> handleGuardrailViolationException(GuardrailViolationException exception) {
+        log.warn("Guardrail blocked request: guardrail={}", exception.getGuardrail());
         ApiError apiError = new ApiError();
         apiError.setMessage(exception.getMessage());
         apiError.setErrorCode(exception.getErrorCode());
