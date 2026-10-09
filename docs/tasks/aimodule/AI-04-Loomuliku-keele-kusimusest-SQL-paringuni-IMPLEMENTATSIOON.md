@@ -4,29 +4,28 @@
 
 ## Hetkeseis (mis on juba olemas)
 
-- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskService.java` — loob `ChatClient` abil praegu `ToolSearchIntent` JSON vastuse linnade, linnaosade ja kategooriate nimede põhjal.
-- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolSearchIntent.java` — praegune LLM-i väljund on boolean ja kolm valikulist filtrit.
+- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskService.java` — olemasolev endpoint kasutab veel intent/filtri voogu; AI-05 ühendab selle uue validaatoriga.
+- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolSearchIntent.java` — olemasoleva endpointi DTO; eemaldamine kuulub AI-05 käitusvoo muutmise juurde.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/resources/application.properties` — Google GenAI mudeli ning API võtme konfiguratsioon on olemas.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/build.gradle` — Spring AI Google GenAI starter on lisatud.
 - AI-02 piiratud vaade ja AI-03 `is_available_now` reegel on eeltingimused; neid taskide faile tuleb enne prompti lõplikku seadmist järgida.
 
 ## Puuduv/muudetav
 
-- Praegune prompt klassifitseerib küsimust ja eraldab filtrid; see ei koosta SQL-i.
-- Promptile pole praegu piiratud vaate skeemi antud.
-- SQL teksti kasutus peab olema eraldatud SQL-i kontrollist ja käivitamisest, mis kuuluvad AI-05 taski.
+- Eraldiseisvat NL→SQL generaatorit pole.
+- Praegune intent-põhine endpoint jääb aktiivseks kuni AI-05 lisab SQL-i kontrolli ja käivitamise.
+- SQL teksti genereerimine peab olema eraldatud SQL-i kontrollist ja käivitamisest.
 
 ## Sammud
 
-1. **Asenda intent prompt NL→SQL promptiga** — fail: `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskService.java`
+1. **Lisa NL→SQL generaator** — uus fail: `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolSearchSqlGenerator.java`
    - Võta system prompti kontekstiks ainult kinnitatud AI-02 vaate nimi/veerud ja AI-03 saadavuse tingimus.
    - Anna user promptis edasi valideeritud kasutaja küsimus.
    - Nõua ühe SQL `SELECT` päringu puhast teksti, ilma Markdowni või proosata.
+   - Mittetoetatava küsimuse korral tagasta marker `CANNOT_ANSWER`; ära anna seda edasi SQL-i käivitajale.
    - Ära lisa prompti toorandmeid, emaili, telefoninumbrit, kasutajate nimesid ega tabeliskeemi, mida otsing ei vaja.
 
-2. **Asenda intent-väljundi DTO või tekstiväljund** — fail: `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolSearchIntent.java`
-   - `ToolSearchIntent` ei vasta enam NL→SQL väljundile. Eemaldamine või asendamine teha kooskõlastatult AI-05 teenuse API-ga.
-   - Ära muuda DTO-d enne, kui `ToolAskService` ja SQL validator on sama lepinguga joondatud.
+2. **Hoia generaator lahus otsingu käitusvoost** — AI-05 muudab hiljem `ToolAskService`-it ning eemaldab `ToolSearchIntent`-i, kui validaator saab SQL-i enne käivitamist kontrollida.
 
 3. **Hoia mudeli seaded keskkonnakonfiguratsioonis** — fail: `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/resources/application.properties`
    - Taaskasuta olemasolevat Google GenAI konfiguratsiooni; siinne task ei vaheta mudelit ega lisa uut teenusepakkujat.
@@ -37,9 +36,8 @@ Tühi või mudeliteenuse veavastus ei tohi SQL-i täitmise etappi jõuda. Erindi
 
 ## Testid
 
-Hilisem kontroll peaks näitama, et prompt kasutab lubatud vaate skeemi, sisaldab kasutaja küsimust, nõuab SQL-väljundit ega sisalda PII-d. Testkaustu ei loetud ega teste käivitatud.
+`ToolSearchSqlGeneratorTest` kontrollib lubatud vaate ja veergude prompti, kasutaja küsimuse edastamist, puhta SQL-i väljastamist, `CANNOT_ANSWER` markerit ning tühja mudelivastuse tagasilükkamist. Test käivitati lokaalse ChatClient mock'iga; päris mudelit ega andmebaasi generaatori test ei vaja.
 
-## Avatud küsimused
+## Teostuse piir
 
-- Mittetoetatava küsimuse marker tuleb AI-08 UI käitumisega kokku leppida.
-- Vaate täpne nimi ja veerud sõltuvad AI-02 taski lõplikust lahendusest.
+SQL-i genereerimine ei tähenda, et väljund oleks usaldatud või käivitamiseks valmis. AI-05 peab markeri eraldama, ülejäänud SQL-i valideerima ning käivitama ainult lubatud tingimustele vastava päringu.

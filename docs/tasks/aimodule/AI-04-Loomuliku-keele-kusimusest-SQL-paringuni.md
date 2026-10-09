@@ -4,7 +4,7 @@
 
 ## Eesmärk
 
-Asendada praegune LLM-i intent/filtrite tuvastamise samm NL→SQL sammuga. LLM saab kasutaja küsimuse ning AI-02 vaate lubatud skeemi kirjelduse ja koostab SQL päringu, mis leiab AI-03 reegli järgi praegu saadaval tööriistad.
+Luua eraldiseisev NL→SQL generaator. LLM saab kasutaja küsimuse ning AI-02 vaate lubatud skeemi kirjelduse ja koostab SQL päringu, mis filtreerib AI-03 reegli järgi praegu saadaval tööriistad. Päringu valideerimine ja käivitamine ning generaatori ühendamine otsingu käitusvooga kuuluvad AI-05-sse, et valideerimata SQL ei jõuaks andmebaasi.
 
 LLM ei saa andmebaasiühendust ega isikuandmeid. Ta väljastab päringuteksti; päringu kontroll ja käivitamine kuuluvad AI-05 taski.
 
@@ -18,11 +18,11 @@ Prompt ei sisalda rakenduse teiste tabelite skeemi, kasutajate nimesid/e-poste e
 
 ## LLM-i väljund
 
-Üks SQL `SELECT` päring AI-02 piiratud vaate vastu, ilma Markdowni või selgitava tekstita. Küsimus, millele lubatud vaade vastata ei saa, suunatakse AI-08 taskis määratavale käsitlusele; see task ei otsusta kasutajale kuvatavat veateadet.
+Üks SQL `SELECT` päring AI-02 piiratud vaate vastu, ilma Markdowni või selgitava tekstita. Küsimusele, millele lubatud vaade vastata ei saa, väljastab mudel täpse markeri `CANNOT_ANSWER`; AI-05 käsitleb markerit eraldi ega käivita seda SQL-ina. API veastaatuse ja kasutajale kuvatava teate määrab AI-08.
 
 ## Vastuvõtu kriteeriumid
 
-- [ ] Praegune `ToolSearchIntent`-i loomise samm asendatakse loomuliku keele küsimusest SQL-i koostamisega.
+- [ ] `ToolSearchSqlGenerator` koostab kasutaja küsimusest SQL-päringu; selle ühendamine API käitusvooga toimub AI-05-s koos validaatori ja käivitajaga.
 - [ ] Mudeli kontekst kirjeldab ainult AI-02 piiratud vaadet ja selle lubatud veerge.
 - [ ] Prompt ütleb, et otsing peab näitama ainult AI-03 järgi praegu saadaval olevaid tööriistu.
 - [ ] LLM-i vastus on päringutekst, mitte loomuliku keele lõppvastus ega Markdown-koodiplokk.
@@ -34,7 +34,6 @@ Prompt ei sisalda rakenduse teiste tabelite skeemi, kasutajate nimesid/e-poste e
 
 Mudeliteenuse tõrge või tühi vastus ei anna andmebaasipäringut. Selle API staatus ja kasutajale kuvatav teade määratakse AI-08 taskis.
 
-## Avatud küsimused
+## Teostuse piir
 
-- Kas mittetoetatava või mitmeti mõistetava küsimuse SQL-i koostamise vastus on eraldi marker (näiteks `CANNOT_ANSWER`) või käsitletakse seda AI-05 valideerimisveana? Valik peab sobituma AI-08 UI käitumisega.
-- AI-02/AI-03 vaate ja saadavuse leping peavad enne prompti fikseerimist olema kinnitatud.
+AI-04 loob ja testib SQL-i generaatori. Olemasolev intent-põhine endpoint jääb käesolevas etapis käigus; AI-05 vahetab selle valideeritud NL→SQL käitusvoo vastu. AI-04 ei käivita mudeli vastust andmebaasis ega tagasta SQL-i kasutajale.
