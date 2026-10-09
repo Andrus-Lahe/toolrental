@@ -37,7 +37,7 @@ Testide lisamine ja kasutamine on kasutaja poolt lubatud.
 
 4. **Kasuta olemasolevat API veakäsitlust** — fail: `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/infrastructure/RestExceptionHandler.java`.
    - Valideerimis- ja JDBC erindid lähevad olemasolevasse üldisesse handlerisse, mis logib serveris ja annab kliendile üldise 500 `ApiError` vastuse.
-   - SQL-i, DB sõnumit ega stack trace'i ei tagastata; AI-08 võib täpsustada kasutajakogemust.
+   - SQL-i, DB sõnumit ega stack trace'i ei tagastata. Mittetoetatud küsimus saab AI-08 järgi eraldi 422 vastuse.
 
 ## Veakäsitlus
 
@@ -51,4 +51,4 @@ Kontrolli tulemus: viis AI mooduli sihttestiklassi läbisid PostgreSQL-ühenduse
 
 ## Teostuse piir
 
-Validaator kasutab väikest tokenizer/parserit, mitte SQL-i märksõnade regex-otsingut ega üldotstarbelist SQL-parseri teeki. See lubab praeguse promptiga vajalikud otsingufiltrid, kuid jätab SQL-i süntaksist tahtlikult suure osa keelatuks. `CANNOT_ANSWER` annab praeguse endpointi senise vastuse kuju järgi 200 ja tühja loendi; selle täpsem UI/API käsitlus jääb AI-08-le. AI-06 asendab praeguse `answer` + `AvailableTool` vastuse JSON lepinguga.
+Validaator kasutab väikest tokenizer/parserit, mitte SQL-i märksõnade regex-otsingut ega üldotstarbelist SQL-parseri teeki. See lubab praeguse promptiga vajalikud otsingufiltrid, kuid jätab SQL-i süntaksist tahtlikult suure osa keelatuks. `CANNOT_ANSWER` tagastatakse HTTP 422 vastusena koodiga `AI_UNSUPPORTED_QUESTION`; valideerimis-, mudeliteenuse ja andmebaasivead tagastatakse üldise HTTP 500 veana. AI-06 asendas `answer` + `AvailableTool` vastuse JSON lepinguga.

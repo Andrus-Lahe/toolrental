@@ -71,10 +71,15 @@ test('rejects malformed result payloads instead of creating unsafe links', async
   assert.equal(context.error, 'Päring ebaõnnestus. Palun proovi uuesti.')
 })
 
-test('keeps the login message for 401 and generic error message for API failures', async () => {
-  for (const [failure, expectedLogin] of [
-    [{ response: { status: 401 } }, true],
-    [{ response: { status: 500 } }, false],
+test('shows dedicated messages for 400 and 422 and a generic message for 500/network errors', async () => {
+  for (const [failure, expectedMessage, expectedLogin] of [
+    [{ response: { status: 401 } }, 'Tööriistade küsimiseks logi esmalt sisse.', true],
+    [{ response: { status: 400, data: { errorCode: 'INCORRECT_INPUT' } } },
+      'Palun sisesta küsimus, mis ei ole tühi ja on kuni 500 märki pikk.', false],
+    [{ response: { status: 422, data: { errorCode: 'AI_UNSUPPORTED_QUESTION' } } },
+      'Saan vastata ainult saadaval tööriistade otsimise küsimustele.', false],
+    [{ response: { status: 500 } }, 'Päring ebaõnnestus. Palun proovi uuesti.', false],
+    [new Error('network failure'), 'Päring ebaõnnestus. Palun proovi uuesti.', false],
   ]) {
     const { context } = await createView(async () => { throw failure })
     context.question = 'Millised tööriistad on saadaval?'
@@ -82,9 +87,7 @@ test('keeps the login message for 401 and generic error message for API failures
     await context.ask()
 
     assert.equal(context.needsLogin, expectedLogin)
-    assert.equal(context.error, expectedLogin
-      ? 'Tööriistade küsimiseks logi esmalt sisse.'
-      : 'Päring ebaõnnestus. Palun proovi uuesti.')
+    assert.equal(context.error, expectedMessage)
     assert.equal(context.hasSearched, false)
     assert.equal(context.busy, false)
   }

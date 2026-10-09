@@ -91,6 +91,12 @@ export default {
           if (error.response?.status === 401) {
             this.needsLogin = true
             this.error = 'Tööriistade küsimiseks logi esmalt sisse.'
+          } else if (error.response?.status === 400
+            && error.response.data?.errorCode === 'INCORRECT_INPUT') {
+            this.error = 'Palun sisesta küsimus, mis ei ole tühi ja on kuni 500 märki pikk.'
+          } else if (error.response?.status === 422
+            && error.response.data?.errorCode === 'AI_UNSUPPORTED_QUESTION') {
+            this.error = 'Saan vastata ainult saadaval tööriistade otsimise küsimustele.'
           } else {
             this.error = 'Päring ebaõnnestus. Palun proovi uuesti.'
           }

@@ -1,5 +1,6 @@
 package ee.toolrental.infrastructure;
 
+import ee.toolrental.aimodule.UnsupportedToolSearchQuestionException;
 import ee.toolrental.infrastructure.error.ApiError;
 import ee.toolrental.infrastructure.exception.DataNotFoundException;
 import ee.toolrental.infrastructure.exception.ForbiddenException;
@@ -25,6 +26,15 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 @Slf4j
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
+
+    @ExceptionHandler
+    public ResponseEntity<ApiError> handleUnsupportedToolSearchQuestion(
+            UnsupportedToolSearchQuestionException exception) {
+        ApiError apiError = new ApiError();
+        apiError.setMessage(exception.getMessage());
+        apiError.setErrorCode("AI_UNSUPPORTED_QUESTION");
+        return new ResponseEntity<>(apiError, HttpStatus.UNPROCESSABLE_ENTITY);
+    }
 
     @ExceptionHandler
     public ResponseEntity<ApiError> handleForbiddenException(ForbiddenException exception) {

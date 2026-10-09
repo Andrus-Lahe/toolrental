@@ -21,7 +21,7 @@ Tööriista nimi navigeerib Vue Routeri marsruudile `/tools/{toolId}`. API-st ei
 - [x] Link kasutab API `toolId` väärtust, mitte loendipositsiooni ega nime.
 - [x] Vaade ei sõltu enam API vabatekstilisest `answer` väljast.
 - [x] Loading- ja päringu tegemise käitumine säilib.
-- [x] Tühitulemuse ning 401/üldise API vea tekstid on eristatud; AI-08 täpsustab mittetoetatava küsimuse veakäsitluse.
+- [x] Tühitulemuse, sisendvea, mittetoetatava küsimuse, 401 ja üldise API vea tekstid on eristatud.
 
 ## Seotud failid
 
@@ -30,4 +30,4 @@ Tööriista nimi navigeerib Vue Routeri marsruudile `/tools/{toolId}`. API-st ei
 
 ## Teostuse piir
 
-AI-01 järgi on puuduva asukoha väärtus `null`; sellisel juhul jätab vaade asukoha ja selle ees oleva eraldaja kuvamata. AI-05 tagastab praegu `CANNOT_ANSWER` korral tühja `tools` massiivi, mistõttu see näib ajutiselt tühitulemusena; AI-08 peab selle eraldi veana esitama.
+AI-01 järgi on puuduva asukoha väärtus `null`; sellisel juhul jätab vaade asukoha ja selle ees oleva eraldaja kuvamata. AI-08 järgi tagastab backend mittetoetatava küsimuse puhul HTTP 422 ja `AI_UNSUPPORTED_QUESTION` koodi; frontend kuvab selle jaoks eraldi teate.

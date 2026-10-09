@@ -14,19 +14,20 @@ Eristada edukat otsingut, millel pole vasteid, ja otsingut, mis ebaõnnestus. Ka
 | Päring õnnestus, aga vasteid pole | `200`, `{"tools":[]}` | Kuvatakse teade, et sobivaid praegu saadaval tööriistu ei leitud; vana tulemuste loend eemaldatakse. |
 | Kasutaja pole sisse loginud | `401` | Näidatakse sisselogimise teadet/linki, nagu praeguses AI otsinguvaates. |
 | Küsimuse kuju ei läbi valideerimist | `400` olemasoleva `ApiError` kujul | Näidatakse kasutajale sobivat sisendi veateadet. |
+| Küsimus ei kuulu tööriistade saadavuse otsingu ulatusse | `422`, `errorCode: AI_UNSUPPORTED_QUESTION`, ohutu kasutajateade `ApiError` kujul | Näidatakse, millistele küsimustele AI saab vastata; seda ei kuvata tühitulemusena. |
 | LLM, SQL valideerimine, andmebaas või võrk ebaõnnestub | Backend järgib kontrollitud üldist vealepingut; tehnilisi detaile ei väljasta | Näidatakse üldist vea- ja uuesti proovimise teadet; tühitulemuse teadet ei kuvata. |
 
-Küsimus, millele piiratud otsinguvaade vastata ei saa, ei tohi paista edukalt tühja tööriistaloendina, kui backend suudab selle eraldi veana tuvastada. Konkreetne status/errorCode peab olema backendis üheselt dokumenteeritud enne UI eristuse lisamist.
+Vigase AI koostatud SQL-i, mudeliteenuse, andmebaasi või võrgu vea vastus on `500`, `errorCode: INTERNAL_SERVER_ERROR` ning üldine ohutu `ApiError.message`. AI koostatud SQL, algne tehniline veasõnum ja stack trace ei kuulu kliendivastusesse.
 
 ## Vastuvõtu kriteeriumid
 
-- [ ] `200` ja `tools: []` kuvab tühitulemuse teate, mitte serverivea teadet.
-- [ ] Eelmise otsingu tulemused eemaldatakse enne uut päringut ega jää vea korral eksitavalt nähtavale.
-- [ ] `401` kuvab sisselogimise juhise/linki.
-- [ ] `400` valideerimisvea sõnum on nähtav ning vastab olemasolevale `ApiError` kujule.
-- [ ] AI/SQL/DB/network tõrge kuvab üldise veateate ega kuva SQL-i, stack trace'i, isikuandmeid ega tehnilist andmebaasisõnumit.
-- [ ] Tehniline või mittetoetatava päringu viga ei kuvata kui „sobivaid tööriistu ei leitud”.
-- [ ] Uuesti proovimine on võimalik uut küsimust esitades; vaate hõivatuse olek taastub ka vea korral.
+- [x] `200` ja `tools: []` kuvab tühitulemuse teate, mitte serverivea teadet.
+- [x] Eelmise otsingu tulemused eemaldatakse enne uut päringut ega jää vea korral eksitavalt nähtavale.
+- [x] `401` kuvab sisselogimise juhise/linki.
+- [x] `400 INCORRECT_INPUT` kuvab kasutajale sobiva sisenditeate; backend vastab olemasoleva `ApiError` kujuga.
+- [x] AI/SQL/DB/network tõrge kuvab üldise veateate ega kuva SQL-i, stack trace'i, isikuandmeid ega tehnilist andmebaasisõnumit.
+- [x] Mittetoetatav küsimus annab `422 AI_UNSUPPORTED_QUESTION`; tehnilist või mittetoetatavat päringut ei kuvata tühitulemusena.
+- [x] Uuesti proovimine on võimalik uut küsimust esitades; vaate hõivatuse olek taastub ka vea korral.
 
 ## Seotud failid
 
@@ -34,7 +35,8 @@ Küsimus, millele piiratud otsinguvaade vastata ei saa, ei tohi paista edukalt t
 - `backend/src/main/java/ee/toolrental/infrastructure/RestExceptionHandler.java` — olemasolev `ApiError` üldvea ja sisendvea kuju.
 - `backend/src/main/java/ee/toolrental/infrastructure/security/SecurityConfig.java` — sisselogimata päringu `401` käitumine.
 
-## Avatud küsimused
+## Otsustatud staatused
 
-- Millise konkreetse HTTP staatuse ja `errorCode` saab LLM-i mittetoetatav või vigaselt koostatud päring? AI-04/AI-05 backendileping peab selle enne UI erikäitumist määrama.
-- Kas asukohata tööriist kuvatakse `location: null` väärtusega või jäetakse välja (AI-01 avatud otsus)?
+- Mittetoetatav kasutajaküsimus: `422 AI_UNSUPPORTED_QUESTION` koos selgitava `ApiError`-iga.
+- Vigane LLM-i SQL, LLM-i/DB/võrgu tõrge: `500 INTERNAL_SERVER_ERROR` koos üldise `ApiError`-iga.
+- Asukohata tööriist jääb tulemusse `location: null` väärtusega vastavalt AI-01 lepingule.

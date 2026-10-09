@@ -46,4 +46,4 @@ Kontrolli tulemus: kõik 4 AI otsingu testi läbisid; `npm run build` läbis Vit
 
 ## Teostuse piir
 
-Kui `location` on `null`, jäetakse asukoha osa kuvamata. AI-05 `CANNOT_ANSWER` vastab praegu tühja tulemusega; AI-08 peab lisama sellele eristatava backend-vea, et kasutajale ei näidataks eksitavat tühitulemuse teadet.
+Kui `location` on `null`, jäetakse asukoha osa kuvamata. AI-08 käsitleb AI-05 `CANNOT_ANSWER` markerit HTTP 422 vastusena koodiga `AI_UNSUPPORTED_QUESTION`, mille frontend kuvab eraldi teatega.

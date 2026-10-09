@@ -42,9 +42,8 @@ class ToolAskServiceTest {
         ToolSearchQueryRepository repository = mock(ToolSearchQueryRepository.class);
         when(generator.generateSql(QUESTION)).thenReturn(ToolSearchSqlGenerator.CANNOT_ANSWER);
 
-        ToolAskResponse response = new ToolAskService(generator, new ToolSearchSqlValidator(), repository).ask(QUESTION);
-
-        assertThat(response.tools()).isEmpty();
+        assertThatThrownBy(() -> new ToolAskService(generator, new ToolSearchSqlValidator(), repository).ask(QUESTION))
+                .isInstanceOf(UnsupportedToolSearchQuestionException.class);
         verify(repository, never()).search(any());
     }
 

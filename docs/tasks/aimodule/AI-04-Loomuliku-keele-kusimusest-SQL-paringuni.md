@@ -18,7 +18,7 @@ Prompt ei sisalda rakenduse teiste tabelite skeemi, kasutajate nimesid/e-poste e
 
 ## LLM-i väljund
 
-Üks SQL `SELECT` päring AI-02 piiratud vaate vastu, ilma Markdowni või selgitava tekstita. Küsimusele, millele lubatud vaade vastata ei saa, väljastab mudel täpse markeri `CANNOT_ANSWER`; AI-05 käsitleb markerit eraldi ega käivita seda SQL-ina. API veastaatuse ja kasutajale kuvatava teate määrab AI-08.
+Üks SQL `SELECT` päring AI-02 piiratud vaate vastu, ilma Markdowni või selgitava tekstita. Küsimusele, millele lubatud vaade vastata ei saa, väljastab mudel täpse markeri `CANNOT_ANSWER`; AI-05 käsitleb markerit eraldi ega käivita seda SQL-ina. AI-08 lepingu järgi saab selline küsimus HTTP 422 vastuse ja kasutajale kuvatakse toetatud otsingute kohta teade.
 
 ## Vastuvõtu kriteeriumid
 
@@ -32,7 +32,7 @@ Prompt ei sisalda rakenduse teiste tabelite skeemi, kasutajate nimesid/e-poste e
 
 ## Veaolukorrad
 
-Mudeliteenuse tõrge või tühi vastus ei anna andmebaasipäringut. Selle API staatus ja kasutajale kuvatav teade määratakse AI-08 taskis.
+Mudeliväljundi või andmebaasi tõrge ei anna kliendile tehnilisi detaile; AI-08 lepingu järgi käsitletakse neid üldise HTTP 500 veana. Mittetoetatud küsimuse `CANNOT_ANSWER` marker saab eraldi HTTP 422 vastuse.
 
 ## Teostuse piir
 

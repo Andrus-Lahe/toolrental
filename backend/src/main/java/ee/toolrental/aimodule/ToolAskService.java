@@ -22,7 +22,7 @@ public class ToolAskService {
     public ToolAskResponse ask(String question) {
         String generatedSql = sqlGenerator.generateSql(question);
         if (ToolSearchSqlGenerator.CANNOT_ANSWER.equals(generatedSql)) {
-            return new ToolAskResponse(List.of());
+            throw new UnsupportedToolSearchQuestionException();
         }
 
         ToolSearchSqlValidator.ValidatedSql validatedSql = sqlValidator.validate(generatedSql);

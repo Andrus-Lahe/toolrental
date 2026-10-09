@@ -24,17 +24,17 @@ Teostus kasutab sellest lepingust kitsamat SQL-i alamhulka: täpselt nõutud nel
 - [x] Päring, mis pole `SELECT`, viitab lubamata tabelile või ei vasta piiratud vaate lepingule, lükatakse enne käivitamist tagasi.
 - [x] SQL-i käivitab backend Spring JDBC kaudu; LLM-il pole andmebaasi ühenduse parameetreid.
 - [x] Tulemusi kasutatakse ainult tööriistaloendi koostamiseks; piiratud vaateväliseid või isikuandmeid vastusele ei lisata.
-- [x] Valideerimis- ja andmebaasivea korral annab olemasolev üldine handler `ApiError` kujul üldise 500 vastuse; SQL-i ega tehnilisi detaile kliendile ei tagastata. AI-08 võib määrata täpsema kasutajakogemuse.
+- [x] Valideerimis- ja andmebaasivea korral annab olemasolev üldine handler `ApiError` kujul üldise 500 vastuse; SQL-i ega tehnilisi detaile kliendile ei tagastata.
 
 ## Veaolukorrad
 
 | Olukord | Käitumine |
 |---|---|
 | Mudeli väljund ei ole lubatud päring | Validaator viskab rakenduse erindi enne repository väljakutset; üldine API handler tagastab üldise 500 `ApiError` vastuse. |
-| Mudeli väljund on `CANNOT_ANSWER` | Teenus ei valideeri ega käivita markerit; tagastab olemasoleva API kuju järgi abiteksti ja tühja tööriistaloendi. AI-08 võib selle vastusekuju täpsustada. |
+| Mudeli väljund on `CANNOT_ANSWER` | Teenus ei valideeri ega käivita markerit; viskab mittetoetatud küsimuse erindi, mille AI-08 handler teisendab HTTP 422 vastuseks koodiga `AI_UNSUPPORTED_QUESTION`. |
 | Andmebaasipäring ebaõnnestub | Otsing lõpeb serveriveaga; SQL-i ega stack trace'i vastuses ei avaldata. |
 | Päring annab null rida | Tagastatakse tühi tööriistaloend, mitte serveriviga. |
 
 ## Teostuse piir
 
-SQL-i parserit ei lisatud. Validaator aktsepteerib ainult promptiga kooskõlas olevat kitsast päringukuju ning väljastab repositoryle eraldi `ValidatedSql` väärtuse. `CANNOT_ANSWER` käsitletakse enne valideerimist. Praegune `ToolAskResponse` jääb AI-06-ni kehtima; AI-08 otsustab hiljem, kas mittetoetatav päring vajab teistsugust API/UI vastust.
+SQL-i parserit ei lisatud. Validaator aktsepteerib ainult promptiga kooskõlas olevat kitsast päringukuju ning väljastab repositoryle eraldi `ValidatedSql` väärtuse. `CANNOT_ANSWER` käsitletakse enne valideerimist ja see tagastatakse AI-08 lepingu järgi HTTP 422 vastusena koodiga `AI_UNSUPPORTED_QUESTION`. AI-06 viis edukad vastused JSON lepingule.

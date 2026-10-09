@@ -2,6 +2,7 @@ package ee.toolrental.aimodule;
 
 import ee.toolrental.infrastructure.security.AppUserOidcService;
 import ee.toolrental.infrastructure.security.AppUserPrincipal;
+import ee.toolrental.infrastructure.RestExceptionHandler;
 import ee.toolrental.infrastructure.security.SecurityConfig;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,7 @@ import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
 import org.hamcrest.Matchers;
 
 import java.util.List;
@@ -26,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @WebMvcTest(ToolAskController.class)
-@Import(SecurityConfig.class)
+@Import({SecurityConfig.class, RestExceptionHandler.class})
 @TestPropertySource(properties = {
         "spring.security.oauth2.client.registration.google.client-id=test-client-id",
         "spring.security.oauth2.client.registration.google.client-secret=test-client-secret",
@@ -103,5 +105,58 @@ class ToolAskControllerTest {
                 .andExpect(jsonPath("$.answer").doesNotExist())
                 .andExpect(jsonPath("$.tools").isArray())
                 .andExpect(jsonPath("$.tools").isEmpty());
+    }
+
+    @Test
+    void invalidQuestionReturns400ApiErrorWithoutCallingService() throws Exception {
+        mockMvc.perform(post("/api/ai/ask")
+                        .with(loggedInUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"question\":\" \"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.errorCode").value("INCORRECT_INPUT"))
+                .andExpect(jsonPath("$.message").exists());
+        verifyNoInteractions(toolAskService);
+    }
+
+    @Test
+    void unsupportedQuestionReturns422WithDedicatedSafeApiError() throws Exception {
+        String question = "Kui palju maksab laenutus?";
+        when(toolAskService.ask(question)).thenThrow(new UnsupportedToolSearchQuestionException());
+
+        mockMvc.perform(post("/api/ai/ask")
+                        .with(loggedInUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"question\":\"Kui palju maksab laenutus?\"}"))
+                .andExpect(status().isUnprocessableEntity())
+                .andExpect(jsonPath("$.errorCode").value("AI_UNSUPPORTED_QUESTION"))
+                .andExpect(jsonPath("$.message").value(
+                        "Saan vastata ainult saadaval tööriistade otsimise küsimustele."));
+    }
+
+    @Test
+    void invalidGeneratedSqlReturnsOnlyGeneric500ApiError() throws Exception {
+        String question = "Millised tööriistad on saadaval?";
+        when(toolAskService.ask(question)).thenThrow(new InvalidToolSearchSqlException());
+
+        mockMvc.perform(post("/api/ai/ask")
+                        .with(loggedInUser())
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"question\":\"Millised tööriistad on saadaval?\"}"))
+                .andExpect(status().isInternalServerError())
+                .andExpect(jsonPath("$.errorCode").value("INTERNAL_SERVER_ERROR"))
+                .andExpect(jsonPath("$.message").value(
+                        "Toiming ebaõnnestus. Palun proovi hiljem uuesti."))
+                .andExpect(jsonPath("$.message").value(Matchers.not(Matchers.containsString("SQL"))));
+    }
+
+    private static RequestPostProcessor loggedInUser() {
+        OidcIdToken token = OidcIdToken.withTokenValue("test-token")
+                .subject("test-user")
+                .build();
+        var authorities = List.of(new SimpleGrantedAuthority("ROLE_customer"));
+        var principal = new AppUserPrincipal(1, authorities, token, null);
+        var authToken = new OAuth2AuthenticationToken(principal, authorities, "google");
+        return authentication(authToken);
     }
 }
