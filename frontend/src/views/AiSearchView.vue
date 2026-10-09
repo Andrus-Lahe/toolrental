@@ -22,6 +22,7 @@
     <p v-if="needsLogin"><a href="/oauth2/authorization/google">Logi Google’iga sisse</a></p>
 
     <section v-if="hasSearched" aria-live="polite">
+      <p>{{ answer }}</p>
       <ul v-if="tools.length" class="list-group">
         <li v-for="tool in tools" :key="tool.toolId" class="list-group-item">
           <RouterLink :to="{ name: 'toolDetailRoute', params: { toolId: tool.toolId } }">
@@ -30,7 +31,6 @@
           · {{ tool.category }}<span v-if="tool.location"> · {{ tool.location }}</span>
         </li>
       </ul>
-      <p v-else role="status">Sellele otsingule vastavaid praegu saadaval tööriistu ei leitud.</p>
     </section>
   </main>
 </template>
@@ -40,7 +40,9 @@ import axios from 'axios'
 import { RouterLink } from 'vue-router'
 
 function isValidToolSearchResponse(data) {
-  if (!data || !Array.isArray(data.tools)) return false
+  if (!data || typeof data.answer !== 'string' || !data.answer.trim() || !Array.isArray(data.tools)) {
+    return false
+  }
 
   const ids = new Set()
   return data.tools.every((tool) => {
@@ -61,6 +63,7 @@ export default {
   data() {
     return {
       question: '',
+      answer: '',
       tools: [],
       hasSearched: false,
       busy: false,
@@ -73,6 +76,7 @@ export default {
       if (!this.question || this.busy) return
       this.busy = true
       this.error = ''
+      this.answer = ''
       this.tools = []
       this.hasSearched = false
       this.needsLogin = false
@@ -82,10 +86,12 @@ export default {
           if (!isValidToolSearchResponse(response.data)) {
             throw new Error('Invalid AI tool search response')
           }
+          this.answer = response.data.answer
           this.tools = response.data.tools
           this.hasSearched = true
         })
         .catch((error) => {
+          this.answer = ''
           this.tools = []
           this.hasSearched = false
           if (error.response?.status === 401) {
