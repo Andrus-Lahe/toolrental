@@ -21,7 +21,6 @@
         <div class="navbar-nav gap-lg-2 me-auto site-nav-links">
           <RouterLink class="nav-link site-nav-link" active-class="active" to="/">Avaleht</RouterLink>
           <RouterLink class="nav-link site-nav-link" active-class="active" to="/tools">Otsi tööriistu</RouterLink>
-          <RouterLink class="nav-link site-nav-link" active-class="active" to="/ai-search">AI otsing</RouterLink>
           <template v-if="isLoggedIn">
             <RouterLink class="nav-link site-nav-link" active-class="active" to="/my-tools">
               Minu tööriistad

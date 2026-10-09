@@ -13,6 +13,7 @@
     </div>
 
     <RouterView />
+    <ChatbotWidget />
     <GoogleLoginModal :is-open="isLoginModalOpen" @event-modal-closed="handleLoginModalClosed" />
   </div>
 </template>
@@ -20,13 +21,14 @@
 <script>
 import { RouterView } from 'vue-router'
 import AppHeader from '@/navigation/AppHeader.vue'
+import ChatbotWidget from '@/components/common/ChatbotWidget.vue'
 import GoogleLoginModal from '@/components/modals/GoogleLoginModal.vue'
 import { loadSession, session } from '@/auth/session.js'
 import { clearLoginReturnPath, getLoginReturnPath, rememberLoginReturnPath } from '@/auth/loginReturnPath.js'
 
 export default {
   name: 'App',
-  components: { AppHeader, RouterView, GoogleLoginModal },
+  components: { AppHeader, ChatbotWidget, RouterView, GoogleLoginModal },
   provide() {
     return {
       openLoginModal: (returnPath) => {
