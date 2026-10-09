@@ -1,3 +1,6 @@
+-- 1_reset_database.sql loob selle skeemi; hoia tabelid ja vaade rakenduse skeemis.
+SET search_path TO tool_rental;
+
 CREATE TABLE role (
     id serial PRIMARY KEY,
     role_name varchar(20) NOT NULL UNIQUE
@@ -91,3 +94,32 @@ CREATE TABLE booking (
     updated_at timestamp NOT NULL DEFAULT current_timestamp,
     CONSTRAINT booking_period_check CHECK (start_date <= end_date)
 );
+
+-- AI otsingule avaldatakse ainult tööriista leidmiseks vajalikud väljad.
+-- Profiili ja asukoha tabeleid kasutatakse üksnes ID-seosteks; isikuandmeid,
+-- täpset aadressi ega koordinaate vaate väljundisse ei lisata.
+CREATE OR REPLACE VIEW tool_rental.ai_tool_search AS
+SELECT
+    t.id AS tool_id,
+    t.name AS tool_name,
+    c.category_name AS category_name,
+    d.district_name AS location_name,
+    (
+        t.status = 'A'
+        AND NOT EXISTS (
+            SELECT 1
+            FROM tool_rental.booking b
+            WHERE b.tool_id = t.id
+              AND b.status = 'C'
+              AND (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Tallinn')::date
+                  BETWEEN b.start_date AND b.end_date
+        )
+    ) AS is_available_now
+FROM tool_rental.tool t
+JOIN tool_rental.category c ON c.id = t.category_id
+LEFT JOIN tool_rental.profile p ON p.user_id = t.owner_id
+LEFT JOIN tool_rental.location l ON l.id = p.location_id
+LEFT JOIN tool_rental.district d ON d.id = l.district_id;
+
+COMMENT ON VIEW tool_rental.ai_tool_search IS
+    'AI tööriistaotsingu andmed; ei väljasta isikuandmeid, täpset aadressi ega koordinaate.';
