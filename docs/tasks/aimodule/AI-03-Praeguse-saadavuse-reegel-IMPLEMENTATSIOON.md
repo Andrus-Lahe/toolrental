@@ -44,9 +44,10 @@ Lisatud `AvailableToolRepositoryTest` katab tänase päeva `C` broneeringu, `P`/
 
 Kontrolli tulemus:
 
-- `ToolAskServiceTest` — läbitud.
-- `ToolAskControllerTest` — läbitud.
-- `AvailableToolRepositoryTest` — kuus testi ei jõudnud andmebaasiühenduseni; PostgreSQL ühendus `localhost:5432` keeldus ühendusest. Testid kompileerusid, kuid päringu äriloogika vajab PostgreSQL-iga uuesti käivitamist.
+- `AvailableToolRepositoryTest` — 6 testi läbitud päris PostgreSQL ühendusega skeemis `tool_rental`.
+- `ToolAskControllerTest` — 2 testi läbitud.
+- `ToolAskServiceTest` — 1 test läbitud.
+- Kokku 9 sihttesti läbitud. Esimene katse `localhost:5432` kaudu ei saanud ühendust; korduskatsel kasutati WSL-i kaudu Windowsi PostgreSQL hostiaadressi.
 
 ## Teostuse piir
 
