@@ -16,7 +16,7 @@ Testide lisamine ja kasutamine on kasutaja poolt lubatud.
 ## AI-05 tulemus
 
 - Validaator lubab ainult generaatori praeguse piiratud päringukuju.
-- AI-06 asendab ajutise `AvailableTool` vastuse kaardistuse AI-01 JSON lepingule vastava DTO-ga.
+- AI-06 viis `AvailableTool` kaardistuse AI-01 JSON lepingule vastavaks DTO-ks.
 - Vana intent-põhine repository ja DTO eemaldati; paralleelset AI otsinguteed ei ole.
 
 ## Sammud

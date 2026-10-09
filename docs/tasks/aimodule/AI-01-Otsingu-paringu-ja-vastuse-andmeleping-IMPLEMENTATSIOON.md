@@ -6,8 +6,8 @@
 
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskRequest.java` — request record väljal `question`, valideerib `@NotBlank` ja maksimaalselt 500 märki.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskController.java` — olemasolev `POST /api/ai/ask`, kasutab `@Valid` request body't ning kutsub `ToolAskService`-it.
-- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskResponse.java` — praegune vastus sisaldab `answer` stringi ning `AvailableTool` kirjete loendit.
-- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/AvailableTool.java` — olemasolevad väljad on `toolId`, `name`, `category`, `city` ja `district`; lepingus soovitud ühe `location` välja asemel on linn ja linnaosa eraldi.
+- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskResponse.java` — AI-06 muutis vastuse kujule, kus ainsaks juurväljaks on `tools` massiiv.
+- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/AvailableTool.java` — AI-06 joondas kirje väljad lepinguga: `toolId`, `name`, `category`, `location`.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskService.java` — alates AI-05-st juhib teenus SQL-i genereerimist, kontrolli ning käivitamist. Vastuse DTO kuju uuendamine AI-01 lepingule kuulub AI-06-sse.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/frontend/src/views/AiSearchView.vue` — saadab sama küsimusekuju, kuid loeb vastusest `answer` ja `tools`; tööriista nimi pole praegu link.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/frontend/src/router/index.js` — detailmarsruut `/tools/:toolId` on olemas.
@@ -17,7 +17,7 @@
 
 Taski AI-01 tulemus on API lepingu fikseerimine. NL→SQL teostus, turvaline andmevaade ja saadavuse filter kuuluvad järgmistesse taskidesse. Frontendi lingi teostus kuulub AI-07 taski.
 
-**Valmimise piir:** AI-01 lõpetatakse siis, kui API lepingu dokument on fikseeritud ja kooskõlas olemasoleva endpointi ning projektis kokku lepitud otsingutulemusega. Tootmiskoodi muutmine ei kuulu sellesse taski. Backend vastuse DTO/controller muudatused kuuluvad AI-06 ning lingitud tulemuste kuvamine AI-07 alla.
+**Valmimise piir:** AI-01 ise fikseeris lepingu dokumentatsioonis. Selle käitusaja DTO teostus kuulub AI-06-sse ning lingitud tulemuste kuvamine AI-07 alla. AI-06 DTO muudatus on nüüd teostatud.
 
 ## Puuduv/muudetav
 
