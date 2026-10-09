@@ -59,18 +59,18 @@ See API leping laiendab AI-01 ja AI-06 varasemat ainult `tools` sisaldanud vastu
 
 ## Vastuvõtu kriteeriumid
 
-- [ ] Backend teeb pärast AI-09 kokkuvõtte valmimist eraldi LLM kutse lühikese eestikeelse vastuse koostamiseks.
-- [ ] Vastuse prompt saab algse küsimuse ning ainult AI-09 ohutud filtrid ja täpsed koguarvu/saadaval arvu faktid.
-- [ ] LLM-i juhised keelavad arvude muutmise, väljamõeldud faktid, SQL-i, JSON-i ja tööriistade loendi väljastamise.
-- [ ] Kasutaja küsimuses sisalduvad prompti muutmise või piirangute eiramise juhised ei laienda vastuse generaatori ülesannet ega talle antud fakte.
-- [ ] Vastuse LLM ei saa andmebaasiga ühendust ega kasutaja isikuandmeid.
-- [ ] Edukas vastus on JSON kujul `{ "answer": "...", "tools": [...] }`.
-- [ ] `tools` loend ja selle `toolId` väärtused pärinevad backendis valideeritud andmebaasitulemustest; LLM ei saa neid luua ega muuta.
-- [ ] Null koguarvu, null saadaval arvu ja positiivse saadaval arvu olukorrad saavad faktidega kooskõlas oleva vastuseteksti.
-- [ ] AI-09 kokkuvõttes puuduva asukoha korral ei väida vastus kindlat linnaosa.
-- [ ] Tühi või vigane vastuse LLM väljund ning mudeliteenuse tõrge liiguvad AI-08 üldisesse HTTP 500 veakäsitlusse; toorväljundit ega tehnilisi detaile kliendile ei tagastata.
-- [ ] Mittetoetatav otsing säilitab AI-08 `422 AI_UNSUPPORTED_QUESTION` käitumise ega tee vastuse LLM kutset.
-- [ ] AI-01 ja AI-06 dokumenteeritud edukas vastusekuju uuendatakse uuele lepingule.
+- [x] Backend teeb pärast AI-09 kokkuvõtte valmimist eraldi LLM kutse lühikese eestikeelse vastuse koostamiseks.
+- [x] Vastuse prompt saab algse küsimuse ning ainult AI-09 ohutud filtrid ja täpsed koguarvu/saadaval arvu faktid.
+- [x] LLM-i juhised keelavad arvude muutmise, väljamõeldud faktid, SQL-i, JSON-i ja tööriistade loendi väljastamise.
+- [x] Kasutaja küsimuses sisalduvad prompti muutmise või piirangute eiramise juhised ei laienda vastuse generaatori ülesannet ega talle antud fakte.
+- [x] Vastuse LLM ei saa andmebaasiga ühendust ega kasutaja isikuandmeid.
+- [x] Edukas vastus on JSON kujul `{ "answer": "...", "tools": [...] }`.
+- [x] `tools` loend ja selle `toolId` väärtused pärinevad backendis valideeritud andmebaasitulemustest; LLM ei saa neid luua ega muuta.
+- [x] Null koguarvu, null saadaval arvu ja positiivse saadaval arvu olukorrad saavad faktidega kooskõlas oleva vastuseteksti.
+- [x] AI-09 kokkuvõttes puuduva asukoha korral ei väida vastus kindlat linnaosa.
+- [x] Tühi või vigane vastuse LLM väljund ning mudeliteenuse tõrge liiguvad AI-08 üldisesse HTTP 500 veakäsitlusse; toorväljundit ega tehnilisi detaile kliendile ei tagastata.
+- [x] Mittetoetatav otsing säilitab AI-08 `422 AI_UNSUPPORTED_QUESTION` käitumise ega tee vastuse LLM kutset.
+- [x] AI-01 ja AI-06 dokumenteeritud edukas vastusekuju uuendatakse uuele lepingule.
 
 ## Veaolukorrad
 

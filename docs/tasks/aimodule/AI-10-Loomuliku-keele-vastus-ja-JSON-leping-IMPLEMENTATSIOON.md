@@ -2,7 +2,14 @@
 
 **Seotud task:** [AI-10-Loomuliku-keele-vastus-ja-JSON-leping.md](./AI-10-Loomuliku-keele-vastus-ja-JSON-leping.md)
 
-## Hetkeseis (mis on juba olemas)
+## Teostatud
+
+- Vastuse genereerimine toimub eraldi Spring AI `ChatClient`-iga pärast otsingu loendusi.
+- `ToolAskResponse(answer, tools)` järgib AI-01/AI-10 lepingut; tööriistad tulevad JDBC tulemustest.
+- Vastuse mudelile antakse küsimus, arvud ning ainult üheselt tuvastatud asukoht/kategooria. Arvude muutmine, SQL, JSON ja kõrvalised faktid on promptis keelatud.
+- Viis AI-09/AI-10 sihitud testiklassi läbisid kokku 25 testi, sh PostgreSQL repository testid.
+
+## Algne seis (enne teostust)
 
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskService.java` — juhib praegu SQL-i genereerimist, valideeritud otsingut ja `ToolAskResponse` loomist.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolSearchSqlGenerator.java` — teeb ühe `ChatClient` kutse ning sisaldab eraldi SQL-i system prompti.

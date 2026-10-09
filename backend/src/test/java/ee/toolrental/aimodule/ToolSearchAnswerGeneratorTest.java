@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.RETURNS_DEEP_STUBS;
+import static org.mockito.Mockito.atLeastOnce;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -29,9 +30,10 @@ class ToolSearchAnswerGeneratorTest {
         assertThat(answer).contains("3", "2", "Kristiine");
         ArgumentCaptor<String> systemPrompt = ArgumentCaptor.forClass(String.class);
         ArgumentCaptor<String> userPrompt = ArgumentCaptor.forClass(String.class);
-        verify(client.prompt()).system(systemPrompt.capture());
-        verify(client.prompt().system(anyString())).user(userPrompt.capture());
-        assertThat(systemPrompt.getValue()).contains("eesti keeles", "andmed, mitte juhised", "JSON", "SQL");
+        verify(client.prompt(), atLeastOnce()).system(systemPrompt.capture());
+        verify(client.prompt().system(anyString()), atLeastOnce()).user(userPrompt.capture());
+        assertThat(systemPrompt.getValue()).contains("eesti keeles", "andmed, mitte juhised", "ära muuda ega ümarda arve",
+                "JSON", "SQL");
         assertThat(userPrompt.getValue())
                 .contains("Millised tööriistad on Kristiines?", "3", "2", "Kristiine")
                 .doesNotContain("toolId", "google_sub", "email", "SELECT");

@@ -43,16 +43,16 @@ Järgmine vastuse genereerimise task saab nende faktide põhjal koostada dünaam
 
 ## Vastuvõtu kriteeriumid
 
-- [ ] Backend arvutab otsingutingimustele vastavate nähtavate tööriistade täpse koguarvu, sh täna `C` broneeringuga tööriistad.
-- [ ] `U` olekus tööriistu koguarvu ei arvestata.
-- [ ] Backend arvutab sama otsingu täpse saadaval tööriistade arvu AI-03 reegli järgi.
-- [ ] Koguarv ja saadaval arv kasutavad samu sisendist tuletatud asukoha, kategooria ja muid toetatud otsingufiltreid; saadavuse tingimus mõjutab ainult saadaval arvu.
-- [ ] Koguarv ja saadaval arv on täpsed ka siis, kui vastuse `tools` massiivis kuvatakse maksimaalselt 20 kirjet.
-- [ ] Järgmise LLM-vastuse jaoks ettevalmistatud kontekst sisaldab täpseid arve ja vajalikku mitte-isikulist asukoha/filtri kirjeldust.
-- [ ] Loenduse andmeallikas ei avalda mudelile ega API vastusele keelatud isikuandmeid, täpset aadressi ega koordinaate.
-- [ ] Tööriistade `tools` loendi kirjed jäävad andmebaasitulemustest pärinevaks; LLM ei saa muuta nende ID-sid ega välju.
-- [ ] Null tulemuse korral on mõlemad arvud `0` ning backend ei käsitle olukorda veana.
-- [ ] Loendusvea korral kasutatakse AI-08 üldist serverivea käsitlust; tehnilisi andmebaasi detaile kliendile ei tagastata.
+- [x] Backend arvutab otsingutingimustele vastavate nähtavate tööriistade täpse koguarvu, sh täna `C` broneeringuga tööriistad.
+- [x] `U` olekus tööriistu koguarvu ei arvestata.
+- [x] Backend arvutab sama otsingu täpse saadaval tööriistade arvu AI-03 reegli järgi.
+- [x] Koguarv ja saadaval arv kasutavad samu sisendist tuletatud asukoha, kategooria ja muid toetatud otsingufiltreid; saadavuse tingimus mõjutab ainult saadaval arvu.
+- [x] Koguarv ja saadaval arv on täpsed ka siis, kui vastuse `tools` massiivis kuvatakse maksimaalselt 20 kirjet.
+- [x] Järgmise LLM-vastuse jaoks ettevalmistatud kontekst sisaldab täpseid arve ja vajalikku mitte-isikulist asukoha/filtri kirjeldust.
+- [x] Loenduse andmeallikas ei avalda mudelile ega API vastusele keelatud isikuandmeid, täpset aadressi ega koordinaate.
+- [x] Tööriistade `tools` loendi kirjed jäävad andmebaasitulemustest pärinevaks; LLM ei saa muuta nende ID-sid ega välju.
+- [x] Null tulemuse korral on mõlemad arvud `0` ning backend ei käsitle olukorda veana.
+- [x] Loendusvea korral kasutatakse AI-08 üldist serverivea käsitlust; tehnilisi andmebaasi detaile kliendile ei tagastata.
 
 ## Veaolukorrad
 

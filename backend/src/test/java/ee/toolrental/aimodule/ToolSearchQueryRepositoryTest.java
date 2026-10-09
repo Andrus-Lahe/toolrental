@@ -116,6 +116,16 @@ class ToolSearchQueryRepositoryTest {
     }
 
     @Test
+    void noMatchesReturnZeroCountsAndEmptyToolList() {
+        ToolSearchQueryRepository.SearchResults results = repository.searchWithCounts(
+                validator.validate(searchSql("tool_id = 0")));
+
+        assertThat(results.totalToolCount()).isZero();
+        assertThat(results.availableToolCount()).isZero();
+        assertThat(results.tools()).isEmpty();
+    }
+
+    @Test
     void resultLimitDoesNotTruncateEitherCount() {
         for (int index = 0; index < 20; index++) {
             insertId("INSERT INTO tool_rental.tool (owner_id, category_id, name, status) " +

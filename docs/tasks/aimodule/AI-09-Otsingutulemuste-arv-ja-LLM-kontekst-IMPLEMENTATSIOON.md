@@ -7,7 +7,7 @@
 - `ValidatedSql` kannab parseri eraldatud filtrirühmi ning `ToolSearchQueryRepository.searchWithCounts` koostab neist nimetatud parameetritega loendused.
 - AI vaate `is_visible` loendab ainult `A` olekus tööriistu; `is_available_now` järgib AI-03 reeglit. Tulemuste loend jääb valideeritud SQL-i `LIMIT 1..20` piiresse.
 - `ToolSearchSummary` koondab tööriistad, täpsed arvud ja ainult üheselt tuvastatud asukoha/kategooria.
-- Teste ei käivitatud. `backend` mooduli `compileJava` läbis.
+- Viis AI-09/AI-10 testiklassi läbisid kokku 25 testi PostgreSQL ühendusega; `compileJava` ja `compileTestJava` läbisid.
 
 ## Algne hetkeseis
 

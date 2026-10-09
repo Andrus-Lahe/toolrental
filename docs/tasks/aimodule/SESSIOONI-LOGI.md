@@ -84,7 +84,7 @@ Iga taski implementatsiooniplaan asub samas kaustas nimega, mille lõpus on `-IM
 
 ## Soovitatud jätk
 
-AI-09/AI-10 olemasolevad testid on viidud uue käitusvoo ja vastuse lepingu järgi kooskõlla: teenuse, kontrolleri, validaatori, vastusegeneraatori ja PostgreSQL repository kontrollid on täiendatud. Repository testid katavad `C`, `P`/`R`, `U`, kirjeldus-OR/asukoha filtrid ja 20 tulemuse piiri. Teste ei ole käivitatud; käivitamine jääb eraldi verifitseerimissammuks. AI-11 frontend ja AI-12 otsing on varasemalt teostatud.
+AI-09/AI-10 testid on uue käitusvoo ja vastuse lepingu järgi uuendatud. Viis sihitud testiklassi läbisid kokku 25 testi, sh PostgreSQL repository kontrollid `C`, `P`/`R`, `U`, kirjeldus-OR/asukoha filtrite, nulltulemuse ja 20 tulemuse piiri kohta. AI-11 frontend ja AI-12 otsing on varasemalt teostatud.
 
 ## Tööpuu märkus
 

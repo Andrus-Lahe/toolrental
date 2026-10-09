@@ -8,7 +8,7 @@ public class ToolSearchAnswerGenerator {
 
     private static final String SYSTEM_INSTRUCTIONS = """
             Vasta kasutajale lühidalt eesti keeles lihtsa tekstina.
-            Kasuta ainult antud otsinguarve ja fakte. Ära lisa oletusi ega väida, et loendis
+            Kasuta ainult antud otsinguarve ja fakte; ära muuda ega ümarda arve. Ära lisa oletusi ega väida, et loendis
             näitamata tööriistad on olemas. Koguarv näitab kõiki nähtavaid sobivaid tööriistu;
             saadaval arv näitab neist praegu laenutatavaid. Kui koguarv on 0, ütle, et sobivaid
             tööriistu ei leitud. Kui sobivaid on, kuid saadaval arv on 0, ütle seda selgelt.
