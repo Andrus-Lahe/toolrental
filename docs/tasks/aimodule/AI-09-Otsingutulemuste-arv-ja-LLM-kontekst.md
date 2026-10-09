@@ -13,7 +13,7 @@ See task ei lisa veel LLM-i loomuliku keele vastuse kutset ega muuda avalikku AP
 - **Koguarv (`totalToolCount`)** hõlmab kõiki kasutajatele nähtavaid ehk `tool.status = 'A'` tööriistu, mis vastavad kasutaja otsingu tingimustele. Koguarvu kuuluvad ka tööriistad, millel on täna kattuv `C` olekus broneering.
 - **Saadaval arv (`availableToolCount`)** hõlmab koguarvu alamhulka, mis vastab AI-03 saadavuse reeglile: `A` olekus tööriist, millel pole tänase Tallinna kuupäevaga kattuvat `C` broneeringut. `P` ja `R` olekus broneering saadavust ei blokeeri.
 - `U` olekus tööriistu ei loeta koguarvu ega saadaval tööriistade hulka.
-- Mõlemad arvud kasutavad samu kasutaja otsingust tuletatud tingimusi, näiteks asukohta ja kategooriat. Saadavuse tingimus rakendub ainult saadaval arvule.
+- Mõlemad arvud kasutavad samu kasutaja otsingust tuletatud tingimusi, sealhulgas nime/kirjelduse semantilisi OR-rühmi ning asukohta ja kategooriat. Saadavuse tingimus rakendub ainult saadaval arvule.
 - Loendused on täpsed ega sõltu kuvatava `tools` massiivi 20 tulemuse piirangust.
 - Kuupäevareegel jääb AI-03 järgi `Europe/Tallinn` ajavööndisse.
 

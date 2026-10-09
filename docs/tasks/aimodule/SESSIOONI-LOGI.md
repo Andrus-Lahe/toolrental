@@ -67,7 +67,7 @@ Kokkulepped:
 
 AI-01 kuni AI-08 on varasemates tööetappides teostatud; AI-08 veakäsitluse muudatused ja testid olid selles sessioonis üle vaadatud ning frontendi build läbis.
 
-Selles arutelus on loodud taskid ja implementatsiooniplaanid, kuid nende taskide koodi pole veel muudetud:
+AI-09–AI-12 taskide ja implementatsiooniplaanide failid:
 
 - [AI-09 — Otsingutulemuste arv ja LLM-i kontekst](./AI-09-Otsingutulemuste-arv-ja-LLM-kontekst.md)
 - [AI-10 — Loomuliku keele vastus ja JSON-leping](./AI-10-Loomuliku-keele-vastus-ja-JSON-leping.md)
@@ -76,9 +76,15 @@ Selles arutelus on loodud taskid ja implementatsiooniplaanid, kuid nende taskide
 
 Iga taski implementatsiooniplaan asub samas kaustas nimega, mille lõpus on `-IMPLEMENTATSIOON.md`.
 
+## Koodi jätkutöö seis
+
+- AI-11: `AiSearchView.vue` kuvab nüüd backendist saadud `answer` teksti enne tööriistaloendit ning tühja loendi korral ei lisa eraldi tühitulemuse teadet. Frontendi `npm run build` õnnestus; selle taski teste ei muudetud ega käivitatud.
+- AI-12: SQL generaatori prompt toetab märksõna/kasutusotstarbe otsingut ja `tool_description` filtrit; piiratud vaatesse lisati kirjeldus ainult andmebaasi tingimuste jaoks; validaator lubab piiratud OR-rühmi ning teenus teeb ühe parandamiskatse ainult esimese valideerimisvea järel. Backendi `compileJava` õnnestus; teste ei muudetud ega käivitatud.
+- AI-09/AI-10 backend on taastatud: valideeritud filtritest koostatakse parameetritud loenduspäringud, `is_visible` abil eristatakse koguarvu saadavusest ning `ToolAskResponse(answer, tools)` vastab AI-11 frontendi lepingule. Vastuse generaator saab küsimuse, täpsed arvud ja ainult üheselt tuvastatud asukoha/kategooria; tööriistakirjeid, ID-sid, SQL-i ega isikuandmeid talle ei anta. `compileJava` läbis; teste pole käivitatud.
+
 ## Soovitatud jätk
 
-Jätka arutatud järjekorras: AI-09 täpsed koguarvud ja saadaval arvud → AI-10 LLM-i loomulik vastus ning backend JSON leping → AI-11 vastuse kuvamine frontendis → AI-12 märksõna/kasutusotstarbe SQL otsing ja üks turvaline parandamiskatse.
+AI-09/AI-10 olemasolevad testid on viidud uue käitusvoo ja vastuse lepingu järgi kooskõlla: teenuse, kontrolleri, validaatori, vastusegeneraatori ja PostgreSQL repository kontrollid on täiendatud. Repository testid katavad `C`, `P`/`R`, `U`, kirjeldus-OR/asukoha filtrid ja 20 tulemuse piiri. Teste ei ole käivitatud; käivitamine jääb eraldi verifitseerimissammuks. AI-11 frontend ja AI-12 otsing on varasemalt teostatud.
 
 ## Tööpuu märkus
 

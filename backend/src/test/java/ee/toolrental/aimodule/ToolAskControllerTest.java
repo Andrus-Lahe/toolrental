@@ -56,7 +56,7 @@ class ToolAskControllerTest {
     @Test
     void loggedInUserReceivesOnlyPublicToolFields() throws Exception {
         String question = "Millised tööriistad on saadaval Kristiines?";
-        when(toolAskService.ask(question)).thenReturn(new ToolAskResponse(
+        when(toolAskService.ask(question)).thenReturn(new ToolAskResponse("Leidsin sobivaid tööriistu.",
                 List.of(
                         new AvailableTool(12, "Akutrell", "Puurid", "Kristiine"),
                         new AvailableTool(15, "Matkatelk", "Matkamine", null))));
@@ -74,7 +74,7 @@ class ToolAskControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"question\":\"Millised tööriistad on saadaval Kristiines?\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.answer").doesNotExist())
+                .andExpect(jsonPath("$.answer").value("Leidsin sobivaid tööriistu."))
                 .andExpect(jsonPath("$.tools[0].toolId").value(12))
                 .andExpect(jsonPath("$.tools[0].name").value("Akutrell"))
                 .andExpect(jsonPath("$.tools[0].category").value("Puurid"))
@@ -88,7 +88,7 @@ class ToolAskControllerTest {
     @Test
     void loggedInUserReceivesEmptyToolsArrayWhenThereAreNoMatches() throws Exception {
         String question = "Millised tööriistad on saadaval Kristiines?";
-        when(toolAskService.ask(question)).thenReturn(new ToolAskResponse(List.of()));
+        when(toolAskService.ask(question)).thenReturn(new ToolAskResponse("Sobivaid tööriistu ei leitud.", List.of()));
 
         OidcIdToken token = OidcIdToken.withTokenValue("test-token")
                 .subject("test-user")
@@ -102,7 +102,7 @@ class ToolAskControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"question\":\"Millised tööriistad on saadaval Kristiines?\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.answer").doesNotExist())
+                .andExpect(jsonPath("$.answer").value("Sobivaid tööriistu ei leitud."))
                 .andExpect(jsonPath("$.tools").isArray())
                 .andExpect(jsonPath("$.tools").isEmpty());
     }

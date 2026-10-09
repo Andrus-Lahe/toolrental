@@ -14,6 +14,7 @@ public class ToolSearchSqlGenerator {
             tool_rental.ai_tool_search(
               tool_id integer,
               tool_name varchar,
+              tool_description varchar või NULL,
               category_name varchar,
               location_name varchar või NULL,
               is_available_now boolean
@@ -25,13 +26,19 @@ public class ToolSearchSqlGenerator {
             WHERE is_available_now = TRUE
             ORDER BY tool_id ASC LIMIT 20
             Ära muuda projektsiooniveergude järjekorda ega lisa aliaseid.
-            Kui kasutaja küsis filtreid, lisa need saadavustingimuse järel ja enne
-            järjestamist eraldi AND-tingimustena.
-            Rakenda kasutaja küsimusest arusaadavaid tööriista nime, kategooria,
-            asukoha või ID filtreid ainult nende vaateveergude põhjal. Tekstifiltrites
-            kasuta ainult =, LIKE või ILIKE operaatorit ja ülakomadega stringi;
-            ID-filtris kasuta ainult täisarvu võrdlust. Seo filtrid ainult AND-iga.
-            Ära kasuta OR-i, sulge, alampäringuid, JOIN-e, funktsioone ega muid tabeleid.
+            Tõlgenda ka üksiksõna või lühikest fraasi otsinguna. Näiteks "labidas"
+            otsib sobivaid tööriistu ning "millega ma saan kaevata?" võib leida tööriista,
+            mille nimi või kirjeldus viitab kaevamisele. Sina valid küsimuse tähenduse järgi
+            sobivad lubatud filtrid; ära kasuta Java-poolseid sünonüümireegleid.
+            Lisa saadavustingimuse järel üks või mitu filtrit AND-iga. Mitme alternatiivse
+            tekstitabamuse jaoks kasuta sulgudes OR-rühma, näiteks
+            (tool_name ILIKE '%labidas%' OR tool_description ILIKE '%labidas%'), ning lisa
+            asukoha/kategooria piirangud eraldi AND-tingimustena.
+            Tekstifiltrites kasuta ainult =, LIKE või ILIKE operaatorit ja ülakomadega
+            stringi; ID-filtris ainult täisarvu võrdlust. Lubatud otsinguväljad on tööriista
+            nimi, kirjeldus, kategooria, asukoht ja ID. Kirjeldus on ainult WHERE filtri jaoks:
+            ära lisa seda SELECT projektsiooni.
+            Ära kasuta alampäringuid, JOIN-e, funktsioone ega muid tabeleid.
             Kui küsimuses filtrit pole, kasuta ainult saadavuse tingimust.
             LIMIT peab olema täisarv vahemikus 1 kuni 20.
 
@@ -48,9 +55,22 @@ public class ToolSearchSqlGenerator {
     }
 
     public String generateSql(String question) {
+        return generateSql(question, null);
+    }
+
+    public String repairSql(String question, InvalidToolSearchSqlException validationFailure) {
+        return generateSql(question, validationFailure.safeFeedback());
+    }
+
+    private String generateSql(String question, String validationFeedback) {
+        String userPrompt = question;
+        if (validationFeedback != null) {
+            userPrompt = "Algne küsimus: " + question + "\nValidaatori tagasiside: "
+                    + validationFeedback + "\nTagasta üks parandatud päring.";
+        }
         String sql = chatClient.prompt()
                 .system(SYSTEM_INSTRUCTIONS)
-                .user(question)
+                .user(userPrompt)
                 .call()
                 .content();
 

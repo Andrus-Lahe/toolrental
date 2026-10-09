@@ -15,7 +15,7 @@ Kontrollida AI-04 väljundit enne andmebaasis käivitamist ning käivitada ainul
 
 Muud SQL-i piirangud määratakse ainult siis, kui need on olemasolevate kokkulepetega kooskõlas; selle taski ulatus ei laienda lubatud andmestikku ega anna ligipääsu algtabelitele.
 
-Teostus kasutab sellest lepingust kitsamat SQL-i alamhulka: täpselt nõutud neli väljundveergu kindlas järjekorras, üks `FROM tool_rental.ai_tool_search`, lihtsad `AND`-iga seotud võrdlusfiltrid, kohustuslik `is_available_now = TRUE`, `ORDER BY tool_id` ning `LIMIT 1..20`. JOIN-id, alampäringud, funktsioonid, `OR`, kommentaarid ja muud SQL konstruktsioonid lükatakse tagasi. See on generaatori praeguse promptiga kooskõlas ning hoiab valideerimise arusaadava ja konservatiivsena.
+Teostus lubab täpselt nõutud neli väljundveergu kindlas järjekorras, ühe `FROM tool_rental.ai_tool_search`, kohustusliku `is_available_now = TRUE`, `ORDER BY tool_id` ning `LIMIT 1..20`. Filtrid kasutavad ainult tööriista ID-d, nime, kirjeldust, kategooriat ja asukohta. Tavalised filtrid seotakse `AND`-iga; sulgudes võib kasutada lihtsat `OR`-rühma. JOIN-id, alampäringud, funktsioonid, kommentaarid ja muud SQL konstruktsioonid lükatakse tagasi.
 
 ## Vastuvõtu kriteeriumid
 
@@ -23,6 +23,8 @@ Teostus kasutab sellest lepingust kitsamat SQL-i alamhulka: täpselt nõutud nel
 - [x] Ainult `SELECT` päring piiratud vaate vastu jõuab andmebaasi.
 - [x] Päring, mis pole `SELECT`, viitab lubamata tabelile või ei vasta piiratud vaate lepingule, lükatakse enne käivitamist tagasi.
 - [x] SQL-i käivitab backend Spring JDBC kaudu; LLM-il pole andmebaasi ühenduse parameetreid.
+- [ ] Valideerija lubab `tool_description` filtrit ja sulgudes OR-rühmi ainult lubatud veergudel.
+- [ ] Esimene valideerimistõrge lubab ühe parandamiskatse fikseeritud ohutu tagasisidega; teine tõrge lõpetab üldise serveriveaga.
 - [x] Tulemusi kasutatakse ainult tööriistaloendi koostamiseks; piiratud vaateväliseid või isikuandmeid vastusele ei lisata.
 - [x] Valideerimis- ja andmebaasivea korral annab olemasolev üldine handler `ApiError` kujul üldise 500 vastuse; SQL-i ega tehnilisi detaile kliendile ei tagastata.
 

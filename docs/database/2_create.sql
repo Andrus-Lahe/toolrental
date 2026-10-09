@@ -114,7 +114,10 @@ SELECT
               AND (CURRENT_TIMESTAMP AT TIME ZONE 'Europe/Tallinn')::date
                   BETWEEN b.start_date AND b.end_date
         )
-    ) AS is_available_now
+
+    ) AS is_available_now,
+    t.description AS tool_description,
+    (t.status = 'A') AS is_visible
 FROM tool_rental.tool t
 JOIN tool_rental.category c ON c.id = t.category_id
 LEFT JOIN tool_rental.profile p ON p.user_id = t.owner_id

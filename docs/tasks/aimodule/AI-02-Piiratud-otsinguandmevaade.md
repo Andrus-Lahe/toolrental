@@ -16,9 +16,11 @@ Vaate esialgne nimi on `tool_rental.ai_tool_search`. Väljundveerud:
 |---|---|---|
 | `tool_id` | integer | Tööriista ID; API teisendab selle väljaks `toolId`. |
 | `tool_name` | varchar | Tööriista nimi. |
+| `tool_description` | varchar või NULL | Tööriista kirjeldus, mida kasutatakse ainult SQL-i `WHERE` filtris. Kirjelduse väärtust ei saadeta mudelile ega tagastata `SELECT` vastuses/API-s. |
 | `category_name` | varchar | Kategooria nimi. |
 | `location_name` | varchar või NULL | Omaniku asukoha linnaosa nimi; puuduva profiili või asukoha korral `NULL`. Täpset aadressi ei avaldata. |
 | `is_available_now` | boolean | `true`, kui tööriista staatus on `A` ja puudub tänast Tallinna kuupäeva kattev `C` broneering; `P`, `R` ega `U` tulemus ei ole saadaval. |
+| `is_visible` | boolean | `true` ainult `A` olekus tööriistal; kasutatakse koguarvu arvutamiseks ka siis, kui tänane `C` broneering muudab tööriista ajutiselt kättesaamatuks. |
 
 Vaade on üks rida tööriista kohta. Ootel või tagasi lükatud broneeringud ei tohi tööriista dubleerida. Vaade ei väljasta toor-broneeringuid ega muud kasutajaga seotud infot.
 

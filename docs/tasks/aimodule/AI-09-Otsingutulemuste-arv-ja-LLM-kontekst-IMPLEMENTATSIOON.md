@@ -2,7 +2,14 @@
 
 **Seotud task:** [AI-09-Otsingutulemuste-arv-ja-LLM-kontekst.md](./AI-09-Otsingutulemuste-arv-ja-LLM-kontekst.md)
 
-## Hetkeseis (mis on juba olemas)
+## Teostatud
+
+- `ValidatedSql` kannab parseri eraldatud filtrirühmi ning `ToolSearchQueryRepository.searchWithCounts` koostab neist nimetatud parameetritega loendused.
+- AI vaate `is_visible` loendab ainult `A` olekus tööriistu; `is_available_now` järgib AI-03 reeglit. Tulemuste loend jääb valideeritud SQL-i `LIMIT 1..20` piiresse.
+- `ToolSearchSummary` koondab tööriistad, täpsed arvud ja ainult üheselt tuvastatud asukoha/kategooria.
+- Teste ei käivitatud. `backend` mooduli `compileJava` läbis.
+
+## Algne hetkeseis
 
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskService.java` — juhib küsimuse SQL-iks genereerimist, valideerimist ja andmebaasist saadaval tööriistade otsimist.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolSearchSqlValidator.java` — lubab ainult üht kitsast päringukuju piiratud `tool_rental.ai_tool_search` vaate vastu. `ValidatedSql` hoiab praegu ainult valideeritud SQL stringi; parser nõuab `is_available_now = TRUE` tingimust ja `LIMIT 1..20`.

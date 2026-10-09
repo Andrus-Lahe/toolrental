@@ -28,10 +28,11 @@ Olemasolev päring on sisselogimist nõudev. See task ei muuda autentimise lepin
 
 ## Väljund
 
-**Response (200 OK):** JSON objekt väljaga `tools`. Iga tööriista kirje sisaldab ainult otsingutulemuse kuvamiseks vajalikke välju.
+**Response (200 OK):** JSON objekt väljadega `answer` ja `tools`. `answer` on lühike eestikeelne tekst; iga tööriista kirje sisaldab ainult otsingutulemuse kuvamiseks vajalikke välju.
 
 ```json
 {
+  "answer": "Kristiines leidub kokku 4 sobivat tööriista. Hetkel saadaval on 4:",
   "tools": [
     {
       "toolId": 1,
@@ -65,7 +66,8 @@ Näite ID-d, tööriistad ja kategooriad vastavad faili [3_import.sql](../../dat
 
 | Väli | JSON tüüp | Tähendus |
 |---|---|---|
-| `tools` | massiiv | Küsimusele vastavad tööriistad; vaste puudumisel tühi massiiv. |
+| `answer` | string | AI-10 järgi otsingu täpsetel backend arvudel ja ohututel faktidel põhinev lühike vastus. |
+| `tools` | massiiv | Kuni 20 küsimusele vastavat tööriista; vaste puudumisel tühi massiiv. |
 | `tools[].toolId` | täisarv | Tööriista ID. Kasutajaliides kasutab seda olemasoleva `/tools/{toolId}` detailmarsruudi avamiseks. |
 | `tools[].name` | string | Tööriista nimi tabelist `tool`. See ei ole omaniku ega muu kasutaja nimi. |
 | `tools[].category` | string | Tööriista kategooria nimi. |
@@ -75,11 +77,12 @@ Vaste puudumise näide:
 
 ```json
 {
+  "answer": "Sobivaid tööriistu ei leitud.",
   "tools": []
 }
 ```
 
-Vastus ei sisalda vabatekstilist `answer` välja. Kasutajaliides kuvab tulemused ise näiteks kujul `Akutrell · Ehitustööd · Kristiine` ning muudab tööriista nime lingiks. Isikuandmeid, nagu omaniku või rentniku nimi, e-post, telefon või `google_sub`, vastuses ei tagastata.
+`answer` kirjeldab otsingutulemusi, `tools` massiivi kuvab kasutajaliides näiteks kujul `Akutrell · Ehitustööd · Kristiine` ning muudab tööriista nime lingiks. Isikuandmeid, nagu omaniku või rentniku nimi, e-post, telefon või `google_sub`, vastuses ei tagastata.
 
 ## Seotud andmebaasi andmed
 
@@ -97,21 +100,21 @@ Vt [2_create.sql](../../database/2_create.sql) ja [3_import.sql](../../database/
 |---|---:|---|
 | `question` puudub, on tühi või pikem kui 500 märki | 400 Bad Request | Olemasolev `ApiError` kuju: `message` ja `errorCode` (`INCORRECT_INPUT`). |
 | Kasutaja pole sisse loginud | 401 Unauthorized | Olemasoleva `SecurityConfig` järgi tühi body. |
-| Otsing ei leia sobivaid tööriistu | 200 OK | `{"tools":[]}` |
+| Otsing ei leia sobivaid tööriistu | 200 OK | `{"answer":"Sobivaid tööriistu ei leitud.","tools":[]}` |
 | Otsingu käigus tekib ootamatu serveriviga | 500 Internal Server Error | Olemasolev `ApiError` kuju; tehnilisi detaile kliendile ei tagastata. |
 
 ## Vastuvõtu kriteeriumid
 
 - [ ] Request on `POST /api/ai/ask` JSON kujul `{"question":"..."}`.
 - [ ] `question` on kohustuslik, mitte tühi ja maksimaalselt 500 märki.
-- [ ] Edukas vastus on JSON objekt kujul `{"tools":[...]}`.
+- [ ] Edukas vastus on JSON objekt kujul `{"answer":"...","tools":[...]}`.
 - [ ] Iga tööriista kirje sisaldab täpselt lepingus määratud välju `toolId`, `name`, `category` ja `location`.
 - [ ] `toolId` väärtus on olemasoleva tööriista ID ja sobib `/tools/{toolId}` detailmarsruudi moodustamiseks.
 - [ ] `name` tähistab tööriista nime, mitte kasutaja nime.
 - [ ] Olemasoleva asukoha korral sisaldab `location` linnaosa nime, mitte tänava-aadressi ega koordinaate.
 - [ ] Puuduva omaniku profiili või asukoha korral jääb sobiv tööriist tulemusse väärtusega `location: null`.
-- [ ] Vaste puudumise korral tagastatakse HTTP 200 ja `tools: []`.
-- [ ] Vastuses puuduvad vabatekstiline `answer`, omaniku/rentniku nimed, e-postid, telefonid ja `google_sub`.
+- [ ] Vaste puudumise korral tagastatakse HTTP 200, selgitav `answer` ja `tools: []`.
+- [ ] Vastuses puuduvad omaniku/rentniku nimed, e-postid, telefonid ja `google_sub`.
 - [ ] Päringu valideerimise, sisselogimise ja ootamatu vea staatused vastavad kirjeldatud lepingule.
 
 ## Avatud küsimused

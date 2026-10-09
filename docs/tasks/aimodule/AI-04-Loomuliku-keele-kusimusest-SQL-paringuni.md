@@ -11,10 +11,10 @@ LLM ei saa andmebaasiühendust ega isikuandmeid. Ta väljastab päringuteksti; p
 ## Sisend mudelile
 
 - Kasutaja `question` väärtus olemasolevast `POST /api/ai/ask` request'ist.
-- Ainult AI-02 piiratud vaate nimi ja lubatud veergude skeem.
+- Ainult AI-02 piiratud vaate nimi ja lubatud veergude skeem; `tool_description` on lubatud ainult otsingufiltris.
 - Saadavuse tähendus AI-03 järgi: `is_available_now = true`.
 
-Prompt ei sisalda rakenduse teiste tabelite skeemi, kasutajate nimesid/e-poste ega andmebaasi päringutulemusi.
+Prompt ei sisalda rakenduse teiste tabelite skeemi, kasutajate nimesid/e-poste, tööriistakirjelduste väärtusi ega andmebaasi päringutulemusi.
 
 ## LLM-i väljund
 
@@ -23,7 +23,8 @@ Prompt ei sisalda rakenduse teiste tabelite skeemi, kasutajate nimesid/e-poste e
 ## Vastuvõtu kriteeriumid
 
 - [ ] `ToolSearchSqlGenerator` koostab kasutaja küsimusest SQL-päringu; selle ühendamine API käitusvooga toimub AI-05-s koos validaatori ja käivitajaga.
-- [ ] Mudeli kontekst kirjeldab ainult AI-02 piiratud vaadet ja selle lubatud veerge.
+- [ ] Mudeli kontekst kirjeldab ainult AI-02 piiratud vaadet ja selle lubatud veerge, sh `tool_description` otsingufiltrina.
+- [ ] Üksiksõnad ja kasutusotstarbe kirjeldused töödeldakse tööriistaotsinguna, kasutades vajadusel nime või kirjeldust.
 - [ ] Prompt ütleb, et otsing peab näitama ainult AI-03 järgi praegu saadaval olevaid tööriistu.
 - [ ] LLM-i vastus on päringutekst, mitte loomuliku keele lõppvastus ega Markdown-koodiplokk.
 - [ ] Küsimus edastatakse mudelile päringu `question` väljast; sisend jääb AI-01 500 märgi lepingu piiresse.

@@ -4,7 +4,7 @@
 
 ## Eesmärk
 
-Tagastada `/api/ai/ask` tulemused AI-01 andmelepingu kohase JSON-loendina, et frontend saaks näidata tööriista nime klikitava detaililingina. Backend tagastab andmebaasist leitud tööriistade struktureeritud andmed; eraldi LLM-i loodud vabatekstilist kokkuvõtet selle vastuse jaoks ei kasutata.
+Tagastada `/api/ai/ask` tulemused AI-01 ja AI-10 lepingule vastava JSON-ina, et frontend saaks kuvada loomuliku vastuse ning tööriistade klikitavad detaililingid.
 
 ## API leping
 
@@ -14,6 +14,7 @@ Tagastada `/api/ai/ask` tulemused AI-01 andmelepingu kohase JSON-loendina, et fr
 
 ```json
 {
+  "answer": "Kristiines leidub kokku 4 sobivat tööriista. Hetkel saadaval on 4:",
   "tools": [
     {
       "toolId": 1,
@@ -25,7 +26,7 @@ Tagastada `/api/ai/ask` tulemused AI-01 andmelepingu kohase JSON-loendina, et fr
 }
 ```
 
-Vaste puudumisel tagastatakse `{"tools":[]}`. Iga tööriista kirje väljad ja nende tähendus on määratud [AI-01 taskis](./AI-01-Otsingu-paringu-ja-vastuse-andmeleping.md). Vastuses ei ole `answer` välja ega kasutaja isikuandmeid.
+Vaste puudumisel tagastatakse `answer` koos tühja `tools` massiiviga. Iga tööriista kirje väljad ja nende tähendus on määratud [AI-01 taskis](./AI-01-Otsingu-paringu-ja-vastuse-andmeleping.md). Vastuses ei ole kasutaja isikuandmeid.
 
 ## Vastuvõtu kriteeriumid
 
@@ -34,12 +35,12 @@ Vaste puudumisel tagastatakse `{"tools":[]}`. Iga tööriista kirje väljad ja n
 - [x] `toolId` on andmebaasi tegelik `tool.id`, mitte genereeritud või LLM-i pakutud ID.
 - [x] `name`, `category` ja `location` vastavad andmevaate väärtustele.
 - [x] Tühja tulemuse korral tagastatakse HTTP 200 ja `tools: []`.
-- [x] JSON ei sisalda vabatekstilist `answer` välja, omaniku/rentniku isikuandmeid ega toor-SQL-i.
+- [x] JSON sisaldab AI-10 lisatud `answer` välja ega sisalda omaniku/rentniku isikuandmeid või toor-SQL-i.
 - [x] HTTP valideerimis-, autentimis- ja serverivigade leping jääb kirjeldatuks AI-01 ning AI-08 järgi.
 
 ## Seotud komponendid
 
-Backend kasutab `ToolAskResponse(tools)` ja `AvailableTool(toolId, name, category, location)`, mis järgivad AI-01 lepingut. Endpointi marsruut ja päringu `question` väli jäid samaks.
+Backend kasutab `ToolAskResponse(answer, tools)` ja `AvailableTool(toolId, name, category, location)`, mis järgivad AI-01/AI-10 lepingut. Endpointi marsruut ja päringu `question` väli jäid samaks.
 
 ## Veaolukorrad
 

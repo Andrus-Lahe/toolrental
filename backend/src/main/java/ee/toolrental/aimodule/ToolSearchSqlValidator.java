@@ -26,7 +26,7 @@ public class ToolSearchSqlValidator {
         parser.expectSymbol(".");
         parser.expectWord("ai_tool_search");
         parser.expectWord("WHERE");
-        parser.expectAvailabilityConditions();
+        parser.expectSearchConditions();
         parser.expectWord("ORDER");
         parser.expectWord("BY");
         parser.expectWord("tool_id");
@@ -39,7 +39,7 @@ public class ToolSearchSqlValidator {
         parser.consumeOptionalSymbol(";");
         parser.expectEnd();
 
-        return new ValidatedSql(sql.trim());
+        return new ValidatedSql(sql.trim(), parser.filters());
     }
 
     private static List<Token> tokenize(String sql) {
@@ -81,11 +81,11 @@ public class ToolSearchSqlValidator {
                     index++;
                 }
                 tokens.add(new Token(TokenType.NUMBER, sql.substring(start, index)));
-            } else if (",.;=<>".indexOf(current) >= 0) {
+            } else if (",.;=<>()".indexOf(current) >= 0) {
                 tokens.add(new Token(TokenType.SYMBOL, Character.toString(current)));
                 index++;
             } else {
-                // Reject comments, quoted identifiers, operators, parentheses and SQL syntax
+                // Reject comments, quoted identifiers, unsupported operators and SQL syntax
                 // outside the deliberately small search-query grammar.
                 throw invalidQuery();
             }
@@ -97,22 +97,24 @@ public class ToolSearchSqlValidator {
         return new InvalidToolSearchSqlException();
     }
 
-    public static final class ValidatedSql {
-        private final String sql;
-
-        private ValidatedSql(String sql) {
-            this.sql = sql;
+    public record ValidatedSql(String sql, List<FilterGroup> filters) {
+        public ValidatedSql {
+            filters = List.copyOf(filters);
         }
 
-        String value() {
-            return sql;
-        }
+        String value() { return sql; }
     }
+
+    public record FilterGroup(List<FilterCondition> alternatives) {
+        public FilterGroup { alternatives = List.copyOf(alternatives); }
+    }
+
+    public record FilterCondition(String column, String operator, Object value) {}
 
     private static final class Parser {
         private final List<Token> tokens;
+        private final List<FilterGroup> filters = new ArrayList<>();
         private int position;
-        private boolean hasAvailabilityFilter;
 
         private Parser(List<Token> tokens) {
             this.tokens = tokens;
@@ -127,34 +129,50 @@ public class ToolSearchSqlValidator {
             }
         }
 
-        private void expectAvailabilityConditions() {
-            do {
-                String column = expectAnyWord("tool_id", "tool_name", "category_name",
-                        "location_name", "is_available_now");
-                String operator = next().value().toUpperCase(Locale.ROOT);
-                if (column.equals("is_available_now")) {
-                    if (!operator.equals("=")) {
-                        throw invalidQuery();
-                    }
-                    expectWord("TRUE");
-                    hasAvailabilityFilter = true;
-                } else if (column.equals("tool_id")) {
-                    if (!operator.equals("=")) {
-                        throw invalidQuery();
-                    }
-                    expectType(TokenType.NUMBER);
-                } else {
-                    if (!operator.equals("=") && !operator.equals("LIKE") && !operator.equals("ILIKE")) {
-                        throw invalidQuery();
-                    }
-                    expectType(TokenType.STRING);
-                }
-            } while (consumeOptionalWord("AND"));
+        private void expectSearchConditions() {
+            expectWord("is_available_now");
+            expectSymbol("=");
+            expectWord("TRUE");
 
-            if (!hasAvailabilityFilter) {
-                throw invalidQuery();
+            while (consumeOptionalWord("AND")) {
+                if (consumeOptionalSymbol("(")) {
+                    List<FilterCondition> alternatives = new ArrayList<>();
+                    alternatives.add(expectFilterCondition());
+                    expectWord("OR");
+                    do {
+                        alternatives.add(expectFilterCondition());
+                    } while (consumeOptionalWord("OR"));
+                    expectSymbol(")");
+                    filters.add(new FilterGroup(alternatives));
+                } else {
+                    filters.add(new FilterGroup(List.of(expectFilterCondition())));
+                }
             }
         }
+
+        private FilterCondition expectFilterCondition() {
+            String column = expectAnyWord("tool_id", "tool_name", "tool_description",
+                    "category_name", "location_name");
+            String operator = next().value().toUpperCase(Locale.ROOT);
+            if (column.equals("tool_id")) {
+                if (!operator.equals("=")) throw invalidQuery();
+                try {
+                    return new FilterCondition(column, operator,
+                            Integer.parseInt(expectType(TokenType.NUMBER).value()));
+                } catch (NumberFormatException exception) {
+                    throw invalidQuery();
+                }
+            } else {
+                if (!operator.equals("=") && !operator.equals("LIKE") && !operator.equals("ILIKE")) {
+                    throw invalidQuery();
+                }
+                String literal = expectType(TokenType.STRING).value();
+                return new FilterCondition(column, operator, literal.substring(1, literal.length() - 1)
+                        .replace("''", "'"));
+            }
+        }
+
+        private List<FilterGroup> filters() { return filters; }
 
         private String expectAnyWord(String... allowed) {
             Token token = expectType(TokenType.WORD);

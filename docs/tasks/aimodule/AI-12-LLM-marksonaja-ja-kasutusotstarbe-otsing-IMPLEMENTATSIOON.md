@@ -11,7 +11,7 @@
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/docs/database/2_create.sql` — piiratud vaade sisaldab praegu tööriista ID-d/nime, kategooriat, linnaosa ja `is_available_now`; `tool.description` pole vaates.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/InvalidToolSearchSqlException.java` — üldine valideerimise erind; ohutu korduskatse tagasiside tüüpi praegu pole.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/test/java/ee/toolrental/aimodule/ToolSearchSqlGeneratorTest.java`, `ToolSearchSqlValidatorTest.java` ja `ToolAskServiceTest.java` — olemasolevad prompti, grammatika ja käitusjärjestuse testid.
-- Isikuandmeid automaatselt eemaldav tööriistakirjelduse sanitizerit `backend/src/main` ega sellega seotud testiotsingus ei leitud.
+- Tööriistakirjelduse teksti ei pea mudelile saatma: mudelile antakse piiratud vaate skeem ning SQL-i tulemused sisaldavad ainult lubatud projektsiooniveerge. Sanitizerit pole selles teostuses vaja.
 - AI-03 määrab saadavusreegli; AI-08 määrab 422 mittetoetatava küsimuse ja üldise 500 vea lepingud.
 
 ## Puuduv/muudetav

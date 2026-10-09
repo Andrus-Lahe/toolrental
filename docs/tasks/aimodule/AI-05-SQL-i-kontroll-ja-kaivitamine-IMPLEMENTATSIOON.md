@@ -45,10 +45,10 @@ Kontrolli tagasilükkamine ei tohi langeda tühja otsingutulemusena. DB vea puhu
 
 ## Testid
 
-`ToolSearchSqlValidatorTest` katab lubatud SQL-i, mitte-SELECTi, mitmikpäringu, vale vaate, alampäringu, puuduva saadavusfiltri, vale projektsiooni, `OR`-i, kommentaari, funktsiooni ja üle 20 limiidi tagasilükkamise. `ToolAskServiceTest` kontrollib genereeri→käivita järjestust ning et `CANNOT_ANSWER` ja invaliidne SQL repositoryni ei jõua. `ToolSearchQueryRepositoryTest` kasutab päris PostgreSQL-i ja kontrollib vaatepäringu tulemuskaardistust.
+`ToolSearchSqlValidatorTest` katab lubatud SQL-i, mitte-SELECTi, mitmikpäringu, vale vaate, alampäringu, puuduva saadavusfiltri, vale projektsiooni, väljaspool sulge kasutatud `OR`-i, kommentaari, funktsiooni ja üle 20 limiidi tagasilükkamise. AI-12 lisab lubatud veergude sulgudes OR-rühmade kontrolli. `ToolAskServiceTest` kontrollib genereeri→käivita järjestust ning et `CANNOT_ANSWER` ja invaliidne SQL repositoryni ei jõua. `ToolSearchQueryRepositoryTest` kasutab päris PostgreSQL-i ja kontrollib vaatepäringu tulemuskaardistust.
 
 Kontrolli tulemus: viis AI mooduli sihttestiklassi läbisid PostgreSQL-ühendusega kokku 17 testi. Pärast generaatori prompti täpsustamist läbis `ToolSearchSqlGeneratorTest` uuesti kõik 4 testi. Saadavuse `C` ning `P`/`R` reegleid kontrollitakse päris vaate kaudu `ToolSearchQueryRepositoryTest`-is.
 
 ## Teostuse piir
 
-Validaator kasutab väikest tokenizer/parserit, mitte SQL-i märksõnade regex-otsingut ega üldotstarbelist SQL-parseri teeki. See lubab praeguse promptiga vajalikud otsingufiltrid, kuid jätab SQL-i süntaksist tahtlikult suure osa keelatuks. `CANNOT_ANSWER` tagastatakse HTTP 422 vastusena koodiga `AI_UNSUPPORTED_QUESTION`; valideerimis-, mudeliteenuse ja andmebaasivead tagastatakse üldise HTTP 500 veana. AI-06 asendas `answer` + `AvailableTool` vastuse JSON lepinguga.
+Validaator kasutab väikest tokenizer/parserit, mitte SQL-i märksõnade regex-otsingut ega üldotstarbelist SQL-parseri teeki. See lubab otsingufiltreid ning ainult sulgudes OR-rühmi lubatud veergudel, jättes ülejäänud SQL süntaksi keelatuks. `CANNOT_ANSWER` tagastatakse HTTP 422 vastusena koodiga `AI_UNSUPPORTED_QUESTION`; valideerimis-, mudeliteenuse ja andmebaasivead tagastatakse üldise HTTP 500 veana. AI-06 asendas `answer` + `AvailableTool` vastuse JSON lepinguga.

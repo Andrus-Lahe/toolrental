@@ -19,6 +19,25 @@ class ToolSearchSqlValidatorTest {
     }
 
     @Test
+    void extractsSafeFiltersIncludingDescriptionOrGroups() {
+        String sql = "SELECT tool_id, tool_name, category_name, location_name " +
+                "FROM tool_rental.ai_tool_search WHERE is_available_now = TRUE " +
+                "AND (tool_name ILIKE '%labidas%' OR tool_description ILIKE '%labidas%') " +
+                "AND location_name ILIKE '%Nõmme%' ORDER BY tool_id LIMIT 20";
+
+        var filters = validator.validate(sql).filters();
+
+        assertThat(filters).hasSize(2);
+        assertThat(filters.getFirst().alternatives())
+                .extracting(ToolSearchSqlValidator.FilterCondition::column)
+                .containsExactly("tool_name", "tool_description");
+        assertThat(filters.getFirst().alternatives())
+                .extracting(ToolSearchSqlValidator.FilterCondition::value)
+                .containsExactly("%labidas%", "%labidas%");
+        assertThat(filters.get(1).alternatives().getFirst().column()).isEqualTo("location_name");
+    }
+
+    @Test
     void rejectsNonSelectAndMultipleStatements() {
         assertRejected("DELETE FROM tool_rental.ai_tool_search");
         assertRejected(validQuery() + "; SELECT 1");

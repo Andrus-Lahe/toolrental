@@ -54,6 +54,7 @@ class ToolSearchQueryRepositoryTest {
                 "(category_name, sequence) VALUES (?, 100) RETURNING id", categoryName);
         toolId = insertId("INSERT INTO tool_rental.tool (owner_id, category_id, name, status) " +
                 "VALUES (?, ?, ?, 'A') RETURNING id", ownerId, categoryId, toolName);
+        jdbc.update("UPDATE tool_rental.tool SET description = 'Sobib kaevamiseks.' WHERE id = ?", toolId);
     }
 
     @Test
@@ -78,18 +79,80 @@ class ToolSearchQueryRepositoryTest {
     }
 
     @Test
+    void countsConfirmedBookingInTotalButNotAvailableCountOrToolList() {
+        insertBooking("C");
+
+        ToolSearchQueryRepository.SearchResults results = repository.searchWithCounts(
+                validator.validate(searchSql("tool_name = '" + toolName + "'")));
+
+        assertThat(results.totalToolCount()).isEqualTo(1);
+        assertThat(results.availableToolCount()).isZero();
+        assertThat(results.tools()).isEmpty();
+    }
+
+    @Test
     void pendingAndRejectedBookingsDoNotHideToolFromView() {
         insertBooking("P");
         insertBooking("R");
 
-        assertThat(searchByToolName()).hasSize(1);
+        ToolSearchQueryRepository.SearchResults results = repository.searchWithCounts(
+                validator.validate(searchSql("tool_name = '" + toolName + "'")));
+
+        assertThat(results.totalToolCount()).isEqualTo(1);
+        assertThat(results.availableToolCount()).isEqualTo(1);
+        assertThat(results.tools()).hasSize(1);
+    }
+
+    @Test
+    void excludesUnpublishedToolFromBothCounts() {
+        jdbc.update("UPDATE tool_rental.tool SET status = 'U' WHERE id = ?", toolId);
+
+        ToolSearchQueryRepository.SearchResults results = repository.searchWithCounts(
+                validator.validate(searchSql("tool_name = '" + toolName + "'")));
+
+        assertThat(results.totalToolCount()).isZero();
+        assertThat(results.availableToolCount()).isZero();
+        assertThat(results.tools()).isEmpty();
+    }
+
+    @Test
+    void resultLimitDoesNotTruncateEitherCount() {
+        for (int index = 0; index < 20; index++) {
+            insertId("INSERT INTO tool_rental.tool (owner_id, category_id, name, status) " +
+                    "SELECT ?, id, ?, 'A' FROM tool_rental.category WHERE category_name = ? RETURNING id",
+                    ownerId, toolName + " extra " + index, categoryName);
+        }
+
+        ToolSearchQueryRepository.SearchResults results = repository.searchWithCounts(
+                validator.validate(searchSql("category_name = '" + categoryName + "'")));
+
+        assertThat(results.totalToolCount()).isEqualTo(21);
+        assertThat(results.availableToolCount()).isEqualTo(21);
+        assertThat(results.tools()).hasSize(20);
+    }
+
+    @Test
+    void appliesSameDescriptionOrLocationFiltersToCountsAndToolResults() {
+        String sql = "SELECT tool_id, tool_name, category_name, location_name " +
+                "FROM tool_rental.ai_tool_search WHERE is_available_now = TRUE " +
+                "AND (tool_name ILIKE '%labidas%' OR tool_description ILIKE '%kaevamiseks%') " +
+                "AND location_name = '" + districtName + "' ORDER BY tool_id LIMIT 20";
+
+        ToolSearchQueryRepository.SearchResults results = repository.searchWithCounts(validator.validate(sql));
+
+        assertThat(results.totalToolCount()).isEqualTo(1);
+        assertThat(results.availableToolCount()).isEqualTo(1);
+        assertThat(results.tools()).extracting(AvailableTool::toolId).containsExactly(toolId);
     }
 
     private List<AvailableTool> searchByToolName() {
-        String sql = "SELECT tool_id, tool_name, category_name, location_name " +
-                "FROM tool_rental.ai_tool_search WHERE is_available_now = TRUE " +
-                "AND tool_name = '" + toolName + "' ORDER BY tool_id LIMIT 20";
-        return repository.search(validator.validate(sql));
+        return repository.search(validator.validate(searchSql("tool_name = '" + toolName + "'")));
+    }
+
+    private String searchSql(String filter) {
+        return "SELECT tool_id, tool_name, category_name, location_name " +
+                "FROM tool_rental.ai_tool_search WHERE is_available_now = TRUE AND " + filter +
+                " ORDER BY tool_id LIMIT 20";
     }
 
     private void insertBooking(String status) {
