@@ -17,6 +17,8 @@
 
 Taski AI-01 tulemus on API lepingu fikseerimine. NL→SQL teostus, turvaline andmevaade ja saadavuse filter kuuluvad järgmistesse taskidesse. Frontendi lingi teostus kuulub AI-07 taski.
 
+**Valmimise piir:** AI-01 lõpetatakse siis, kui API lepingu dokument on fikseeritud ja kooskõlas olemasoleva endpointi ning projektis kokku lepitud otsingutulemusega. Tootmiskoodi muutmine ei kuulu sellesse taski. Backend vastuse DTO/controller muudatused kuuluvad AI-06 ning lingitud tulemuste kuvamine AI-07 alla.
+
 ## Puuduv/muudetav
 
 - Lepingus tuleb fikseerida request `question` väli ja maksimaalne pikkus; praegune Java DTO juba vastab sellele.

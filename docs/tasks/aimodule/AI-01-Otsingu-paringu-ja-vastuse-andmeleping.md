@@ -8,6 +8,8 @@ Määrata AI tööriistaotsingu püsiv API leping enne NL→SQL lahenduse teosta
 
 See task määrab ainult päringu ja vastuse kuju. NL→SQL prompt, andmevaade, saadavuse päring, SQL-i kontroll, tulemuste käivitamine ja frontendi lingi teostus kuuluvad järgmistesse taskidesse.
 
+**Taski tulemus:** see dokument fikseerib lepingu. Käitusaja DTO/controller muudatused teeb AI-06 ning tulemuste UI kuvamise AI-07; neid muudatusi ei loeta AI-01 osaks.
+
 ## Sisend
 
 Endpoint võtab vastu JSON request body:
