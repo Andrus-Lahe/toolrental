@@ -29,22 +29,22 @@ Vaste puudumisel tagastatakse `{"tools":[]}`. Iga tööriista kirje väljad ja n
 
 ## Vastuvõtu kriteeriumid
 
-- [ ] `POST /api/ai/ask` tagastab HTTP 200 korral AI-01 lepinguga JSON objekti.
-- [ ] `tools` on massiiv ning kirje väljad on `toolId`, `name`, `category`, `location`.
-- [ ] `toolId` on andmebaasi tegelik `tool.id`, mitte genereeritud või LLM-i pakutud ID.
-- [ ] `name`, `category` ja `location` vastavad andmevaate väärtustele.
-- [ ] Tühja tulemuse korral tagastatakse HTTP 200 ja `tools: []`.
-- [ ] JSON ei sisalda vabatekstilist `answer` välja, omaniku/rentniku isikuandmeid ega toor-SQL-i.
-- [ ] HTTP valideerimis-, autentimis- ja serverivigade leping jääb kirjeldatuks AI-01 ning AI-08 järgi.
+- [x] `POST /api/ai/ask` tagastab HTTP 200 korral AI-01 lepinguga JSON objekti.
+- [x] `tools` on massiiv ning kirje väljad on `toolId`, `name`, `category`, `location`.
+- [x] `toolId` on andmebaasi tegelik `tool.id`, mitte genereeritud või LLM-i pakutud ID.
+- [x] `name`, `category` ja `location` vastavad andmevaate väärtustele.
+- [x] Tühja tulemuse korral tagastatakse HTTP 200 ja `tools: []`.
+- [x] JSON ei sisalda vabatekstilist `answer` välja, omaniku/rentniku isikuandmeid ega toor-SQL-i.
+- [x] HTTP valideerimis-, autentimis- ja serverivigade leping jääb kirjeldatuks AI-01 ning AI-08 järgi.
 
 ## Seotud komponendid
 
-Praegune backend kasutab `ToolAskResponse(answer, tools)` ja `AvailableTool(toolId, name, category, city, district)`. Uus response peab järgima AI-01 ühe `location` väljaga kuju. Endpointi marsruuti ega päringu `question` välja see task ei muuda.
+Backend kasutab `ToolAskResponse(tools)` ja `AvailableTool(toolId, name, category, location)`, mis järgivad AI-01 lepingut. Endpointi marsruut ja päringu `question` väli jäid samaks.
 
 ## Veaolukorrad
 
 Kasutaja päringu valideerimine jääb HTTP 400; sisselogimata päring HTTP 401; ootamatu backend/AI/DB tõrge HTTP 500 olemasoleva `ApiError` kujul. Tühitulemus on edukas HTTP 200 vastus tühja massiiviga.
 
-## Avatud küsimused
+## Teostuse piir
 
-- `location: null` ja asukohata tööriista loendis hoidmise valik sõltub AI-01 avatud küsimusest.
+AI-01 määrab, et puuduva asukoha korral jääb tööriist tulemusse ja `location` on JSON-is `null`. AI-06 seda valikut ei muuda. Mittetoetatava küsimuse täpsem HTTP/UI käsitlus jääb AI-08 taski.

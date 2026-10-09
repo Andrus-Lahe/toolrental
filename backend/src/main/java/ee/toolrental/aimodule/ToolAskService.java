@@ -22,14 +22,11 @@ public class ToolAskService {
     public ToolAskResponse ask(String question) {
         String generatedSql = sqlGenerator.generateSql(question);
         if (ToolSearchSqlGenerator.CANNOT_ANSWER.equals(generatedSql)) {
-            return new ToolAskResponse("Saan aidata ainult saadaval tööriistade otsimisega.", List.of());
+            return new ToolAskResponse(List.of());
         }
 
         ToolSearchSqlValidator.ValidatedSql validatedSql = sqlValidator.validate(generatedSql);
         List<AvailableTool> tools = queryRepository.search(validatedSql);
-        String answer = tools.isEmpty()
-                ? "Sellele otsingule vastavaid saadaval tööriistu ei leitud."
-                : "Leidsin %d saadaval tööriista.".formatted(tools.size());
-        return new ToolAskResponse(answer, tools);
+        return new ToolAskResponse(tools);
     }
 }

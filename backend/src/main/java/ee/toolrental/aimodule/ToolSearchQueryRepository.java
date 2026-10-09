@@ -20,7 +20,6 @@ public class ToolSearchQueryRepository {
                 resultSet.getInt("tool_id"),
                 resultSet.getString("tool_name"),
                 resultSet.getString("category_name"),
-                null,
                 resultSet.getString("location_name")));
     }
 }

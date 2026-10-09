@@ -4,19 +4,19 @@
 
 ## Hetkeseis (mis on juba olemas)
 
-- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskResponse.java` — response record on praegu `answer` ja `List<AvailableTool> tools`.
-- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/AvailableTool.java` — sisaldab `toolId`, `name`, `category`, `city`, `district`.
-- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskService.java` — koostab praegu vastuse teise LLM kutsega ning tagastab tööriistaloendi.
+- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskResponse.java` — response record sisaldab nüüd ainult `List<AvailableTool> tools`.
+- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/AvailableTool.java` — sisaldab täpselt `toolId`, `name`, `category`, `location`; `location` on nullitav.
+- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskService.java` — annab AI-05 päringutulemused DTO-na edasi ega kasuta vastuse koostamiseks teist LLM kutset.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskController.java` — tagastab service response objekti otse Springi JSON serialiseerimiseks.
 - AI-01 fikseerib uue API lepingu; AI-02 kuni AI-05 annavad päringutulemused.
 
-Test-kaustu ei uuritud kasutaja juhise järgi.
+AI mooduli testide kasutamine on kasutaja poolt lubatud.
 
-## Puuduv/muudetav
+## AI-06 tulemus
 
-- Olemasoleva response sees olev `answer` väli ei kuulu uude lepingusse.
-- Tööriista asukoht on kahe välja `city` ja `district` asemel üks `location`.
-- SQL päringu tulemused tuleb siduda tegeliku `toolId`-ga; LLM-i kokkuvõtte väljundit ei kasutata andmeväljade allikana.
+- Response'is puudub `answer`; tööriista kirjes on üks `location` väli linnaosa nime või `null` väärtusega.
+- `toolId` ja ülejäänud kuvamisväljad tulevad AI-02 vaate tulemusest; LLM-i tekst ei muuda neid.
+- Controller tagastab uue DTO ning route ja päringu kuju jäid samaks.
 
 ## Sammud
 
@@ -43,9 +43,10 @@ Selle taski puhul ei muudeta erindite staatuseid. Tühja päringutulemuse korral
 
 ## Testid
 
-Hilisem teostus peab kontrollima JSON-i täpseid võtmeid ja tüüpe, `toolId` päritolu, asukoha väärtust ning tühja massiivi serialiseerimist. Testkaustu ei loetud ega teste käivitatud.
+`ToolAskControllerTest` kontrollib vastuse võtmeid, `toolId` väärtust, `location` väärtust ja `null` serialiseerimist, `answer`/vanade location väljade puudumist, tühja `tools` massiivi ning sisselogimise nõuet. `ToolAskServiceTest` ja `ToolSearchQueryRepositoryTest` kontrollivad vastuse andmete päritolu ja kaardistust.
 
-## Avatud küsimused
+Kontrolli tulemus: AI mooduli lõplikus viie sihttestiklassi käivituses läbisid 18 testi päris PostgreSQL-ühendusega.
 
-- AI-01 `location` puuduva väärtuse otsus peab enne response DTO lõplikku kuju olema tehtud.
-- Kas olemasolev `AvailableTool` nimetatakse ümber lepingut väljendavaks DTO-ks või muudetakse olemasolevat record'it, sõltub selle kasutusest mujal; enne refactorit tuleb kasutuskohad üle kontrollida.
+## Teostuse piir
+
+AI-01 otsus on `location: null`; `AvailableTool` kasutuskohtade kontroll näitas, et AI otsingust väljaspool see DTO kasutusel ei ole. DTO nime ei muudeta, et hoida käesolev muudatus väikese ja sihitud ulatusega. Frontendi üleminek AI-06 lepingule kuulub AI-07-sse.

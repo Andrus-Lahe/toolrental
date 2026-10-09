@@ -67,8 +67,7 @@ class ToolSearchQueryRepositoryTest {
         assertThat(results).hasSize(1);
         assertThat(results.getFirst().name()).isEqualTo(toolName);
         assertThat(results.getFirst().category()).isEqualTo(categoryName);
-        assertThat(results.getFirst().district()).isEqualTo(districtName);
-        assertThat(results.getFirst().city()).isNull();
+        assertThat(results.getFirst().location()).isEqualTo(districtName);
     }
 
     @Test

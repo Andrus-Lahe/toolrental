@@ -4,7 +4,6 @@ public record AvailableTool(
         Integer toolId,
         String name,
         String category,
-        String city,
-        String district
+        String location
 ) {
 }

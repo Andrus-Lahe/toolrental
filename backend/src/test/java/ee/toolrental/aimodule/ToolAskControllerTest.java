@@ -14,6 +14,7 @@ import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
+import org.hamcrest.Matchers;
 
 import java.util.List;
 
@@ -54,8 +55,9 @@ class ToolAskControllerTest {
     void loggedInUserReceivesOnlyPublicToolFields() throws Exception {
         String question = "Millised tööriistad on saadaval Kristiines?";
         when(toolAskService.ask(question)).thenReturn(new ToolAskResponse(
-                "Kristiines on saadaval Akutrell.",
-                List.of(new AvailableTool(1, "Akutrell", "Puurid", "Tallinn", "Kristiine"))));
+                List.of(
+                        new AvailableTool(12, "Akutrell", "Puurid", "Kristiine"),
+                        new AvailableTool(15, "Matkatelk", "Matkamine", null))));
 
         OidcIdToken token = OidcIdToken.withTokenValue("test-token")
                 .subject("test-user")
@@ -70,9 +72,36 @@ class ToolAskControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{\"question\":\"Millised tööriistad on saadaval Kristiines?\"}"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.answer").value("Kristiines on saadaval Akutrell."))
+                .andExpect(jsonPath("$.answer").doesNotExist())
+                .andExpect(jsonPath("$.tools[0].toolId").value(12))
                 .andExpect(jsonPath("$.tools[0].name").value("Akutrell"))
-                .andExpect(jsonPath("$.tools[0].district").value("Kristiine"))
-                .andExpect(jsonPath("$.tools[0].email").doesNotExist());
+                .andExpect(jsonPath("$.tools[0].category").value("Puurid"))
+                .andExpect(jsonPath("$.tools[0].location").value("Kristiine"))
+                .andExpect(jsonPath("$.tools[0].city").doesNotExist())
+                .andExpect(jsonPath("$.tools[0].district").doesNotExist())
+                .andExpect(jsonPath("$.tools[0].email").doesNotExist())
+                .andExpect(jsonPath("$.tools[1].location").value(Matchers.nullValue()));
+    }
+
+    @Test
+    void loggedInUserReceivesEmptyToolsArrayWhenThereAreNoMatches() throws Exception {
+        String question = "Millised tööriistad on saadaval Kristiines?";
+        when(toolAskService.ask(question)).thenReturn(new ToolAskResponse(List.of()));
+
+        OidcIdToken token = OidcIdToken.withTokenValue("test-token")
+                .subject("test-user")
+                .build();
+        var authorities = List.of(new SimpleGrantedAuthority("ROLE_customer"));
+        var principal = new AppUserPrincipal(1, authorities, token, null);
+        var authToken = new OAuth2AuthenticationToken(principal, authorities, "google");
+
+        mockMvc.perform(post("/api/ai/ask")
+                        .with(authentication(authToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"question\":\"Millised tööriistad on saadaval Kristiines?\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.answer").doesNotExist())
+                .andExpect(jsonPath("$.tools").isArray())
+                .andExpect(jsonPath("$.tools").isEmpty());
     }
 }

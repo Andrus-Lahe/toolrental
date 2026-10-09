@@ -25,12 +25,11 @@ class ToolAskServiceTest {
         ToolSearchSqlGenerator generator = mock(ToolSearchSqlGenerator.class);
         ToolSearchQueryRepository repository = mock(ToolSearchQueryRepository.class);
         when(generator.generateSql(QUESTION)).thenReturn(VALID_SQL);
-        AvailableTool tool = new AvailableTool(12, "Akutrell", "Ehitustööd", null, "Kristiine");
+        AvailableTool tool = new AvailableTool(12, "Akutrell", "Ehitustööd", "Kristiine");
         when(repository.search(any())).thenReturn(List.of(tool));
 
         ToolAskResponse response = new ToolAskService(generator, new ToolSearchSqlValidator(), repository).ask(QUESTION);
 
-        assertThat(response.answer()).isEqualTo("Leidsin 1 saadaval tööriista.");
         assertThat(response.tools()).containsExactly(tool);
         var order = inOrder(generator, repository);
         order.verify(generator).generateSql(QUESTION);
@@ -45,7 +44,6 @@ class ToolAskServiceTest {
 
         ToolAskResponse response = new ToolAskService(generator, new ToolSearchSqlValidator(), repository).ask(QUESTION);
 
-        assertThat(response.answer()).isEqualTo("Saan aidata ainult saadaval tööriistade otsimisega.");
         assertThat(response.tools()).isEmpty();
         verify(repository, never()).search(any());
     }
