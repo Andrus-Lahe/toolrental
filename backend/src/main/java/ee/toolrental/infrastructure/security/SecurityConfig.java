@@ -34,8 +34,9 @@ public class SecurityConfig {
                         .failureUrl(FRONTEND_URL + "?loginError"))
                 .exceptionHandling(e -> e.authenticationEntryPoint((request, response, exception) -> {
                     response.setStatus(HttpStatus.UNAUTHORIZED.value());
-                    if (HttpMethod.GET.matches(request.getMethod())
-                            && request.getRequestURI().equals(request.getContextPath() + "/api/users/me/tools")) {
+                    String path = request.getRequestURI().substring(request.getContextPath().length());
+                    if ((HttpMethod.GET.matches(request.getMethod()) && path.equals("/api/users/me/tools"))
+                            || (HttpMethod.POST.matches(request.getMethod()) && path.equals("/api/ai/ask"))) {
                         response.setContentType(MediaType.APPLICATION_JSON_VALUE);
                         response.setCharacterEncoding("UTF-8");
                         response.getWriter().write(
