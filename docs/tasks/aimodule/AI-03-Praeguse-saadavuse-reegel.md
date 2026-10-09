@@ -40,6 +40,6 @@ Vt [2_create.sql](../../database/2_create.sql). AI-02 piiratud vaade peab selle 
 
 Saadavuse arvutamise andmebaasitõrge on serveriviga ning käsitletakse AI-08 taski järgi. Tühja tulemust ei käsitleta veana.
 
-## Avatud küsimused
+## Kuupäevaallika kooskõla
 
-- Projekti andmebaasi sessiooni ajavööndit ei fikseeri `2_create.sql`; teostusel tuleb kontrollida, et `Europe/Tallinn` tänane kuupäev jõuaks vaatesse üheselt. Kui vaade kasutab andmebaasi `CURRENT_DATE` väärtust, peab selle ajavööndi leping olema tagatud.
+- AI-02 vaade teisendab andmebaasi `CURRENT_TIMESTAMP` selgesõnaliselt `Europe/Tallinn` ajavööndisse. Praegune intent-põhine Java otsing kasutab rakenduse `Clock` bean'i, mille tsoon on samuti `Europe/Tallinn`.

@@ -4,15 +4,19 @@ import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Repository;
 
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
 public class AvailableToolRepository {
 
     private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final Clock clock;
 
-    public AvailableToolRepository(NamedParameterJdbcTemplate jdbcTemplate) {
+    public AvailableToolRepository(NamedParameterJdbcTemplate jdbcTemplate, Clock clock) {
         this.jdbcTemplate = jdbcTemplate;
+        this.clock = clock;
     }
 
     public List<String> cityNames() {
@@ -40,9 +44,17 @@ public class AvailableToolRepository {
                 LEFT JOIN tool_rental.district d ON d.id = l.district_id
                 LEFT JOIN tool_rental.city ci ON ci.id = d.city_id
                 WHERE t.status = 'A'
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM tool_rental.booking b
+                      WHERE b.tool_id = t.id
+                        AND b.status = 'C'
+                        AND :today BETWEEN b.start_date AND b.end_date
+                  )
                 """);
 
-        MapSqlParameterSource parameters = new MapSqlParameterSource();
+        MapSqlParameterSource parameters = new MapSqlParameterSource()
+                .addValue("today", LocalDate.now(clock));
         if (city != null) {
             sql.append(" AND ci.city_name = :city");
             parameters.addValue("city", city);
