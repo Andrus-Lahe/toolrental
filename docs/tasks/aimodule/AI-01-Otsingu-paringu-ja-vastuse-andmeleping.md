@@ -67,7 +67,7 @@ Näite ID-d, tööriistad ja kategooriad vastavad faili [3_import.sql](../../dat
 | `tools[].toolId` | täisarv | Tööriista ID. Kasutajaliides kasutab seda olemasoleva `/tools/{toolId}` detailmarsruudi avamiseks. |
 | `tools[].name` | string | Tööriista nimi tabelist `tool`. See ei ole omaniku ega muu kasutaja nimi. |
 | `tools[].category` | string | Tööriista kategooria nimi. |
-| `tools[].location` | string või `null`* | Tööriista omaniku asukoha linnaosa nimi, näiteks `Kristiine`; täpset tänava-aadressi ega koordinaate ei tagastata. Puuduva asukoha käsitlus on avatud küsimus allpool. |
+| `tools[].location` | string või `null` | Tööriista omaniku asukoha linnaosa nimi, näiteks `Kristiine`; täpset tänava-aadressi ega koordinaate ei tagastata. Kui omanikul puudub profiil või asukoht, jääb tööriist tulemusse ja väärtus on `null`. |
 
 Vaste puudumise näide:
 
@@ -107,11 +107,11 @@ Vt [2_create.sql](../../database/2_create.sql) ja [3_import.sql](../../database/
 - [ ] `toolId` väärtus on olemasoleva tööriista ID ja sobib `/tools/{toolId}` detailmarsruudi moodustamiseks.
 - [ ] `name` tähistab tööriista nime, mitte kasutaja nime.
 - [ ] Olemasoleva asukoha korral sisaldab `location` linnaosa nime, mitte tänava-aadressi ega koordinaate.
+- [ ] Puuduva omaniku profiili või asukoha korral jääb sobiv tööriist tulemusse väärtusega `location: null`.
 - [ ] Vaste puudumise korral tagastatakse HTTP 200 ja `tools: []`.
 - [ ] Vastuses puuduvad vabatekstiline `answer`, omaniku/rentniku nimed, e-postid, telefonid ja `google_sub`.
 - [ ] Päringu valideerimise, sisselogimise ja ootamatu vea staatused vastavad kirjeldatud lepingule.
 
 ## Avatud küsimused
 
-- Kui tööriista omanikul puudub profiil või asukoht, kas tulemus jääb loendisse `location: null` väärtusega või jäetakse asukohata tööriist välja? Skeem lubab profiili puududa, seega tuleb see käitumine enne lepingu lõplikku kinnitamist valida.
 - Kas `location` jääb ainult linnaosa nimeks ka siis, kui sama linnaosa nimi esineb mitmes linnas? Antud kasutajanäide kuvab ainult `Kristiine`; linna lisamist lepingusse pole praegu määratud.

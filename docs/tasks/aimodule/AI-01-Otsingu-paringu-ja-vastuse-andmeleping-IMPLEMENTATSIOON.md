@@ -23,6 +23,7 @@ Taski AI-01 tulemus on API lepingu fikseerimine. NL→SQL teostus, turvaline and
 - Lepingus tuleb asendada praegune vastuse kirjeldus `answer` + `tools` lepinguga vastusega `tools[]`, kus igal kirjel on `toolId`, `name`, `category` ja `location`.
 - Leping peab fikseerima tühja tulemuse, valideerimisvea, autentimise ja serverivea käitumise.
 - Lepingus tuleb selgelt öelda, et `toolId` on UI detailmarsruudi jaoks ning isikuandmeid API vastusesse ei lisata.
+- Puuduva omaniku profiili või asukoha korral jääb sobiv tööriist tulemusse ja `location` väärtus on `null`.
 - Tootmiskoodi ei muudeta selle dokumentatsioonitaski käigus. API DTO ja Vue vaate teostus tehakse neile eraldatud hilisemates taskides.
 
 ## Sammud
@@ -35,6 +36,7 @@ Taski AI-01 tulemus on API lepingu fikseerimine. NL→SQL teostus, turvaline and
    - Kirjelda juurtaseme `tools` massiivi ning välju `toolId`, `name`, `category`, `location`.
    - Kasuta JSON näites `docs/database/3_import.sql` tegelikke tööriista-, kategooria- ja asukohaväärtusi.
    - Määra, et vastuse eesmärk on struktureeritud loend; vaba `answer` teksti genereerimine pole selle lepingu osa.
+   - Määra puuduva profiili või asukoha korral `location: null`, jättes tööriista tulemusse.
 
 3. **Fikseeri vead ja tühitulemus** — sama fail.
    - Kirjelda `400` valideerimisvea ning olemasoleva `ApiError` kuju.
@@ -55,6 +57,5 @@ See task fikseerib API lepingu dokumentatsioonis ega muuda koodi, seega käitusa
 
 ## Avatud küsimused
 
-- Kui tööriista omanikul puudub profiil/asukoht, kas tulemus jääb `location: null` väärtusega loendisse või jäetakse asukohata tööriist otsingutulemustest välja?
 - Kas `location` jääb linnaosa nimeks (näiteks `Kristiine`) või peab tulevikus sisaldama ka linna, et eristada sama nimega linnaosi eri linnades?
 - Backend `ToolAskResponse` ja frontend `AiSearchView.vue` kasutavad praegu `answer` ning `tools` koos `city` ja `district` väljadega. Uus leping muudab seda kuju; muudatuse teostus ja kooskõlastatud väljalase kuuluvad hilisematesse AI taskidesse.
