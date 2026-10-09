@@ -21,29 +21,48 @@
     <p v-if="error" class="alert alert-danger" role="alert">{{ error }}</p>
     <p v-if="needsLogin"><a href="/oauth2/authorization/google">Logi Google’iga sisse</a></p>
 
-    <section v-if="answer" aria-live="polite">
-      <h2>Vastus</h2>
-      <p>{{ answer }}</p>
+    <section v-if="hasSearched" aria-live="polite">
       <ul v-if="tools.length" class="list-group">
         <li v-for="tool in tools" :key="tool.toolId" class="list-group-item">
-          <strong>{{ tool.name }}</strong> · {{ tool.category }}
-          <span v-if="tool.district"> · {{ tool.district }}</span>
+          <RouterLink :to="{ name: 'toolDetailRoute', params: { toolId: tool.toolId } }">
+            {{ tool.name }}
+          </RouterLink>
+          · {{ tool.category }}<span v-if="tool.location"> · {{ tool.location }}</span>
         </li>
       </ul>
+      <p v-else role="status">Sellele otsingule vastavaid praegu saadaval tööriistu ei leitud.</p>
     </section>
   </main>
 </template>
 
 <script>
 import axios from 'axios'
+import { RouterLink } from 'vue-router'
+
+function isValidToolSearchResponse(data) {
+  if (!data || !Array.isArray(data.tools)) return false
+
+  const ids = new Set()
+  return data.tools.every((tool) => {
+    if (!tool || !Number.isInteger(tool.toolId) || tool.toolId < 1 || tool.toolId > 2147483647) return false
+    if (ids.has(tool.toolId)) return false
+    if (typeof tool.name !== 'string' || !tool.name.trim()) return false
+    if (typeof tool.category !== 'string' || !tool.category.trim()) return false
+    if (tool.location !== null && (typeof tool.location !== 'string' || !tool.location.trim())) return false
+
+    ids.add(tool.toolId)
+    return true
+  })
+}
 
 export default {
   name: 'AiSearchView',
+  components: { RouterLink },
   data() {
     return {
       question: '',
-      answer: '',
       tools: [],
+      hasSearched: false,
       busy: false,
       error: '',
       needsLogin: false,
@@ -54,16 +73,21 @@ export default {
       if (!this.question || this.busy) return
       this.busy = true
       this.error = ''
-      this.answer = ''
       this.tools = []
+      this.hasSearched = false
       this.needsLogin = false
 
-      axios.post('/api/ai/ask', { question: this.question })
+      return axios.post('/api/ai/ask', { question: this.question })
         .then((response) => {
-          this.answer = response.data.answer
-          this.tools = response.data.tools ?? []
+          if (!isValidToolSearchResponse(response.data)) {
+            throw new Error('Invalid AI tool search response')
+          }
+          this.tools = response.data.tools
+          this.hasSearched = true
         })
         .catch((error) => {
+          this.tools = []
+          this.hasSearched = false
           if (error.response?.status === 401) {
             this.needsLogin = true
             this.error = 'Tööriistade küsimiseks logi esmalt sisse.'

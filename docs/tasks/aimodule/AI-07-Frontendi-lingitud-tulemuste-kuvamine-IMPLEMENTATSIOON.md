@@ -4,16 +4,17 @@
 
 ## Hetkeseis (mis on juba olemas)
 
-- `/mnt/c/Users/opilane/IdeaProjects/toolrental/frontend/src/views/AiSearchView.vue` — sisaldab küsimuse vormi, `axios.post('/api/ai/ask', ...)` kutset ja `tools` massiivi loendit; nimi kuvatakse praegu `<strong>` elemendina ning vastuse `answer` tekst kuvatakse eraldi.
+- `/mnt/c/Users/opilane/IdeaProjects/toolrental/frontend/src/views/AiSearchView.vue` — sisaldab nüüd küsimuse vormi, API kutset ning AI-06 lepinguga lingitud `tools` loendit.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/frontend/src/router/index.js` — registreerib `toolDetailRoute` marsruudi `/tools/:toolId`.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/frontend/src/views/ToolDetailView.vue` — olemasolev tööriista detailvaade.
 - AI-06 response leping sisaldab `toolId`, `name`, `category`, `location` ning ei sisalda enam `answer` välja.
 
-## Puuduv/muudetav
+## AI-07 tulemus
 
-- Tulemuse nimi pole link.
-- Vaade ootab praegu `answer` välja ja kasutab asukoha väljana `district`.
-- Tühitulemuse kuvamine tuleb kooskõlastada AI-08 taskiga.
+- Tulemuse nimi kasutab olemasolevat `toolDetailRoute` marsruuti koos API `toolId` väärtusega.
+- Vastuses loetakse `location`; `answer`-i ja vana `district`-välja sõltuvust ei ole.
+- Tühi edukas vastus, 401 ning üldine API viga kuvatakse eraldi olekutena.
+- Valideerimata või vigase kujuga response loetakse päringuveaks; selle põhjal linke ei looda.
 
 ## Sammud
 
@@ -39,8 +40,10 @@ API veakäsitlus jääb AI-08 taski järgi. Link ise ei tohi tekkida puuduva võ
 
 ## Testid
 
-Hilisem UI kontroll peaks kinnitama kuvateksti, õiget route nime/`toolId` parameetrit, eemaldatud `answer` sõltuvust ning tühja/vea oleku nähtavust. Testkaustu ei loetud ega teste käivitatud.
+Lisatud `frontend/tests/ai-search.test.js` katab API body, uue väljade kuju, named route ja `toolId` kasutuse, tühja vastuse, vigase response'i ning 401/üldise vea käitumise.
 
-## Avatud küsimused
+Kontrolli tulemus: kõik 4 AI otsingu testi läbisid; `npm run build` läbis Vite tootmisbuild'i.
 
-- Asukoha puuduva väärtuse kuvamine tuleb joondada AI-01 kinnitatud lepinguga.
+## Teostuse piir
+
+Kui `location` on `null`, jäetakse asukoha osa kuvamata. AI-05 `CANNOT_ANSWER` vastab praegu tühja tulemusega; AI-08 peab lisama sellele eristatava backend-vea, et kasutajale ei näidataks eksitavat tühitulemuse teadet.

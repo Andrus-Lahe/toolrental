@@ -14,20 +14,20 @@ Tööriista nimi navigeerib Vue Routeri marsruudile `/tools/{toolId}`. API-st ei
 
 ## Vastuvõtu kriteeriumid
 
-- [ ] AI otsinguvaade loeb AI-06 response JSON-ist `tools` massiivi.
-- [ ] Iga tulemus kuvab nime, kategooria ja asukoha kokkulepitud järjekorras.
-- [ ] Tööriista nimi on klaviatuuriga kasutatav link.
-- [ ] Lingile vajutamine avab `/tools/{toolId}` olemasoleva tööriistadetaili marsruudi.
-- [ ] Link kasutab API `toolId` väärtust, mitte loendipositsiooni ega nime.
-- [ ] Vaade ei sõltu enam API vabatekstilisest `answer` väljast.
-- [ ] Loading- ja päringu tegemise käitumine säilib.
-- [ ] Tühja tulemuse ja API vea tekstid vastavad AI-08 taskile.
+- [x] AI otsinguvaade loeb AI-06 response JSON-ist `tools` massiivi.
+- [x] Iga tulemus kuvab nime, kategooria ja olemasoleva asukoha kokkulepitud järjekorras.
+- [x] Tööriista nimi on klaviatuuriga kasutatav link.
+- [x] Lingile vajutamine avab `/tools/{toolId}` olemasoleva tööriistadetaili marsruudi.
+- [x] Link kasutab API `toolId` väärtust, mitte loendipositsiooni ega nime.
+- [x] Vaade ei sõltu enam API vabatekstilisest `answer` väljast.
+- [x] Loading- ja päringu tegemise käitumine säilib.
+- [x] Tühitulemuse ning 401/üldise API vea tekstid on eristatud; AI-08 täpsustab mittetoetatava küsimuse veakäsitluse.
 
 ## Seotud failid
 
 - `frontend/src/views/AiSearchView.vue` — olemasolev AI otsingu vorm ja tulemuste loend.
 - `frontend/src/router/index.js` — olemasolev `/tools/:toolId` (`toolDetailRoute`) marsruut.
 
-## Avatud küsimused
+## Teostuse piir
 
-- Tühja või puuduva asukoha visuaalne kuvamine sõltub AI-01 otsusest ja määratakse AI-08/teostuse käigus.
+AI-01 järgi on puuduva asukoha väärtus `null`; sellisel juhul jätab vaade asukoha ja selle ees oleva eraldaja kuvamata. AI-05 tagastab praegu `CANNOT_ANSWER` korral tühja `tools` massiivi, mistõttu see näib ajutiselt tühitulemusena; AI-08 peab selle eraldi veana esitama.
