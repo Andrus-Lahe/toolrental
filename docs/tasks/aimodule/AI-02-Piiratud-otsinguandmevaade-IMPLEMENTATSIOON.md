@@ -6,15 +6,16 @@
 
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/docs/database/2_create.sql` — määrab PostgreSQL tabelid `tool`, `category`, `booking`, `profile`, `location` ja `district`.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/docs/database/3_import.sql` — sisaldab näidisandmeid, mille abil asukoha ja kategooria seoseid kontrollida.
-- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/AvailableToolRepository.java` — kasutab praegu baastabeleid otse; päring seob tool → profile → location → district ning category, kuid ei arvuta broneeringu saadavust.
+- Varasem `AvailableToolRepository` kasutas baastabeleid otse; see eemaldati AI-05-s aktiivse otsingutee lihtsustamisel.
+- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolSearchQueryRepository.java` — aktiivne AI otsing loeb nüüd ainult piiratud vaadet.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/AvailableTool.java` — praegune Java tulemus sisaldab `toolId`, `name`, `category`, `city` ja `district`.
 
-Test-kaustu ei uuritud, järgides kasutaja juhist.
+AI-02 teostuse ajal ei uuritud teste. Kasutaja lubas testide kasutamise hiljem ning AI-05 lisas vaate vastu PostgreSQL-i integratsioonitestid.
 
 ## Puuduv/muudetav
 
 - Piiratud vaate DDL oli skeemis puudu; see lisati `docs/database/2_create.sql` faili.
-- Praegune intent-põhine Java otsingurepositoorium kasutab baastabeleid serveripoolses koodis; mudelile nähtava SQL-i prompt ning selle käivitamise piirangud tehakse hiljem AI-04/AI-05-s.
+- Intent-põhine baastabelipõhine Java otsing eemaldati AI-05-s; mudeli päringut piirab nüüd AI-04 prompt ja AI-05 validaator.
 - AI-01 fikseerib puuduva profiili/asukoha korral `location_name = NULL`, jättes tööriista vaatesse.
 - AI-03 fikseerib saadavuse reegli ning `Europe/Tallinn` kuupäeva kasutamise.
 
@@ -33,7 +34,7 @@ Test-kaustu ei uuritud, järgides kasutaja juhist.
 
 3. **Dokumenteeri mudeli andmeallika piir** — fail: `/mnt/c/Users/opilane/IdeaProjects/toolrental/docs/tasks/aimodule/AI-02-Piiratud-otsinguandmevaade.md`
    - Määra see vaade ainsaks mudelile lubatud otsinguandmeallikaks.
-   - Jäta prompti muudatus AI-04 ja SQL-i käivitamise kontroll AI-05 teostada; AI-02 ei muuda intent-põhist Java otsingurepositooriumi.
+   - Jäta prompti muudatus AI-04 ja SQL-i käivitamise kontroll AI-05 teostada.
 
 ## Veakäsitlus
 
@@ -41,8 +42,8 @@ Runtime päringu vead kuuluvad AI-08 üldise API veakäsitluse alla. DDL-i sünt
 
 ## Testid
 
-Skeemi loomise järel kontrolli, et vaade tagastab õige kategooria ja linnaosa, ühe rea tööriista kohta ning ainult lubatud veerud. Kontrolli saadavuse arvutust AI-03 juhtumitega. Teste ei käivitatud ega lisatud selle plaani koostamise käigus.
+Vaate tulemusi, lubatud välju ja AI-03 saadavust kontrollib PostgreSQL-i integratsioonitest `ToolSearchQueryRepositoryTest`, mis lisati AI-05 käigus.
 
 ## Teostuse piir
 
-Vaade on loodud `docs/database/2_create.sql` skeemi allikasse. AI-04 lisab mudeli prompti, mis nimetab lubatud allikana ainult seda vaadet; AI-05 peab piirama päringu käivitamise samale vaatele. Praeguse intent-põhise otsingu Java päringukiht ei käivita mudeli koostatud SQL-i ning selle ümbertegemine ei kuulu AI-02-sse.
+Vaade on loodud `docs/database/2_create.sql` skeemi allikasse. AI-04 prompt ja AI-05 validaator ning repository piiravad aktiivse NL→SQL päringu samale vaatele.

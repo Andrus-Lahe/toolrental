@@ -4,7 +4,7 @@
 
 ## Eesmärk
 
-Luua eraldiseisev NL→SQL generaator. LLM saab kasutaja küsimuse ning AI-02 vaate lubatud skeemi kirjelduse ja koostab SQL päringu, mis filtreerib AI-03 reegli järgi praegu saadaval tööriistad. Päringu valideerimine ja käivitamine ning generaatori ühendamine otsingu käitusvooga kuuluvad AI-05-sse, et valideerimata SQL ei jõuaks andmebaasi.
+Luua NL→SQL generaator. LLM saab kasutaja küsimuse ning AI-02 vaate lubatud skeemi kirjelduse ja koostab SQL päringu, mis filtreerib AI-03 reegli järgi praegu saadaval tööriistad. AI-05 ühendab generaatori otsingu käitusvooga, valideerib SQL-i ning käivitab selle ainult pärast kontrolli läbimist.
 
 LLM ei saa andmebaasiühendust ega isikuandmeid. Ta väljastab päringuteksti; päringu kontroll ja käivitamine kuuluvad AI-05 taski.
 
@@ -36,4 +36,4 @@ Mudeliteenuse tõrge või tühi vastus ei anna andmebaasipäringut. Selle API st
 
 ## Teostuse piir
 
-AI-04 loob ja testib SQL-i generaatori. Olemasolev intent-põhine endpoint jääb käesolevas etapis käigus; AI-05 vahetab selle valideeritud NL→SQL käitusvoo vastu. AI-04 ei käivita mudeli vastust andmebaasis ega tagasta SQL-i kasutajale.
+Generaator ise ei saa andmebaasi ühendust ning tema väljundit ei tohi eraldi käivitada. AI-05 vastutab validaatori läbimisest sõltuva andmebaasi käivitamise eest; genereeritud SQL-i ei tagastata kasutajale.

@@ -4,8 +4,8 @@
 
 ## Hetkeseis (mis on juba olemas)
 
-- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskService.java` — olemasolev endpoint kasutab veel intent/filtri voogu; AI-05 ühendab selle uue validaatoriga.
-- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolSearchIntent.java` — olemasoleva endpointi DTO; eemaldamine kuulub AI-05 käitusvoo muutmise juurde.
+- `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/java/ee/toolrental/aimodule/ToolAskService.java` — kasutab AI-04 generaatorit ja AI-05 valideeritud päringu pipeline'i.
+- `ToolSearchIntent` — vana intent-DTO eemaldati AI-05 käigus koos selle kasutamata baastabelipõhise otsinguga.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/resources/application.properties` — Google GenAI mudeli ning API võtme konfiguratsioon on olemas.
 - `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/build.gradle` — Spring AI Google GenAI starter on lisatud.
 - AI-02 piiratud vaade ja AI-03 `is_available_now` reegel on eeltingimused; neid taskide faile tuleb enne prompti lõplikku seadmist järgida.
@@ -13,8 +13,7 @@
 ## Puuduv/muudetav
 
 - Eraldiseisvat NL→SQL generaatorit pole.
-- Praegune intent-põhine endpoint jääb aktiivseks kuni AI-05 lisab SQL-i kontrolli ja käivitamise.
-- SQL teksti genereerimine peab olema eraldatud SQL-i kontrollist ja käivitamisest.
+- AI-04 generaator on eraldatud kontrollist ja käivitamisest; AI-05 viib nende vahele valideerimiskihi.
 
 ## Sammud
 
@@ -25,7 +24,7 @@
    - Mittetoetatava küsimuse korral tagasta marker `CANNOT_ANSWER`; ära anna seda edasi SQL-i käivitajale.
    - Ära lisa prompti toorandmeid, emaili, telefoninumbrit, kasutajate nimesid ega tabeliskeemi, mida otsing ei vaja.
 
-2. **Hoia generaator lahus otsingu käitusvoost** — AI-05 muudab hiljem `ToolAskService`-it ning eemaldab `ToolSearchIntent`-i, kui validaator saab SQL-i enne käivitamist kontrollida.
+2. **Hoia generaator lahus SQL-i kontrollist** — `ToolAskService` saadab väljundi esmalt AI-05 validaatorile. SQL käivitub ainult valideerimise järel.
 
 3. **Hoia mudeli seaded keskkonnakonfiguratsioonis** — fail: `/mnt/c/Users/opilane/IdeaProjects/toolrental/backend/src/main/resources/application.properties`
    - Taaskasuta olemasolevat Google GenAI konfiguratsiooni; siinne task ei vaheta mudelit ega lisa uut teenusepakkujat.
@@ -40,4 +39,4 @@ Tühi või mudeliteenuse veavastus ei tohi SQL-i täitmise etappi jõuda. Erindi
 
 ## Teostuse piir
 
-SQL-i genereerimine ei tähenda, et väljund oleks usaldatud või käivitamiseks valmis. AI-05 peab markeri eraldama, ülejäänud SQL-i valideerima ning käivitama ainult lubatud tingimustele vastava päringu.
+SQL-i genereerimine ei tähenda, et väljund oleks usaldatud või käivitamiseks valmis. AI-05 eraldab markeri, valideerib ülejäänud päringu ning käivitab ainult lubatud tingimustele vastava SQL-i.

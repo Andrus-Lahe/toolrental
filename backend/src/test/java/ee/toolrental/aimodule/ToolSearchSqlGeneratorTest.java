@@ -48,7 +48,7 @@ class ToolSearchSqlGeneratorTest {
         verify(chatClient.prompt(), atLeastOnce()).system(systemPromptCaptor.capture());
         assertThat(systemPromptCaptor.getValue())
                 .contains("tool_rental.ai_tool_search", "is_available_now = TRUE", "tool_id",
-                        "tool_name", "category_name", "location_name", "CANNOT_ANSWER")
+                        "tool_name", "category_name", "location_name", "CANNOT_ANSWER", "AND", "LIMIT 20")
                 .doesNotContain("google_sub", "email", "profile");
     }
 
