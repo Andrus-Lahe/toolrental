@@ -27,7 +27,7 @@ public class ToolSearchQueryRepository {
     public List<ToolSearchCandidate> findVisibleTools() {
         return jdbcTemplate.query("""
                 SELECT tool_id, tool_name, tool_description, category_name, location_name,
-                       is_available_now
+                       city_name, is_available_now
                 FROM tool_rental.ai_tool_search
                 WHERE is_visible = TRUE
                 ORDER BY tool_id ASC
@@ -37,7 +37,7 @@ public class ToolSearchQueryRepository {
     public List<ToolSearchCandidate> findVisibleToolsByExactName(String name) {
         return jdbcTemplate.query("""
                 SELECT tool_id, tool_name, tool_description, category_name, location_name,
-                       is_available_now
+                       city_name, is_available_now
                 FROM tool_rental.ai_tool_search
                 WHERE is_visible = TRUE AND LOWER(tool_name) = LOWER(:name)
                 ORDER BY tool_id ASC
@@ -52,6 +52,7 @@ public class ToolSearchQueryRepository {
                 resultSet.getString("tool_description"),
                 resultSet.getString("category_name"),
                 resultSet.getString("location_name"),
+                resultSet.getString("city_name"),
                 resultSet.getBoolean("is_available_now"));
     }
 

@@ -22,9 +22,9 @@ class ToolAskServiceTest {
         ToolSearchMatcher matcher = mock(ToolSearchMatcher.class);
         ToolSearchAnswerGenerator answerGenerator = mock(ToolSearchAnswerGenerator.class);
         ToolSearchCandidate mower = new ToolSearchCandidate(12, "Muruniiduk", "Muru niitmiseks",
-                "Aiatööd", "Kristiine", true);
+                "Aiatööd", "Kristiine", "Tallinn", true);
         ToolSearchCandidate trimmer = new ToolSearchCandidate(13, "Trimmer", "Muru servade pügamiseks",
-                "Aiatööd", "Kristiine", false);
+                "Aiatööd", "Kristiine", "Tallinn", false);
         when(repository.findVisibleToolsByExactName(QUESTION)).thenReturn(List.of());
         when(repository.findVisibleTools()).thenReturn(List.of(mower, trimmer));
         when(matcher.findMatchingToolIds(QUESTION, List.of(mower, trimmer))).thenReturn(List.of(12, 13, 999));
@@ -50,7 +50,7 @@ class ToolAskServiceTest {
         ToolSearchAnswerGenerator answerGenerator = mock(ToolSearchAnswerGenerator.class);
         String toolName = "Muruniiduk";
         ToolSearchCandidate mower = new ToolSearchCandidate(12, toolName, "Muru niitmiseks",
-                "Aiatööd", "Kristiine", true);
+                "Aiatööd", "Kristiine", "Tallinn", true);
         when(repository.findVisibleToolsByExactName(toolName)).thenReturn(List.of(mower));
         when(answerGenerator.generateAnswer(new ToolSearchAnswerContext(toolName, 1, 1,
                 "Kristiine", "Aiatööd"))).thenReturn("Muruniiduk on saadaval.");
