@@ -2,11 +2,9 @@
 
 **Teenus:** `POST /api/ai/ask`
 
-**Vaste balsamic mockupis:** ChatbotWidget.vue, pilt failist [Vestlusrobot.rtf](../../../balsamic/notes/Vestlusrobot.rtf). Märkmed: [ChatbotWidget-markmed.md](../../../balsamic/notes/ChatbotWidget-markmed.md).
+**Vaste balsamic mockupis:** ChatbotWidget.vue, mockupi pilti pole. Märkmed: [ChatbotWidget-markmed.md](../../../balsamic/notes/ChatbotWidget-markmed.md).
 
-![Mockup](./Tooriistade-otsing-vestlusrobotiga.png)
-
-**Kasutaja juhis:** pilt on Elisa vestlusakna eeskuju. Laenuka robot on „Abimees Pets“, kirjaklambrit (faili lisamist) ei ole. Endpoint `POST /api/ai/ask` on koodis juba olemas (`ToolAskController`, `ToolAskService`, `AvailableToolRepository`), samuti sisendi valideerimine ja 401 JSON-vastus. **Selle taski uus osa on AI turvakiht ja kutsete mõõdikud**, mis tulevad näidisprojekti failist [Safety_rules_examples.txt](../../../balsamic/notes/Safety_rules_examples.txt) ja on kohandatud toolrental projektile (vt jaotis „AI turvakiht ja mõõdikud“).
+**Kasutaja juhis:** Laenuka robot on „Abimees Pets“, kirjaklambrit (faili lisamist) ei ole. Endpoint `POST /api/ai/ask` on koodis juba olemas (`ToolAskController`, `ToolAskService`, `AvailableToolRepository`), samuti sisendi valideerimine ja 401 JSON-vastus. **Selle taski uus osa on AI turvakiht ja kutsete mõõdikud**, mis tulevad näidisprojekti failist [Safety_rules_examples.txt](../../../balsamic/notes/Safety_rules_examples.txt) ja on kohandatud toolrental projektile (vt jaotis „AI turvakiht ja mõõdikud“).
 
 ## Sisend
 

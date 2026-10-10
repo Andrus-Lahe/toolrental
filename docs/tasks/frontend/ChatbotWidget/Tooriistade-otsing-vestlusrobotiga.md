@@ -4,11 +4,9 @@
 
 **Roll:** Customer, Admin (külastajale vestlusakent ei kuvata).
 
-**Vaste balsamic mockupis:** vestlusakna pilt failist [Vestlusrobot.rtf](../../../balsamic/notes/Vestlusrobot.rtf). PDF-i lehte selle vaate kohta pole.
+**Vaste balsamic mockupis:** mockupi pilti ega PDF-i lehte selle vaate kohta pole.
 
-![Mockup](./Tooriistade-otsing-vestlusrobotiga.png)
-
-Alus: [ChatbotWidget märkmed](../../../balsamic/notes/ChatbotWidget-markmed.md) ja [vestlusroboti BE-task](../../backend/ChatbotWidget/Tooriistade-otsing-vestlusrobotiga.md). Pilt on Elisa vestlusakna eeskuju. Laenuka robot on **„Abimees Pets“**. Elisa nime, „Annika“ teksti ega kirjaklambri ikooni ei kasutata.
+Alus: [ChatbotWidget märkmed](../../../balsamic/notes/ChatbotWidget-markmed.md) ja [vestlusroboti BE-task](../../backend/ChatbotWidget/Tooriistade-otsing-vestlusrobotiga.md). Laenuka robot on **„Abimees Pets“**. Kirjaklambri ikooni ei ole.
 
 ## Kasutajavoog
 
@@ -120,13 +118,13 @@ Veateate kuvamisel kasuta backendi `error.response.data.message` välja. Kui see
 | `frontend/src/router/index.js` | Rada `/ai-search` (`aiSearchRoute`) on olemas | **Eemalda** rada ja `AiSearchView` import. |
 | `frontend/src/navigation/AppHeader.vue` | Link „AI otsing“ (`/ai-search`) on kõigile nähtav | **Eemalda** link. |
 
-Vestlusakna kujundus (värvid, mullid) järgib projekti olemasolevat teemat. Pildi Elisa sinist värvi ei kopeerita.
+Vestlusakna kujundus (värvid, mullid) järgib projekti olemasolevat teemat.
 
 ## Vastuvõtu kriteeriumid
 
 - [ ] Sisse logitud Customer ja Admin näevad igal lehel paremas alanurgas vestlusnuppu. Külastaja ei näe seda, ka siis mitte, kui `session.status` on `loading` või `error`.
 - [ ] Aken avaneb pealkirjaga „Abimees Pets“ ja tervitusega „Tere! Mina olen Abimees Pets. Kuidas saan sind täna aidata?“. Sulgemisnupp „X“ ja Escape sulgevad akna.
-- [ ] Kirjaklambri ikooni ega Elisa/Annika tekste pole.
+- [ ] Kirjaklambri ikooni pole.
 - [ ] Tühja või ainult tühikutega välja ei saa saata. Üle 500 märgi ei saa sisestada.
 - [ ] Saatmisel kuvatakse küsimus, ootamise olek ja saatmisnupp on keelatud. Korraga käib ainult üks päring.
 - [ ] Küsimusele „Millised tööriistad on saadaval Kristiines?“ kuvatakse `answer` ning tööriistade loend (3_import.sql andmetel Akutrell, Muruniiduk, Survepesur, Matkatelk).

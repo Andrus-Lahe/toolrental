@@ -1,15 +1,15 @@
 # ChatbotWidget.vue märkmed
 
-Allikas: [Vestlusrobot.rtf](Vestlusrobot.rtf) (pilt vestlusaknast).
+Allikas: kasutaja kirjeldus. Mockupi pilti pole.
 
 Staatus: kinnitatud 2026-10-09 (roboti nimi "Abimees Pets", ujuv nupp paremas alanurgas, kirjaklambrit pole, 401 annab JSON-vastuse AUTHENTICATION_REQUIRED). Vestlusrobot tehakse ümber hüpikaknaks, mis on nähtav kõigil lehtedel; praegune eraldi leht `AiSearchView.vue` (`/ai-search`) asendatakse sellega. Backendis on `POST /api/ai/ask` juba olemas (`ToolAskController`, `ToolAskService`).
 
 ## Erinevus tavalisest vaate sildist
 
 - `ChatbotWidget.vue` on **komponent**, mitte eraldi vaade: tal pole oma rada. See kuvatakse kõigi lehtede peal (`App.vue` kaudu), samamoodi nagu [Header-markmed.md](Header-markmed.md).
-- Pildil olev vestlusaken on Elisa teenindusroboti „Annika“ oma ja on mõeldud ainult eeskujuks. Laenukas kasutab oma nime „Abimees Pets“ ja oma tervitusteksti.
-- Pildil on sisestusvälja kõrval kirjaklambri ikoon (faili lisamine). `POST /api/ai/ask` võtab vastu ainult teksti, seega ikooni ei kuvata.
-- Pildil pole näha, kuidas vestlusaken avatakse. Kokkuleppe järgi on selleks paremas alanurgas ujuv nupp.
+- Roboti nimi on „Abimees Pets“ ja sellel on oma tervitustekst.
+- Kirjaklambri ikooni (faili lisamine) ei ole, sest `POST /api/ai/ask` võtab vastu ainult teksti.
+- Vestlusaken avatakse paremas alanurgas oleva ujuva nupuga.
 - Näide kasutab faili `3_import.sql` andmeid: Kristiine linnaosas (Marko Tamme asukoht) on saadaval tööriist `toolId = 1` Akutrell.
 
 ## Vaate märkmed
