@@ -27,7 +27,8 @@ class ToolAskServiceTest {
                 "Aiatööd", "Kristiine", "Tallinn", false);
         when(repository.findVisibleToolsByExactName(QUESTION)).thenReturn(List.of());
         when(repository.findVisibleTools()).thenReturn(List.of(mower, trimmer));
-        when(matcher.findMatchingToolIds(QUESTION, List.of(mower, trimmer))).thenReturn(List.of(12, 13, 999));
+        when(matcher.match(QUESTION, List.of(mower, trimmer)))
+                .thenReturn(new ToolSearchMatchResult(true, List.of(12, 13, 999)));
         when(answerGenerator.generateAnswer(new ToolSearchAnswerContext(QUESTION, 2, 1,
                 "Kristiine", "Aiatööd"))).thenReturn("Leidsin 2 sobivat tööriista; 1 on saadaval.");
 
@@ -38,7 +39,7 @@ class ToolAskServiceTest {
         var order = inOrder(repository, matcher, answerGenerator);
         order.verify(repository).findVisibleToolsByExactName(QUESTION);
         order.verify(repository).findVisibleTools();
-        order.verify(matcher).findMatchingToolIds(QUESTION, List.of(mower, trimmer));
+        order.verify(matcher).match(QUESTION, List.of(mower, trimmer));
         order.verify(answerGenerator).generateAnswer(new ToolSearchAnswerContext(QUESTION, 2, 1,
                 "Kristiine", "Aiatööd"));
     }
@@ -59,6 +60,6 @@ class ToolAskServiceTest {
 
         assertThat(response.tools()).containsExactly(mower.toAvailableTool());
         verify(repository, never()).findVisibleTools();
-        verify(matcher, never()).findMatchingToolIds(org.mockito.ArgumentMatchers.anyString(), anyList());
+        verify(matcher, never()).match(org.mockito.ArgumentMatchers.anyString(), anyList());
     }
 }

@@ -23,8 +23,9 @@ public class ToolAskService {
         List<ToolSearchCandidate> matches = queryRepository.findVisibleToolsByExactName(question.trim());
         if (matches.isEmpty()) {
             List<ToolSearchCandidate> candidates = queryRepository.findVisibleTools();
-            List<Integer> matchingIds = searchMatcher.findMatchingToolIds(question, candidates);
-            java.util.Set<Integer> selectedIds = java.util.Set.copyOf(matchingIds);
+            ToolSearchMatchResult matchResult = searchMatcher.match(question, candidates);
+            if (!matchResult.toolSearchQuestion()) throw new UnsupportedToolSearchQuestionException();
+            java.util.Set<Integer> selectedIds = java.util.Set.copyOf(matchResult.toolIds());
             matches = candidates.stream().filter(candidate -> selectedIds.contains(candidate.toolId())).toList();
         }
 

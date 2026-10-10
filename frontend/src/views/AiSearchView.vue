@@ -102,7 +102,7 @@ export default {
             this.error = 'Palun sisesta küsimus, mis ei ole tühi ja on kuni 500 märki pikk.'
           } else if (error.response?.status === 422
             && error.response.data?.errorCode === 'AI_UNSUPPORTED_QUESTION') {
-            this.error = 'Saan vastata ainult saadaval tööriistade otsimise küsimustele.'
+            this.error = 'Saan aidata vaid tööriistade otsinguda.'
           } else {
             this.error = 'Päring ebaõnnestus. Palun proovi uuesti.'
           }

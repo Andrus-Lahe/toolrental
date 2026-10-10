@@ -131,7 +131,7 @@ class ToolAskControllerTest {
                 .andExpect(status().isUnprocessableEntity())
                 .andExpect(jsonPath("$.errorCode").value("AI_UNSUPPORTED_QUESTION"))
                 .andExpect(jsonPath("$.message").value(
-                        "Saan vastata ainult saadaval tööriistade otsimise küsimustele."));
+                        "Saan aidata vaid tööriistade otsinguda."));
     }
 
     @Test

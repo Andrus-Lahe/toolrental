@@ -77,7 +77,7 @@ test('shows dedicated messages for 400 and 422 and a generic message for 500/net
     [{ response: { status: 400, data: { errorCode: 'INCORRECT_INPUT' } } },
       'Palun sisesta küsimus, mis ei ole tühi ja on kuni 500 märki pikk.', false],
     [{ response: { status: 422, data: { errorCode: 'AI_UNSUPPORTED_QUESTION' } } },
-      'Saan vastata ainult saadaval tööriistade otsimise küsimustele.', false],
+      'Saan aidata vaid tööriistade otsinguda.', false],
     [{ response: { status: 500 } }, 'Päring ebaõnnestus. Palun proovi uuesti.', false],
     [new Error('network failure'), 'Päring ebaõnnestus. Palun proovi uuesti.', false],
   ]) {
