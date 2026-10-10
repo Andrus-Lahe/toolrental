@@ -15,6 +15,7 @@
         @keydown.enter="handleQuestionKeydown"
       />
       <button class="btn btn-primary" type="submit" :disabled="busy || !question">
+        <span v-if="busy" class="spinner-border spinner-border-sm me-2" aria-hidden="true"></span>
         {{ busy ? 'Otsin…' : 'Küsi' }}
       </button>
     </form>
