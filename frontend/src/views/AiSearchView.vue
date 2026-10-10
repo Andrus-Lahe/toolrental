@@ -12,6 +12,7 @@
         rows="3"
         maxlength="500"
         required
+        @keydown.enter="handleQuestionKeydown"
       />
       <button class="btn btn-primary" type="submit" :disabled="busy || !question">
         {{ busy ? 'Otsin…' : 'Küsi' }}
@@ -72,6 +73,11 @@ export default {
     }
   },
   methods: {
+    handleQuestionKeydown(event) {
+      if (event.shiftKey) return
+      event.preventDefault()
+      this.ask()
+    },
     ask() {
       if (!this.question || this.busy) return
       this.busy = true
