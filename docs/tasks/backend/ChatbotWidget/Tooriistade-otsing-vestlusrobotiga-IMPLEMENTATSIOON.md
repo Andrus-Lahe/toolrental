@@ -61,15 +61,15 @@ Eeskujud koodibaasis: `@Value("${toolrental.frontend-url}")` (`BookingRequestMai
    - Paiguta see teiste `@ExceptionHandler` meetodite kõrvale. Spring valib kõige täpsema tüübi, seega `handleException(Exception)` seda ei varja.
 
 3. **Loo regex-advisor**. Fail: `backend/src/main/java/ee/toolrental/infrastructure/ai/RegexJailbreakAdvisor.java` (uus pakett `infrastructure/ai/`, mis on läbiv AI infrastruktuur)
-   - Aluseks näide 4 failist `docs/balsamic/notes/Safety_rules_examples.txt`. `implements CallAdvisor`, `@Slf4j`.
+   - `implements CallAdvisor`, `@Slf4j`.
    - `public static final String QUESTION_PARAM = "toolrental.question";`. Kontrollitav tekst võetakse `request.context().get(QUESTION_PARAM)`'ist. Kui seda pole, võetakse `request.prompt().getUserMessage().getText()`. **Põhjus:** user-sõnumis on ka linnade ja kategooriate loendid. Märgendi järgi lõikamine (`<question>`) oleks haavatav, sest kasutaja võib ise kirjutada `</question>`.
-   - Mustrid (`Map.ofEntries`): `ignore-instructions`, `ignore-instructions-et`, `role-override`, `role-override-et` (`\b(sa oled nüüd|teeskle,? et|käitu nagu|mängi,? et oled)\b`), `known-jailbreak`, `prompt-extraction`, `prompt-extraction-et` (`(näita|ütle|korda|kirjuta välja)\s+(mulle\s+)?(oma\s+)?(süsteemi\s*)?(prompti?|juhiseid|juhised|reegleid|reeglid)`), `fake-role-markers`, `encoded-payload`. Ära jäävad `output-manipulation` ja `MAX_TICKET_LENGTH`.
+   - Mustrid (`Map.ofEntries`): `ignore-instructions`, `ignore-instructions-et`, `role-override`, `role-override-et` (`\b(sa oled nüüd|teeskle,? et|käitu nagu|mängi,? et oled)\b`), `known-jailbreak`, `prompt-extraction`, `prompt-extraction-et` (`(näita|ütle|korda|kirjuta välja)\s+(mulle\s+)?(oma\s+)?(süsteemi\s*)?(prompti?|juhiseid|juhised|reegleid|reeglid)`), `fake-role-markers`, `encoded-payload`.
    - `static String normalize(String text)`: NFKC, `INVISIBLE_CHARS` eemaldamine, `toLowerCase(Locale.ROOT)`, `\\h+` → üks tühik.
    - Rikkumise korral `log.warn(...)` ja `throw new GuardrailViolationException(getName() + ":" + rule, reason)`.
    - `getName()` = `"regex-jailbreak-guard"`, `getOrder()` = `Ordered.HIGHEST_PRECEDENCE + 50`.
 
 4. **Loo mõõdikute advisor**. Fail: `backend/src/main/java/ee/toolrental/infrastructure/ai/AiMetricsAdvisor.java`
-   - Aluseks näide 7. `implements CallAdvisor`, `@Slf4j`.
+   - `implements CallAdvisor`, `@Slf4j`.
    - `long start = System.currentTimeMillis()`, siis `chain.nextCall(request)`.
    - Null-ohutu lugemine: `ChatResponse chatResponse = response.chatResponse()`. Kui see on `null`, logi ainult kestus. Muidu loe `Usage usage = chatResponse.getMetadata().getUsage()` **üks kord**, siis `usage.getPromptTokens()`, `usage.getCompletionTokens()`, `chatResponse.getMetadata().getModel()` ja `chatResponse.getResult()?.getMetadata().getFinishReason()`. Iga `null` logitakse `null`'ina.
    - `log.info("[AiMetrics] llm_call in={} out={} latencyMs={} model={} finishReason={}", ...)`. Hinnakonstante pole, küsimust ega vastust ei logita.
@@ -166,7 +166,7 @@ Eeskujud koodibaasis: `@Value("${toolrental.frontend-url}")` (`BookingRequestMai
 
 ## Testid
 
-1. **`backend/src/test/java/ee/toolrental/infrastructure/ai/RegexJailbreakAdvisorTest.java`** (uus, näite 9 eeskujul)
+1. **`backend/src/test/java/ee/toolrental/infrastructure/ai/RegexJailbreakAdvisorTest.java`** (uus)
    - Abimeetod `call(String question)`: `CallAdvisorChain chain = mock(...)`, `when(chain.nextCall(any())).thenReturn(ChatClientResponse.builder().build())`, `advisor.adviseCall(new ChatClientRequest(new Prompt(question), Map.of(RegexJailbreakAdvisor.QUESTION_PARAM, question)), chain)`.
    - `@ParameterizedTest blocksJailbreakAttempts`: kõik taski „Blokeerib“ näited.
    - `@ParameterizedTest allowsLegitimateQuestions`: kõik taski „Lubab“ näited.
