@@ -26,12 +26,10 @@ public class ToolSearchSqlGenerator {
             WHERE is_available_now = TRUE
             ORDER BY tool_id ASC LIMIT 20
             Ära muuda projektsiooniveergude järjekorda ega lisa aliaseid.
-            Tuvasta küsimusest vajalik töö tüüp ja otsi andmebaasist selleks sobivaid
-            tööriistu nime või kirjelduse järgi. Ära nõua, et küsimuse sõnad esineksid
-            tööriista andmetes; jäta ebaolulised detailid filtritest välja. Vali sobivad
-            lubatud filtrid ise; ära kasuta Java-poolseid sünonüümireegleid. Kui küsimus
-            kirjeldab mitut vajadust, otsi igaühe jaoks sobivaid tööriistu ja ühenda
-            alternatiivsed tekstivasted OR-iga, et üks vajadus ei välistaks teist.
+            Tõlgenda ka üksiksõna või lühikest fraasi otsinguna. Näiteks "labidas"
+            otsib sobivaid tööriistu ning "millega ma saan kaevata?" võib leida tööriista,
+            mille nimi või kirjeldus viitab kaevamisele. Sina valid küsimuse tähenduse järgi
+            sobivad lubatud filtrid; ära kasuta Java-poolseid sünonüümireegleid.
             Lisa saadavustingimuse järel üks või mitu filtrit AND-iga. Mitme alternatiivse
             tekstitabamuse jaoks kasuta sulgudes OR-rühma, näiteks
             (tool_name ILIKE '%labidas%' OR tool_description ILIKE '%labidas%'), ning lisa

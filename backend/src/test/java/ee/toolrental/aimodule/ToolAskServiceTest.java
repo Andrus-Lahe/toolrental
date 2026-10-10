@@ -5,71 +5,60 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.anyList;
 import static org.mockito.Mockito.inOrder;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import static org.mockito.Mockito.verifyNoInteractions;
 
 class ToolAskServiceTest {
 
-    private static final String QUESTION = "Millised tööriistad on saadaval Kristiines?";
-    private static final String VALID_SQL = "SELECT tool_id, tool_name, category_name, location_name " +
-            "FROM tool_rental.ai_tool_search WHERE is_available_now = TRUE " +
-            "AND location_name ILIKE '%Kristiine%' ORDER BY tool_id LIMIT 20";
+    private static final String QUESTION = "mul muru pikk";
 
     @Test
-    void generatesValidatesAndExecutesSqlInOrder() {
-        ToolSearchSqlGenerator generator = mock(ToolSearchSqlGenerator.class);
+    void selectsMatchingDatabaseCandidatesAndAnswersWithTheirCounts() {
         ToolSearchQueryRepository repository = mock(ToolSearchQueryRepository.class);
+        ToolSearchMatcher matcher = mock(ToolSearchMatcher.class);
         ToolSearchAnswerGenerator answerGenerator = mock(ToolSearchAnswerGenerator.class);
-        when(generator.generateSql(QUESTION)).thenReturn(VALID_SQL);
-        AvailableTool tool = new AvailableTool(12, "Akutrell", "Ehitustööd", "Kristiine");
-        when(repository.searchWithCounts(any())).thenReturn(
-                new ToolSearchQueryRepository.SearchResults(List.of(tool), 3, 2));
-        when(answerGenerator.generateAnswer(any())).thenReturn("Kristiines leidub 3 tööriista; 2 on saadaval.");
+        ToolSearchCandidate mower = new ToolSearchCandidate(12, "Muruniiduk", "Muru niitmiseks",
+                "Aiatööd", "Kristiine", true);
+        ToolSearchCandidate trimmer = new ToolSearchCandidate(13, "Trimmer", "Muru servade pügamiseks",
+                "Aiatööd", "Kristiine", false);
+        when(repository.findVisibleToolsByExactName(QUESTION)).thenReturn(List.of());
+        when(repository.findVisibleTools()).thenReturn(List.of(mower, trimmer));
+        when(matcher.findMatchingToolIds(QUESTION, List.of(mower, trimmer))).thenReturn(List.of(12, 13, 999));
+        when(answerGenerator.generateAnswer(new ToolSearchAnswerContext(QUESTION, 2, 1,
+                "Kristiine", "Aiatööd"))).thenReturn("Leidsin 2 sobivat tööriista; 1 on saadaval.");
 
-        ToolAskResponse response = new ToolAskService(generator, new ToolSearchSqlValidator(), repository,
-                answerGenerator).ask(QUESTION);
+        ToolAskResponse response = new ToolAskService(repository, matcher, answerGenerator).ask(QUESTION);
 
-        assertThat(response.tools()).containsExactly(tool);
-        assertThat(response.answer()).contains("3", "2");
-        var order = inOrder(generator, repository, answerGenerator);
-        order.verify(generator).generateSql(QUESTION);
-        order.verify(repository).searchWithCounts(any());
-        order.verify(answerGenerator).generateAnswer(new ToolSearchAnswerContext(QUESTION, 3, 2,
-                "Kristiine", null));
+        assertThat(response.tools()).containsExactly(mower.toAvailableTool());
+        assertThat(response.answer()).contains("2", "1");
+        var order = inOrder(repository, matcher, answerGenerator);
+        order.verify(repository).findVisibleToolsByExactName(QUESTION);
+        order.verify(repository).findVisibleTools();
+        order.verify(matcher).findMatchingToolIds(QUESTION, List.of(mower, trimmer));
+        order.verify(answerGenerator).generateAnswer(new ToolSearchAnswerContext(QUESTION, 2, 1,
+                "Kristiine", "Aiatööd"));
     }
 
     @Test
-    void doesNotValidateOrExecuteUnsupportedQuestionMarker() {
-        ToolSearchSqlGenerator generator = mock(ToolSearchSqlGenerator.class);
+    void exactToolNameSearchSkipsAiMatching() {
         ToolSearchQueryRepository repository = mock(ToolSearchQueryRepository.class);
+        ToolSearchMatcher matcher = mock(ToolSearchMatcher.class);
         ToolSearchAnswerGenerator answerGenerator = mock(ToolSearchAnswerGenerator.class);
-        when(generator.generateSql(QUESTION)).thenReturn(ToolSearchSqlGenerator.CANNOT_ANSWER);
+        String toolName = "Muruniiduk";
+        ToolSearchCandidate mower = new ToolSearchCandidate(12, toolName, "Muru niitmiseks",
+                "Aiatööd", "Kristiine", true);
+        when(repository.findVisibleToolsByExactName(toolName)).thenReturn(List.of(mower));
+        when(answerGenerator.generateAnswer(new ToolSearchAnswerContext(toolName, 1, 1,
+                "Kristiine", "Aiatööd"))).thenReturn("Muruniiduk on saadaval.");
 
-        assertThatThrownBy(() -> new ToolAskService(generator, new ToolSearchSqlValidator(), repository,
-                answerGenerator).ask(QUESTION))
-                .isInstanceOf(UnsupportedToolSearchQuestionException.class);
-        verify(repository, never()).searchWithCounts(any());
-        verifyNoInteractions(answerGenerator);
-    }
+        ToolAskResponse response = new ToolAskService(repository, matcher, answerGenerator).ask(toolName);
 
-    @Test
-    void rejectsInvalidGeneratedSqlBeforeRepositoryExecution() {
-        ToolSearchSqlGenerator generator = mock(ToolSearchSqlGenerator.class);
-        ToolSearchQueryRepository repository = mock(ToolSearchQueryRepository.class);
-        ToolSearchAnswerGenerator answerGenerator = mock(ToolSearchAnswerGenerator.class);
-        when(generator.generateSql(QUESTION)).thenReturn(VALID_SQL.replace("ai_tool_search", "tool"));
-        ToolAskService service = new ToolAskService(generator, new ToolSearchSqlValidator(), repository,
-                answerGenerator);
-
-        assertThatThrownBy(() -> service.ask(QUESTION))
-                .isInstanceOf(InvalidToolSearchSqlException.class);
-        verify(repository, never()).searchWithCounts(any());
-        verifyNoInteractions(answerGenerator);
+        assertThat(response.tools()).containsExactly(mower.toAvailableTool());
+        verify(repository, never()).findVisibleTools();
+        verify(matcher, never()).findMatchingToolIds(org.mockito.ArgumentMatchers.anyString(), anyList());
     }
 }

@@ -24,6 +24,37 @@ public class ToolSearchQueryRepository {
                 resultSet.getString("location_name")));
     }
 
+    public List<ToolSearchCandidate> findVisibleTools() {
+        return jdbcTemplate.query("""
+                SELECT tool_id, tool_name, tool_description, category_name, location_name,
+                       is_available_now
+                FROM tool_rental.ai_tool_search
+                WHERE is_visible = TRUE
+                ORDER BY tool_id ASC
+                """, Map.of(), this::mapCandidate);
+    }
+
+    public List<ToolSearchCandidate> findVisibleToolsByExactName(String name) {
+        return jdbcTemplate.query("""
+                SELECT tool_id, tool_name, tool_description, category_name, location_name,
+                       is_available_now
+                FROM tool_rental.ai_tool_search
+                WHERE is_visible = TRUE AND LOWER(tool_name) = LOWER(:name)
+                ORDER BY tool_id ASC
+                """, Map.of("name", name), this::mapCandidate);
+    }
+
+    private ToolSearchCandidate mapCandidate(java.sql.ResultSet resultSet, int rowNumber)
+            throws java.sql.SQLException {
+        return new ToolSearchCandidate(
+                resultSet.getInt("tool_id"),
+                resultSet.getString("tool_name"),
+                resultSet.getString("tool_description"),
+                resultSet.getString("category_name"),
+                resultSet.getString("location_name"),
+                resultSet.getBoolean("is_available_now"));
+    }
+
     public SearchResults searchWithCounts(ToolSearchSqlValidator.ValidatedSql query) {
         MapSqlParameterSource parameters = new MapSqlParameterSource();
         String filters = filterSql(query.filters(), parameters);

@@ -2,42 +2,33 @@ package ee.toolrental.aimodule;
 
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class ToolAskService {
 
-    private final ToolSearchSqlGenerator sqlGenerator;
-    private final ToolSearchSqlValidator sqlValidator;
     private final ToolSearchQueryRepository queryRepository;
+    private final ToolSearchMatcher searchMatcher;
     private final ToolSearchAnswerGenerator answerGenerator;
 
-    public ToolAskService(ToolSearchSqlGenerator sqlGenerator,
-                          ToolSearchSqlValidator sqlValidator,
-                          ToolSearchQueryRepository queryRepository,
+    public ToolAskService(ToolSearchQueryRepository queryRepository,
+                          ToolSearchMatcher searchMatcher,
                           ToolSearchAnswerGenerator answerGenerator) {
-        this.sqlGenerator = sqlGenerator;
-        this.sqlValidator = sqlValidator;
         this.queryRepository = queryRepository;
+        this.searchMatcher = searchMatcher;
         this.answerGenerator = answerGenerator;
     }
 
     public ToolAskResponse ask(String question) {
-        String generatedSql = sqlGenerator.generateSql(question);
-        if (ToolSearchSqlGenerator.CANNOT_ANSWER.equals(generatedSql)) {
-            throw new UnsupportedToolSearchQuestionException();
+        List<ToolSearchCandidate> matches = queryRepository.findVisibleToolsByExactName(question.trim());
+        if (matches.isEmpty()) {
+            List<ToolSearchCandidate> candidates = queryRepository.findVisibleTools();
+            List<Integer> matchingIds = searchMatcher.findMatchingToolIds(question, candidates);
+            java.util.Set<Integer> selectedIds = java.util.Set.copyOf(matchingIds);
+            matches = candidates.stream().filter(candidate -> selectedIds.contains(candidate.toolId())).toList();
         }
 
-        ToolSearchSqlValidator.ValidatedSql validatedSql;
-        try {
-            validatedSql = sqlValidator.validate(generatedSql);
-        } catch (InvalidToolSearchSqlException firstValidationFailure) {
-            generatedSql = sqlGenerator.repairSql(question, firstValidationFailure);
-            if (ToolSearchSqlGenerator.CANNOT_ANSWER.equals(generatedSql)) {
-                throw new UnsupportedToolSearchQuestionException();
-            }
-            validatedSql = sqlValidator.validate(generatedSql);
-        }
-        ToolSearchSummary summary = ToolSearchSummary.from(validatedSql,
-                queryRepository.searchWithCounts(validatedSql));
+        ToolSearchSummary summary = ToolSearchSummary.fromCandidates(matches);
         String answer = answerGenerator.generateAnswer(summary.answerContext(question));
         return new ToolAskResponse(answer, summary.tools());
     }

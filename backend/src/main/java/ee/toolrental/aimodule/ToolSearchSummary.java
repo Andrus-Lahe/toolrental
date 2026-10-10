@@ -1,6 +1,7 @@
 package ee.toolrental.aimodule;
 
 import java.util.List;
+import java.util.Objects;
 
 record ToolSearchSummary(List<AvailableTool> tools, long totalToolCount, long availableToolCount,
                          String location, String category) {
@@ -8,27 +9,24 @@ record ToolSearchSummary(List<AvailableTool> tools, long totalToolCount, long av
         tools = List.copyOf(tools);
     }
 
-    static ToolSearchSummary from(ToolSearchSqlValidator.ValidatedSql query,
-                                  ToolSearchQueryRepository.SearchResults results) {
-        return new ToolSearchSummary(results.tools(), results.totalToolCount(),
-                results.availableToolCount(), uniqueValue(query.filters(), "location_name"),
-                uniqueValue(query.filters(), "category_name"));
+    static ToolSearchSummary fromCandidates(List<ToolSearchCandidate> matches) {
+        List<AvailableTool> availableTools = matches.stream()
+                .filter(ToolSearchCandidate::availableNow)
+                .map(ToolSearchCandidate::toAvailableTool)
+                .toList();
+        return new ToolSearchSummary(availableTools, matches.size(), availableTools.size(),
+                uniqueCandidateValue(matches, ToolSearchCandidate::location),
+                uniqueCandidateValue(matches, ToolSearchCandidate::category));
     }
 
     ToolSearchAnswerContext answerContext(String question) {
         return new ToolSearchAnswerContext(question, totalToolCount, availableToolCount, location, category);
     }
 
-    private static String uniqueValue(List<ToolSearchSqlValidator.FilterGroup> groups, String column) {
-        List<String> values = groups.stream()
-                .filter(group -> group.alternatives().size() == 1)
-                .map(group -> group.alternatives().getFirst())
-                .filter(condition -> condition.column().equals(column)
-                        && condition.value() instanceof String)
-                .map(condition -> ((String) condition.value()).replaceAll("^%+|%+$", "").trim())
-                .filter(value -> !value.isBlank())
-                .distinct()
-                .toList();
+    private static String uniqueCandidateValue(List<ToolSearchCandidate> candidates,
+                                               java.util.function.Function<ToolSearchCandidate, String> value) {
+        List<String> values = candidates.stream().map(value).filter(Objects::nonNull)
+                .map(String::trim).filter(candidate -> !candidate.isBlank()).distinct().toList();
         return values.size() == 1 ? values.getFirst() : null;
     }
 }
