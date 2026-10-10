@@ -21,6 +21,7 @@ class ToolAskServiceTest {
         ToolSearchQueryRepository repository = mock(ToolSearchQueryRepository.class);
         ToolSearchMatcher matcher = mock(ToolSearchMatcher.class);
         ToolSearchAnswerGenerator answerGenerator = mock(ToolSearchAnswerGenerator.class);
+        SqlInjectionSurprise sqlInjectionSurprise = mock(SqlInjectionSurprise.class);
         ToolSearchCandidate mower = new ToolSearchCandidate(12, "Muruniiduk", "Muru niitmiseks",
                 "Aiatööd", "Kristiine", "Tallinn", true);
         ToolSearchCandidate trimmer = new ToolSearchCandidate(13, "Trimmer", "Muru servade pügamiseks",
@@ -32,7 +33,7 @@ class ToolAskServiceTest {
         when(answerGenerator.generateAnswer(new ToolSearchAnswerContext(QUESTION, 2, 1,
                 "Kristiine", "Aiatööd"))).thenReturn("Leidsin 2 sobivat tööriista; 1 on saadaval.");
 
-        ToolAskResponse response = new ToolAskService(repository, matcher, answerGenerator).ask(QUESTION);
+        ToolAskResponse response = new ToolAskService(repository, matcher, answerGenerator, sqlInjectionSurprise).ask(QUESTION);
 
         assertThat(response.tools()).containsExactly(mower.toAvailableTool());
         assertThat(response.answer()).contains("2", "1");
@@ -49,6 +50,7 @@ class ToolAskServiceTest {
         ToolSearchQueryRepository repository = mock(ToolSearchQueryRepository.class);
         ToolSearchMatcher matcher = mock(ToolSearchMatcher.class);
         ToolSearchAnswerGenerator answerGenerator = mock(ToolSearchAnswerGenerator.class);
+        SqlInjectionSurprise sqlInjectionSurprise = mock(SqlInjectionSurprise.class);
         String toolName = "Muruniiduk";
         ToolSearchCandidate mower = new ToolSearchCandidate(12, toolName, "Muru niitmiseks",
                 "Aiatööd", "Kristiine", "Tallinn", true);
@@ -56,7 +58,7 @@ class ToolAskServiceTest {
         when(answerGenerator.generateAnswer(new ToolSearchAnswerContext(toolName, 1, 1,
                 "Kristiine", "Aiatööd"))).thenReturn("Muruniiduk on saadaval.");
 
-        ToolAskResponse response = new ToolAskService(repository, matcher, answerGenerator).ask(toolName);
+        ToolAskResponse response = new ToolAskService(repository, matcher, answerGenerator, sqlInjectionSurprise).ask(toolName);
 
         assertThat(response.tools()).containsExactly(mower.toAvailableTool());
         verify(repository, never()).findVisibleTools();

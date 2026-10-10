@@ -10,16 +10,23 @@ public class ToolAskService {
     private final ToolSearchQueryRepository queryRepository;
     private final ToolSearchMatcher searchMatcher;
     private final ToolSearchAnswerGenerator answerGenerator;
+    private final SqlInjectionSurprise sqlInjectionSurprise;
 
     public ToolAskService(ToolSearchQueryRepository queryRepository,
                           ToolSearchMatcher searchMatcher,
-                          ToolSearchAnswerGenerator answerGenerator) {
+                          ToolSearchAnswerGenerator answerGenerator,
+                          SqlInjectionSurprise sqlInjectionSurprise) {
         this.queryRepository = queryRepository;
         this.searchMatcher = searchMatcher;
         this.answerGenerator = answerGenerator;
+        this.sqlInjectionSurprise = sqlInjectionSurprise;
     }
 
     public ToolAskResponse ask(String question) {
+        if (sqlInjectionSurprise.isSqlInjectionAttempt(question)) {
+            return new ToolAskResponse(sqlInjectionSurprise.generateScolding(question), List.of());
+        }
+
         List<ToolSearchCandidate> matches = queryRepository.findVisibleToolsByExactName(question.trim());
         if (matches.isEmpty()) {
             List<ToolSearchCandidate> candidates = queryRepository.findVisibleTools();
