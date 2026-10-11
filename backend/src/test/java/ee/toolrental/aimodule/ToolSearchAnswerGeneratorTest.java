@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.ai.chat.client.ChatClient;
 
+import java.util.List;
+
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -22,10 +24,10 @@ class ToolSearchAnswerGeneratorTest {
         when(builder.build()).thenReturn(client);
         when(client.prompt().system(anyString()).user(anyString()).call().content())
                 .thenReturn("Kristiines leidub 3 tööriista. Neist 2 on praegu saadaval.");
-        ToolSearchAnswerContext context = new ToolSearchAnswerContext(
-                "Millised tööriistad on Kristiines?", 3, 2, "Kristiine", null);
+        ToolSearchSummary summary = new ToolSearchSummary(
+                "Millised tööriistad on Kristiines?", List.of(), 3, 2, "Kristiine", null);
 
-        String answer = new ToolSearchAnswerGenerator(builder).generateAnswer(context);
+        String answer = new ToolSearchAnswerGenerator(builder).generateAnswer(summary);
 
         assertThat(answer).contains("3", "2", "Kristiine");
         ArgumentCaptor<String> systemPrompt = ArgumentCaptor.forClass(String.class);
@@ -47,14 +49,14 @@ class ToolSearchAnswerGeneratorTest {
         when(client.prompt().system(anyString()).user(anyString()).call().content())
                 .thenReturn("  ");
         ToolSearchAnswerGenerator generator = new ToolSearchAnswerGenerator(builder);
-        ToolSearchAnswerContext context = new ToolSearchAnswerContext("labidas", 1, 1, null, null);
+        ToolSearchSummary summary = new ToolSearchSummary("labidas", List.of(), 1, 1, null, null);
 
-        assertThatThrownBy(() -> generator.generateAnswer(context))
+        assertThatThrownBy(() -> generator.generateAnswer(summary))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Gemini returned an empty answer");
 
         when(client.prompt().system(anyString()).user(anyString()).call().content()).thenReturn("{\"answer\":\"x\"}");
-        assertThatThrownBy(() -> generator.generateAnswer(context))
+        assertThatThrownBy(() -> generator.generateAnswer(summary))
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("Gemini returned an invalid answer format");
     }

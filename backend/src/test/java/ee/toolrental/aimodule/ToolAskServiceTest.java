@@ -30,7 +30,7 @@ class ToolAskServiceTest {
         when(repository.findVisibleTools()).thenReturn(List.of(mower, trimmer));
         when(matcher.match(QUESTION, List.of(mower, trimmer)))
                 .thenReturn(new ToolSearchMatchResult(true, List.of(12, 13, 999)));
-        when(answerGenerator.generateAnswer(new ToolSearchAnswerContext(QUESTION, 2, 1,
+        when(answerGenerator.generateAnswer(new ToolSearchSummary(QUESTION, List.of(mower.toAvailableTool()), 2, 1,
                 "Kristiine", "Aiatööd"))).thenReturn("Leidsin 2 sobivat tööriista; 1 on saadaval.");
 
         ToolAskResponse response = new ToolAskService(repository, matcher, answerGenerator, sqlInjectionSurprise).ask(QUESTION);
@@ -41,8 +41,8 @@ class ToolAskServiceTest {
         order.verify(repository).findVisibleToolsByExactName(QUESTION);
         order.verify(repository).findVisibleTools();
         order.verify(matcher).match(QUESTION, List.of(mower, trimmer));
-        order.verify(answerGenerator).generateAnswer(new ToolSearchAnswerContext(QUESTION, 2, 1,
-                "Kristiine", "Aiatööd"));
+        order.verify(answerGenerator).generateAnswer(new ToolSearchSummary(QUESTION,
+                List.of(mower.toAvailableTool()), 2, 1, "Kristiine", "Aiatööd"));
     }
 
     @Test
@@ -55,7 +55,7 @@ class ToolAskServiceTest {
         ToolSearchCandidate mower = new ToolSearchCandidate(12, toolName, "Muru niitmiseks",
                 "Aiatööd", "Kristiine", "Tallinn", true);
         when(repository.findVisibleToolsByExactName(toolName)).thenReturn(List.of(mower));
-        when(answerGenerator.generateAnswer(new ToolSearchAnswerContext(toolName, 1, 1,
+        when(answerGenerator.generateAnswer(new ToolSearchSummary(toolName, List.of(mower.toAvailableTool()), 1, 1,
                 "Kristiine", "Aiatööd"))).thenReturn("Muruniiduk on saadaval.");
 
         ToolAskResponse response = new ToolAskService(repository, matcher, answerGenerator, sqlInjectionSurprise).ask(toolName);

@@ -22,12 +22,12 @@ public class ToolSearchAnswerGenerator {
         this.chatClient = chatClientBuilder.build();
     }
 
-    public String generateAnswer(ToolSearchAnswerContext context) {
-        String prompt = "Küsimus: " + context.question()
-                + "\nSobivate nähtavate tööriistade arv: " + context.totalToolCount()
-                + "\nPraegu saadaval tööriistade arv: " + context.availableToolCount()
-                + "\nAsukoht: " + fact(context.location())
-                + "\nKategooria: " + fact(context.category());
+    String generateAnswer(ToolSearchSummary summary) {
+        String prompt = "Küsimus: " + summary.question()
+                + "\nSobivate nähtavate tööriistade arv: " + summary.totalToolCount()
+                + "\nPraegu saadaval tööriistade arv: " + summary.availableToolCount()
+                + "\nAsukoht: " + fact(summary.location())
+                + "\nKategooria: " + fact(summary.category());
         String answer = chatClient.prompt()
                 .system(SYSTEM_INSTRUCTIONS)
                 .user(prompt)
