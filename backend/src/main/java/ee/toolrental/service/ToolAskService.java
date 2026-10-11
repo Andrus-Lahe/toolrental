@@ -81,7 +81,7 @@ public class ToolAskService {
                 .entity(ToolSearchIntent.class, spec -> spec.useProviderStructuredOutput());
 
         if (intent == null || !intent.toolSearch()) {
-            return new ToolAskResponse("Saan aidata ainult saadaval tööriistade otsimisega.", List.of());
+            return new ToolAskResponse("Saan sind aidata küll, aga ainult saadaval olevate tööriistade otsimisega.", List.of());
         }
         log.debug("Tool search intent reasoning: {}", intent.reasoning());
 
@@ -90,12 +90,12 @@ public class ToolAskService {
         String category = canonicalName(intent.category(), categories, question);
         if (unknownName(intent.city(), city) || unknownName(intent.district(), district)
                 || unknownName(intent.category(), category)) {
-            return new ToolAskResponse("Sellist linna, linnaosa või kategooriat ei leitud.", List.of());
+            return new ToolAskResponse("Sellist linna, linnaosa või kategooriat ma ei leia, küsi mult midagi muud", List.of());
         }
 
         List<AvailableTool> tools = repository.findAvailable(city, district, category);
         if (tools.isEmpty()) {
-            return new ToolAskResponse("Sellele otsingule vastavaid saadaval tööriistu ei leitud.", List.of());
+            return new ToolAskResponse("Sellele otsingule vastavaid saadaval tööriistu ma ei leidnud.", List.of());
         }
 
         String toolData = tools.stream()
@@ -151,6 +151,6 @@ public class ToolAskService {
         log.warn("Unsafe AI answer replaced");
         return tools.stream()
                 .map(AvailableTool::name)
-                .collect(Collectors.joining(", ", "Leidsin järgmised saadaval tööriistad: ", "."));
+                .collect(Collectors.joining(", ", "Leidsin sulle järgmised saadaval tööriistad: ", "."));
     }
 }
