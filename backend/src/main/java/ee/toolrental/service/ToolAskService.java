@@ -90,12 +90,12 @@ public class ToolAskService {
         String category = canonicalName(intent.category(), categories, question);
         if (unknownName(intent.city(), city) || unknownName(intent.district(), district)
                 || unknownName(intent.category(), category)) {
-            return new ToolAskResponse("Sellist linna, linnaosa või kategooriat ma ei leia, küsi mult midagi muud", List.of());
+            return new ToolAskResponse("Sellele otsingule ma tulemusi ei leidnud, küsi midagi muud", List.of());
         }
 
         List<AvailableTool> tools = repository.findAvailable(city, district, category);
         if (tools.isEmpty()) {
-            return new ToolAskResponse("Sellele otsingule vastavaid saadaval tööriistu ma ei leidnud.", List.of());
+            return new ToolAskResponse("Sellele otsingule ma vastavaid saadaval tööriistu ei leidnud.", List.of());
         }
 
         String toolData = tools.stream()
