@@ -57,7 +57,7 @@ Response (200):
 }
 
 API teenuse lisainfo:
-Küsimusest tuvastab AI (Gemini) linna, linnaosa ja kategooria ning otsib saadaval (status = 'A') tööriistu. Tagastatakse kuni 20 tööriista. Kui küsimus ei puuduta tööriistu, linna/linnaosa/kategooriat ei leita või tulemusi pole, tagastatakse ikkagi 200: answer sisaldab selgitavat teksti (nt "Saan aidata ainult saadaval tööriistade otsimisega.") ja tools on tühi list. city ja district võivad olla null, kui omanikul pole asukohta.
+Küsimusest tuvastab AI (Gemini) linna, linnaosa ja kategooria ning otsib saadaval (status = 'A') tööriistu. Tagastatakse kuni 20 tööriista. Kui küsimus ei puuduta tööriistu, linna/linnaosa/kategooriat ei leita või tulemusi pole, tagastatakse ikkagi 200: answer sisaldab selgitavat teksti (nt "Saan aidata ainult saadaval tööriistade otsimisega.") ja tools on tühi list. city ja district võivad olla null, kui omanikul pole asukohta. AI vastus (answer) on viisakas, soe ja mänguline; fikseeritud tekstid jäävad tõsiseks.
 
 Veateated:
 HTTP: 401

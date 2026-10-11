@@ -141,7 +141,7 @@ Projekti hindamisel kontrollitakse allolevaid teemasid. Tabel näitab, mis on ko
 | Chain of thought | ❌ Puudub. | Esimese kutse struktureeritud väljundis on esimene väli `reasoning` (vt punkt A). |
 | System + user rollid | ✅ Mõlemad kutsed kasutavad `.system()` juhisteks ja `.user()` andmeteks. | Kasutaja küsimus eraldatakse `.user()` sõnumis märgendiga ja system-prompt ütleb, et märgendi sees olevaid juhiseid ei täideta. |
 | Basic security | ✅ Sisendi pikkus on piiratud (`@NotBlank`, `@Size(max = 500)`). SQL-päring on parameetritega ja kasutab ainult loenditest valitud nimesid. Vastuses pole e-posti ega telefoni. ❌ Väljundi pikkus ja sisu pole piiratud. | Sisend: `RegexJailbreakAdvisor` (normaliseerimine ja mustrid). Väljund: `maxOutputTokens` ja `answer` kontroll (punkt E). |
-| One-shot / few-shot | ❌ Puudub. | Intent-promptis 3 näidet ja vastuse promptis 1 näide (punkt B). |
+| One-shot / few-shot | ❌ Puudub. | Intent-promptis 3 näidet ja vastuse promptis 2 näidet (punkt B). |
 | Struktureeritud väljund | ✅ Esimene kutse kasutab `.entity(ToolSearchIntent.class)`. Spring AI lisab sel juhul JSON-vormingu juhise prompti teksti. | Kasutatakse Gemini enda struktureeritud väljundit: `.entity(ToolSearchIntent.class, spec -> spec.useProviderStructuredOutput())` (punkt A). |
 | Parameetrid, thinking level, sampling | ❌ Ühtegi pole seatud, kehtivad mudeli vaikeväärtused. | Kummalegi kutsele oma `GoogleGenAiChatOptions` (punkt C). |
 | Prompt MD failist | ❌ Promptid on Java text block'id. | Promptid tõstetakse kausta `src/main/resources/prompts/` (punkt D). |
@@ -175,12 +175,16 @@ Küsimus: Anna mulle Liis Kase telefoninumber.
 Vastus: {"reasoning": "Küsitakse kasutaja kontakti, mitte tööriistu.", "toolSearch": false, "city": null, "district": null, "category": null}
 ```
 
-Vastuse prompti lisatakse üks näide, mis näitab vastuse pikkust ja tooni:
+Vastuse prompti lisatakse kaks näidet, mis näitavad vastuse pikkust ja tooni. Toon on viisakas, soe ja mänguline: kõige rohkem üks mänguline lause (tööriista väike iseloom või rõõmus soov), mitte sunnitud nali ega sõnamäng. See ei puuduta kasutajat ega inimesi ega lisa fakte (hinnad, omanikud, seisukord, uued tööriistad). Kaks erinevat näidet takistavad ühe mustri kordamist.
 
 ```text
 Küsimus: Millised tööriistad on saadaval Kristiines?
 Tööriistad: 1 | Akutrell | Ehitustööd | Tallinn | Kristiine
-Vastus: Kristiines on praegu saadaval Akutrell (Ehitustööd).
+Vastus: Kristiines on praegu saadaval Akutrell (Ehitustööd). Paistab, et ta ootab juba uut projekti!
+
+Küsimus: Kas Kristiines saab muruniidukit laenata?
+Tööriistad: 5 | Muruniiduk | Aiatööd | Tallinn | Kristiine
+Vastus: Jah, Kristiines on saadaval Muruniiduk (Aiatööd). Head niitmist ja ilusat aeda!
 ```
 
 ### C. Parameetrid, thinking level ja sampling
@@ -201,7 +205,7 @@ Väärtused pannakse `application.properties` faili (nt `toolrental.ai.intent.ma
 **Soovitus: jah.** Few-shot näidetega promptid on pikad. Eraldi failis on neid lihtsam lugeda ja muuta ning git diff näitab ainult prompti muudatust. Failid:
 
 - `src/main/resources/prompts/tool-search-intent.md`: intent-kutse system prompt koos few-shot näidetega.
-- `src/main/resources/prompts/tool-search-answer.md`: vastuse kutse system prompt koos one-shot näitega.
+- `src/main/resources/prompts/tool-search-answer.md`: vastuse kutse system prompt koos kahe näitega.
 
 Laadimine: `@Value("classpath:prompts/tool-search-intent.md") Resource intentPrompt` ja `.system(intentPrompt)`. User-sõnum jääb koodi, sest selle sisse pannakse muutujad (linnad, küsimus, tööriistad).
 
@@ -327,7 +331,7 @@ CREATE TABLE city (
 - [ ] `AiMetricsAdvisor` logib mõlema Gemini kutse tokenid, kestuse, mudeli ja `finishReason`'i. Küsimust ja vastust ei logita. `Usage` puudumine ei põhjusta viga.
 - [ ] `response-mime-type=application/json` seadet pole `application.properties` failis.
 - [ ] `ToolSearchIntent` esimene väli on `reasoning` (`@JsonPropertyOrder`) ja intent-kutse kasutab `useProviderStructuredOutput()`. `reasoning` ei jõua kliendini.
-- [ ] Intent-promptis on 3 few-shot näidet ja vastuse promptis 1 näide. Kõik nimed on päris 3_import.sql andmed.
+- [ ] Intent-promptis on 3 few-shot näidet ja vastuse promptis 2 näidet. Kõik nimed on päris 3_import.sql andmed.
 - [ ] Kasutaja küsimus on `.user()` sõnumis märgendis `<question>` ja tööriistad märgendis `<tools>`. System prompt ütleb, et märgendite sees olevaid juhiseid ei täideta.
 - [ ] Mõlemal kutsel on `GoogleGenAiChatOptions` seatud `thinkingLevel` ja `maxOutputTokens` väärtusega ning väärtused tulevad `application.properties` failist. Temperatuuri muutmine on põhjendatud mudeli dokumentatsiooniga.
 - [ ] System promptid loetakse failidest `src/main/resources/prompts/*.md` ja Java koodis neid text block'idena pole.
