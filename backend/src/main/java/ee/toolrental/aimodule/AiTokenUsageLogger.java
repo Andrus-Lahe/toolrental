@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
 @Component
@@ -70,6 +71,7 @@ public class AiTokenUsageLogger implements CallAdvisor, ChatClientBuilderCustomi
         RequestUsage current = currentRequest.get();
         if (current == null) return chain.nextCall(request);
         CallUsage call = current.secondRequest ? current.second : current.first;
+        long startedAt = System.nanoTime();
         try {
             ChatClientResponse response = chain.nextCall(request);
             Usage usage = response.chatResponse() == null ? null : response.chatResponse().getMetadata().getUsage();
@@ -89,6 +91,8 @@ public class AiTokenUsageLogger implements CallAdvisor, ChatClientBuilderCustomi
         } catch (RuntimeException exception) {
             call.unknown = true;
             throw exception;
+        } finally {
+            call.latencyMillis += TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - startedAt);
         }
     }
 
@@ -111,12 +115,15 @@ public class AiTokenUsageLogger implements CallAdvisor, ChatClientBuilderCustomi
         BigDecimal secondOutput = cost(second.output, outputUsdPerMillion);
         BigDecimal secondInput = inputCost(second);
         // One event keeps the five lines together when multiple questions finish simultaneously.
-        LOG.info("\nFirst request Output token: {} {}\nFirst request Input token: {} {}\n"
-                        + "Second request Output token: {} {}\nSecond request Input token: {} {}\nTotal: {} {}",
-                amount(first.output, first.unknown), price(firstOutput, first.unknown),
-                amount(first.input, first.unknown), price(firstInput, first.unknown),
-                amount(second.output, second.unknown), price(secondOutput, second.unknown),
-                amount(second.input, second.unknown), price(secondInput, second.unknown),
+        LOG.info("\nFirst request Output token: [amount: {}] [price: {}] [latency: {}ms]"
+                        + "\nFirst request Input token: [amount: {}] [price: {}] [latency: {}ms]"
+                        + "\nSecond request Output token: [amount: {}] [price: {}] [latency: {}ms]"
+                        + "\nSecond request Input token: [amount: {}] [price: {}] [latency: {}ms]"
+                        + "\nTotal: {} {}",
+                amount(first.output, first.unknown), price(firstOutput, first.unknown), first.latencyMillis,
+                amount(first.input, first.unknown), price(firstInput, first.unknown), first.latencyMillis,
+                amount(second.output, second.unknown), price(secondOutput, second.unknown), second.latencyMillis,
+                amount(second.input, second.unknown), price(secondInput, second.unknown), second.latencyMillis,
                 amount(first.input + first.output + second.input + second.output, unknown),
                 price(firstOutput.add(firstInput).add(secondOutput).add(secondInput), unknown));
     }
@@ -149,6 +156,7 @@ public class AiTokenUsageLogger implements CallAdvisor, ChatClientBuilderCustomi
         private long input;
         private long output;
         private long cachedInput;
+        private long latencyMillis;
         private boolean unknown;
     }
 }
