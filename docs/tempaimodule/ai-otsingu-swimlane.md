@@ -81,7 +81,12 @@ sequenceDiagram
             G-->>A: JSON: toolSearchQuestion + toolIds
             Note over A: parseResult: kuju, candidate ID-d, kordused, kuni 20
             A-->>S: ToolSearchMatchResult
-            Note over S: false → erand / HTTP 422; true → filtreerib candidates ID-de järgi
+            break toolSearchQuestion = false
+                S-->>C: UnsupportedToolSearchQuestionException
+                Note over C: RestExceptionHandler teeb erandist ApiError'i
+                C-->>F: HTTP 422, AI_UNSUPPORTED_QUESTION
+            end
+            S->>S: Filtreerib candidates kontrollitud ID-de järgi
         end
 
         Note over S: Edasine töövoog jätkub ainult teemakohase tulemuse korral
