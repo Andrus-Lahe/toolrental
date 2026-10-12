@@ -28,6 +28,9 @@ public class ToolAskService {
     private static final Pattern UNSAFE_OUTPUT_PATTERN = Pattern.compile(
             "[\\w.+-]+@[\\w-]+\\.[\\w.]+|(https?://|www\\.)|\\+?\\d[\\d\\s-]{6,}\\d",
             Pattern.CASE_INSENSITIVE);
+    private static final int TOOL_NAME_MAX_LENGTH = 100;
+    // Nii mitu esimest tähte tööriista nimest peab olema küsimuses, muidu on nimi mudeli enda välja mõeldud.
+    private static final int TOOL_NAME_PREFIX_LENGTH = 5;
 
     private final AvailableToolRepository repository;
     private final ChatClient chatClient;
@@ -83,17 +86,26 @@ public class ToolAskService {
         if (intent == null || !intent.toolSearch()) {
             return new ToolAskResponse("Saan sind aidata küll, aga ainult saadaval olevate tööriistade otsimisega.", List.of());
         }
-        log.debug("Tool search intent reasoning: {}", intent.reasoning());
+        // Jutumärkides on mudeli antud tekst, ilma jutumärkideta null tähendab, et välja polnud.
+        log.debug("Tool search intent: reasoning={} city={} district={} category={} toolName={}",
+                intent.reasoning(), quoted(intent.city()), quoted(intent.district()),
+                quoted(intent.category()), quoted(intent.toolName()));
 
-        String city = canonicalName(intent.city(), cities, question);
-        String district = canonicalName(intent.district(), districts, question);
-        String category = canonicalName(intent.category(), categories, question);
-        if (unknownName(intent.city(), city) || unknownName(intent.district(), district)
-                || unknownName(intent.category(), category)) {
+        String requestedCity = normalizeIntentValue(intent.city());
+        String requestedDistrict = normalizeIntentValue(intent.district());
+        String requestedCategory = normalizeIntentValue(intent.category());
+        String requestedToolName = normalizeIntentValue(intent.toolName());
+        String city = canonicalName(requestedCity, cities, question);
+        String district = canonicalName(requestedDistrict, districts, question);
+        String category = canonicalName(requestedCategory, categories, question);
+        if (unknownName(requestedCity, city) || unknownName(requestedDistrict, district)
+                || unknownName(requestedCategory, category)
+                || (requestedToolName != null && requestedToolName.length() > TOOL_NAME_MAX_LENGTH)) {
             return new ToolAskResponse("Sellele otsingule ma tulemusi ei leidnud, küsi midagi muud", List.of());
         }
+        String toolName = groundedToolName(requestedToolName, question);
 
-        List<AvailableTool> tools = repository.findAvailable(city, district, category);
+        List<AvailableTool> tools = repository.findAvailable(city, district, category, toolName);
         if (tools.isEmpty()) {
             return new ToolAskResponse("Sellele otsingule ma vastavaid saadaval tööriistu ei leidnud.", List.of());
         }
@@ -123,6 +135,18 @@ public class ToolAskService {
         return new ToolAskResponse(getSafeAnswer(answer, tools), tools);
     }
 
+    // Skeemis on väljad tüübiga string, seega tagastab Gemini puuduva väärtuse kord "", kord tekstina "null".
+    private String normalizeIntentValue(String value) {
+        if (value == null || value.isBlank() || value.trim().equalsIgnoreCase("null")) {
+            return null;
+        }
+        return value.trim();
+    }
+
+    private String quoted(String value) {
+        return value == null ? null : "\"" + value + "\"";
+    }
+
     private String canonicalName(String requested, List<String> names, String question) {
         if (requested != null && !requested.isBlank()) {
             String exactName = names.stream()
@@ -138,6 +162,28 @@ public class ToolAskService {
                 .filter(name -> lowerQuestion.contains(name.toLowerCase(Locale.ROOT)))
                 .findFirst()
                 .orElse(null);
+    }
+
+    // Mudel võib tööriista nime ise välja mõelda (nt "koristada" → "Koristusvahendid" või "Kõrgsurvepesur").
+    // Nimi jäetakse kõrvale, kui selle algust küsimuses pole või kui ühegi tööriista nimes seda pole.
+    // Siis otsitakse ainult linna, linnaosa ja kategooria järgi.
+    private String groundedToolName(String requested, String question) {
+        if (requested == null || requested.isBlank()) {
+            return null;
+        }
+        String lowerToolName = requested.toLowerCase(Locale.ROOT);
+        String prefix = lowerToolName.substring(0, Math.min(TOOL_NAME_PREFIX_LENGTH, lowerToolName.length()));
+        if (!question.toLowerCase(Locale.ROOT).contains(prefix)) {
+            log.debug("Tool name not found in question, ignored: {}", requested);
+            return null;
+        }
+        boolean toolExists = repository.toolNames().stream()
+                .anyMatch(name -> name.toLowerCase(Locale.ROOT).contains(lowerToolName));
+        if (!toolExists) {
+            log.debug("Tool name not found in database, ignored: {}", requested);
+            return null;
+        }
+        return requested;
     }
 
     private boolean unknownName(String requested, String canonical) {

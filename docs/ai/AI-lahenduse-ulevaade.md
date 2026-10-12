@@ -13,13 +13,13 @@ Seotud dokumendid:
 | Teema | Kuidas tehtud | Kus |
 |---|---|---|
 | Mudel ja raamistik | Spring AI 2.0.1 ja Google Gemini (`gemini-3.5-flash-lite`), `ChatClient` fluent API | `build.gradle`, `application.properties` |
-| Kahe-sammuline kutse | 1) intent: küsimusest tuvastatakse linn, linnaosa ja kategooria; 2) vastus sõnastatakse leitud tööriistade põhjal | `ToolAskService` |
-| Grounding | Linnade, linnaosade ja kategooriate nimed tulevad andmebaasist promptisse ning mudeli vastus kontrollitakse nende vastu (`canonicalName()`). Tööriistad otsib SQL, mitte AI. `tools` list kliendile tuleb andmebaasist. | `ToolAskService`, `AvailableToolRepository` |
+| Kahe-sammuline kutse | 1) intent: küsimusest tuvastatakse linn, linnaosa, kategooria ja tööriista nimi; 2) vastus sõnastatakse leitud tööriistade põhjal | `ToolAskService` |
+| Grounding | Linnade, linnaosade ja kategooriate nimed tulevad andmebaasist promptisse ning mudeli vastus kontrollitakse nende vastu (`canonicalName()`). Tööriista nimi (`toolName`) on vaba tekst: seda kasutatakse ainult siis, kui selle 5 esimest tähte on küsimuses ja see sisaldub mõne andmebaasis oleva tööriista nimes. Nii ei riku mudeli välja mõeldud nimi (nt „Koristusvahendid“ küsimusele „Soovin Kristiines koristada“) otsingut (`groundedToolName()`). Tööriistad otsib SQL, mitte AI. `tools` list kliendile tuleb andmebaasist. | `ToolAskService`, `AvailableToolRepository` |
 | System + user rollid | Juhised on `.system()` sõnumis, andmed `.user()` sõnumis. Kasutaja tekst on märgendis `<question>`, tööriistad märgendis `<tools>`, ja prompt ütleb, et nende sisu on andmed, mitte juhised. | `ToolAskService`, `prompts/*.md` |
 | Vastuse toon | Pets vastab viisakalt, soojalt ja mänguliselt: kõige rohkem üks mänguline lause (tööriista väike iseloom või rõõmus soov), mitte sunnitud nali. See ei puuduta kasutajat ega lisa fakte. Kaks erinevat näidet näitavad tooni. Esimene katse „üks nali igas vastuses“ andis halbu nalju ja asendati. Fikseeritud tekstid (erijuhud, veateated, tervitus) jäävad tõsiseks. | `prompts/tool-search-answer.md` |
-| Struktureeritud väljund | `.entity(ToolSearchIntent.class, spec -> spec.useProviderStructuredOutput())`, mis kasutab Gemini enda JSON-skeemi | `ToolSearchIntent`, `ToolAskService` |
-| Chain of thought | `ToolSearchIntent` esimene väli on `reasoning` (`@JsonPropertyOrder`). Mudel kirjutab põhjenduse enne otsust. Kliendile seda ei saadeta, see logitakse `debug` tasemel. | `ToolSearchIntent` |
-| Few-shot / one-shot | Intent-promptis on 3 näidet (Kristiine, Tartu + Aiatööd, kontakti küsimine → `false`), vastuse promptis 2 näidet | `prompts/tool-search-intent.md`, `prompts/tool-search-answer.md` |
+| Struktureeritud väljund | `.entity(ToolSearchIntent.class, spec -> spec.useProviderStructuredOutput())`, mis kasutab Gemini enda JSON-skeemi. Skeemis on väljad tüübiga `string`, seega tagastab Gemini puuduva väärtuse kord `""`, kord tekstina `"null"`. `normalizeIntentValue()` muudab mõlemad päris `null`'iks. | `ToolSearchIntent`, `ToolAskService` |
+| Chain of thought | `ToolSearchIntent` esimene väli on `reasoning` (`@JsonPropertyOrder`). Mudel kirjutab põhjenduse enne otsust. Kliendile seda ei saadeta, see logitakse `debug` tasemel koos tuvastatud `city`, `district`, `category` ja `toolName` väärtustega. | `ToolSearchIntent` |
+| Few-shot / one-shot | Intent-promptis on 6 näidet (Kristiine, Tartu + Aiatööd, Tallinn → `city`, Kristiine + akutrell → `toolName`, Kristiine + koristada → `category`, kontakti küsimine → `false`), vastuse promptis 2 näidet | `prompts/tool-search-intent.md`, `prompts/tool-search-answer.md` |
 | Promptid failides | Laetakse käivitumisel kujul `classpath:prompts/*.md`, puuduv fail annab vea kohe. `.param()` ei kasutata, seega few-shot JSON-i `{}` ei rikuta. | `ToolAskService` konstruktor |
 | Parameetrid | `thinkingLevel=MINIMAL` ja `maxOutputTokens` (300 intent-kutsel, 400 vastuse kutsel) seatakse igale kutsele. Väärtused tulevad `toolrental.ai.*` seadetest. Temperatuur on teadlikult vaikeväärtusel. | `application.properties` |
 | Sisendi turvalisus | `@NotBlank` ja `@Size(max = 500)`. `RegexJailbreakAdvisor`: NFKC-normaliseerimine, nähtamatute märkide eemaldamine, eesti- ja ingliskeelsed jailbreak-mustrid. Blokeeritud küsimus annab 400 `QUESTION_REJECTED` ilma põhjust avaldamata ja Gemini kutset ei tehta. | `ToolAskRequest`, `RegexJailbreakAdvisor`, `GuardrailViolationException`, `RestExceptionHandler` |
@@ -27,7 +27,7 @@ Seotud dokumendid:
 | Andmete minimeerimine | AI ega klient ei näe e-posti ega telefoni. `AvailableTool` sisaldab ainult viit avalikku välja. SQL kasutab parameetreid ja loenditest valitud nimesid. | `AvailableTool`, `AvailableToolRepository` |
 | Ligipääs | Ainult sisse logitud kasutaja. Muidu tuleb 401 `AUTHENTICATION_REQUIRED` ja vestlusakent ei kuvata. | `SecurityConfig`, `ChatbotWidget.vue` |
 | Mõõdikud | `AiMetricsAdvisor` logib iga kutse tokenid, kestuse, mudeli ja `finishReason`'i. Küsimust ega vastust ei logita. | `AiMetricsAdvisor` |
-| Testid | `RegexJailbreakAdvisorTest` (15), `AiMetricsAdvisorTest` (2), `ToolAskServiceTest` (12, mockitud `ChatModel` ja päris `ChatClient`), `ToolAskControllerTest` | `backend/src/test` |
+| Testid | `RegexJailbreakAdvisorTest` (15), `AiMetricsAdvisorTest` (2), `ToolAskServiceTest` (19, mockitud `ChatModel` ja päris `ChatClient`), `ToolAskControllerTest` | `backend/src/test` |
 
 ## Miks neid nelja ei kasutatud
 

@@ -55,7 +55,7 @@ class AvailableToolRepositoryTest {
 
     @Test
     void returnsOnlyAvailableToolsInRequestedDistrictWithoutProfileFields() {
-        List<AvailableTool> tools = repository.findAvailable(cityName, districtName, categoryName);
+        List<AvailableTool> tools = repository.findAvailable(cityName, districtName, categoryName, null);
 
         assertThat(tools).hasSize(1);
         assertThat(tools.getFirst()).isEqualTo(new AvailableTool(tools.getFirst().toolId(), toolName,
@@ -64,10 +64,23 @@ class AvailableToolRepositoryTest {
     }
 
     @Test
+    void filtersByPartOfToolNameIgnoringCase() {
+        List<AvailableTool> tools = repository.findAvailable(cityName, null, null, "TESTT");
+
+        assertThat(tools).extracting(AvailableTool::name).containsExactly(toolName);
+    }
+
+    @Test
+    void toolNameWildcardsAreSearchedAsText() {
+        assertThat(repository.findAvailable(cityName, null, null, "%")).isEmpty();
+    }
+
+    @Test
     void readsFilterNamesFromPostgresToolRentalSchema() {
         assertThat(repository.cityNames()).contains(cityName);
         assertThat(repository.districtNames()).contains(districtName);
         assertThat(repository.categoryNames()).contains(categoryName);
+        assertThat(repository.toolNames()).contains(toolName);
     }
 
     private int insertId(String sql, Object... parameters) {

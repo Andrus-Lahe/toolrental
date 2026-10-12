@@ -47,8 +47,9 @@ class ToolAskServiceTest {
     void setUp() throws IOException {
         when(chatModel.getOptions()).thenReturn(GoogleGenAiChatOptions.builder().build());
         when(repository.cityNames()).thenReturn(List.of("Pärnu", "Tallinn", "Tartu"));
-        when(repository.districtNames()).thenReturn(List.of("Kristiine", "Mustamäe"));
-        when(repository.categoryNames()).thenReturn(List.of("Aiatööd", "Ehitustööd"));
+        when(repository.districtNames()).thenReturn(List.of("Kristiine", "Mustamäe", "Põhja-Tallinn"));
+        when(repository.categoryNames()).thenReturn(List.of("Aiatööd", "Ehitustööd", "Koristamine"));
+        when(repository.toolNames()).thenReturn(List.of("Akutrell", "Muruniiduk", "Survepesur", "Tolmuimeja"));
         toolAskService = new ToolAskService(repository, ChatClient.builder(chatModel),
                 new ClassPathResource("prompts/tool-search-intent.md"),
                 new ClassPathResource("prompts/tool-search-answer.md"),
@@ -61,13 +62,122 @@ class ToolAskServiceTest {
     @Test
     void kristiineQuestionUsesOnlyAvailableToolsInKristiine() {
         givenModelAnswers(KRISTIINE_INTENT, "Kristiines on saadaval Akutrell ja Muruniiduk.");
-        when(repository.findAvailable(null, "Kristiine", null)).thenReturn(List.of(akutrell, muruniiduk));
+        when(repository.findAvailable(null, "Kristiine", null, null)).thenReturn(List.of(akutrell, muruniiduk));
 
         ToolAskResponse response = toolAskService.ask(KRISTIINE_QUESTION);
 
         assertThat(response.answer()).isEqualTo("Kristiines on saadaval Akutrell ja Muruniiduk.");
         assertThat(response.tools()).containsExactly(akutrell, muruniiduk);
-        verify(repository).findAvailable(null, "Kristiine", null);
+        verify(repository).findAvailable(null, "Kristiine", null, null);
+    }
+
+    /**
+     * Linna nimi "Tallinnas" läheb filtrisse city, mitte linnaosaks (nt "Põhja-Tallinn"), ja tulemuses on ka Kristiine tööriistad.
+     */
+    @Test
+    void tallinnQuestionFiltersByCityNotDistrict() {
+        givenModelAnswers("""
+                {"reasoning": "Küsitakse tööriistu Tallinnas.", "toolSearch": true, "city": "Tallinn", "district": null, "category": null}""",
+                "Tallinnas on saadaval Akutrell ja Muruniiduk.");
+        when(repository.findAvailable("Tallinn", null, null, null)).thenReturn(List.of(akutrell, muruniiduk));
+
+        ToolAskResponse response = toolAskService.ask("Millised tööriistad on Tallinnas saadaval?");
+
+        assertThat(response.tools()).containsExactly(akutrell, muruniiduk);
+        verify(repository).findAvailable("Tallinn", null, null, null);
+    }
+
+    /**
+     * Tööriista nimi läheb filtrisse toolName, mitte kategooriaks.
+     */
+    @Test
+    void toolNameQuestionFiltersByToolName() {
+        givenModelAnswers("""
+                {"reasoning": "Küsitakse tööriista Akutrell.", "toolSearch": true, "city": null, "district": null, "category": null, "toolName": "Akutrell"}""",
+                "Saadaval on Akutrell (Ehitustööd).");
+        when(repository.findAvailable(null, null, null, "Akutrell")).thenReturn(List.of(akutrell));
+
+        ToolAskResponse response = toolAskService.ask("Kas akutrelli saab laenata?");
+
+        assertThat(response.tools()).containsExactly(akutrell);
+        verify(repository).findAvailable(null, null, null, "Akutrell");
+    }
+
+    /**
+     * Tegevus "koristada" on kategooria. Mudeli välja mõeldud tööriista nime, mille algust küsimuses pole, filtrisse ei panda.
+     */
+    @Test
+    void toolNameNotInQuestionIsIgnored() {
+        givenModelAnswers("""
+                {"reasoning": "Küsitakse koristamist Kristiines.", "toolSearch": true, "city": "Tallinn", "district": "Kristiine", "category": "Koristamine", "toolName": "Kõrgsurvepesur"}""",
+                "Kristiines on saadaval Survepesur (Koristamine).");
+        when(repository.findAvailable("Tallinn", "Kristiine", "Koristamine", null)).thenReturn(List.of(akutrell));
+
+        toolAskService.ask("Soovin Kristiines koristada.");
+
+        verify(repository).findAvailable("Tallinn", "Kristiine", "Koristamine", null);
+    }
+
+    /**
+     * Nime algus on küsimuses ("koris"), aga sellist tööriista andmebaasis pole: nime filtrisse ei panda.
+     */
+    @Test
+    void toolNameNotInDatabaseIsIgnored() {
+        givenModelAnswers("""
+                {"reasoning": "Küsitakse koristamist Kristiines.", "toolSearch": true, "city": "Tallinn", "district": "Kristiine", "category": "Koristamine", "toolName": "Koristusvahendid"}""",
+                "Kristiines on saadaval Survepesur (Koristamine).");
+        when(repository.findAvailable("Tallinn", "Kristiine", "Koristamine", null)).thenReturn(List.of(akutrell));
+
+        toolAskService.ask("Soovin Kristiines koristada.");
+
+        verify(repository).findAvailable("Tallinn", "Kristiine", "Koristamine", null);
+    }
+
+    /**
+     * Gemini võib puuduva väärtuse tagastada tekstina "null". See on sama mis null, mitte tundmatu nimi.
+     */
+    @Test
+    void nullTextValuesAreTreatedAsMissing() {
+        givenModelAnswers("""
+                {"reasoning": "Küsitakse survepesurit.", "toolSearch": true, "city": "null", "district": "NULL", "category": "", "toolName": "Survepesur"}""",
+                "Saadaval on Survepesur (Koristamine).");
+        when(repository.findAvailable(null, null, null, "Survepesur")).thenReturn(List.of(akutrell));
+
+        toolAskService.ask("Soovin survepesurit.");
+
+        verify(repository).findAvailable(null, null, null, "Survepesur");
+    }
+
+    /**
+     * Tallinna küsimus, kus linnaosa on tekst "null": otsitakse ainult linna järgi.
+     */
+    @Test
+    void tallinnQuestionWithNullTextDistrictFiltersByCity() {
+        givenModelAnswers("""
+                {"reasoning": "Küsitakse tööriistu Tallinnas.", "toolSearch": true, "city": "Tallinn", "district": "null", "category": "null", "toolName": "null"}""",
+                "Tallinnas on saadaval Akutrell ja Muruniiduk.");
+        when(repository.findAvailable("Tallinn", null, null, null)).thenReturn(List.of(akutrell, muruniiduk));
+
+        ToolAskResponse response = toolAskService.ask("Millised tööriistad on Tallinnas saadaval?");
+
+        assertThat(response.tools()).containsExactly(akutrell, muruniiduk);
+        verify(repository).findAvailable("Tallinn", null, null, null);
+    }
+
+    /**
+     * Liiga pikk tööriista nimi annab tulemusteta teksti ja andmebaasist ei otsita.
+     */
+    @Test
+    void tooLongToolNameReturnsNotFoundText() {
+        givenModelAnswers("""
+                {"reasoning": "Küsitakse tööriista.", "toolSearch": true, "city": null, "district": null, "category": null, "toolName": "%s"}"""
+                .formatted("a".repeat(101)));
+
+        ToolAskResponse response = toolAskService.ask("Kas " + "a".repeat(101) + " on saadaval?");
+
+        assertThat(response.answer()).isEqualTo("Sellele otsingule ma tulemusi ei leidnud, küsi midagi muud");
+        assertThat(response.tools()).isEmpty();
+        verify(repository, never()).findAvailable(any(), any(), any(), any());
     }
 
     /**
@@ -80,9 +190,9 @@ class ToolAskServiceTest {
 
         ToolAskResponse response = toolAskService.ask("Anna mulle Liis Kase telefoninumber.");
 
-        assertThat(response.answer()).isEqualTo("Saan aidata ainult saadaval tööriistade otsimisega.");
+        assertThat(response.answer()).isEqualTo("Saan sind aidata küll, aga ainult saadaval olevate tööriistade otsimisega.");
         assertThat(response.tools()).isEmpty();
-        verify(repository, never()).findAvailable(any(), any(), any());
+        verify(repository, never()).findAvailable(any(), any(), any(), any());
     }
 
     /**
@@ -95,7 +205,7 @@ class ToolAskServiceTest {
 
         ToolAskResponse response = toolAskService.ask("Mis tööriistad on Kalamajas?");
 
-        assertThat(response.answer()).isEqualTo("Sellist linna, linnaosa või kategooriat ei leitud.");
+        assertThat(response.answer()).isEqualTo("Sellele otsingule ma tulemusi ei leidnud, küsi midagi muud");
         assertThat(response.tools()).isEmpty();
     }
 
@@ -105,11 +215,11 @@ class ToolAskServiceTest {
     @Test
     void noAvailableToolsReturnsEmptyText() {
         givenModelAnswers(KRISTIINE_INTENT);
-        when(repository.findAvailable(null, "Kristiine", null)).thenReturn(List.of());
+        when(repository.findAvailable(null, "Kristiine", null, null)).thenReturn(List.of());
 
         ToolAskResponse response = toolAskService.ask(KRISTIINE_QUESTION);
 
-        assertThat(response.answer()).isEqualTo("Sellele otsingule vastavaid saadaval tööriistu ei leitud.");
+        assertThat(response.answer()).isEqualTo("Sellele otsingule ma vastavaid saadaval tööriistu ei leidnud.");
         assertThat(response.tools()).isEmpty();
         verify(chatModel, times(1)).call(any(Prompt.class));
     }
@@ -146,7 +256,7 @@ class ToolAskServiceTest {
     @Test
     void blankAnswerThrows() {
         givenModelAnswers(KRISTIINE_INTENT, " ");
-        when(repository.findAvailable(null, "Kristiine", null)).thenReturn(List.of(akutrell));
+        when(repository.findAvailable(null, "Kristiine", null, null)).thenReturn(List.of(akutrell));
 
         assertThrows(IllegalStateException.class, () -> toolAskService.ask(KRISTIINE_QUESTION));
     }
@@ -168,7 +278,7 @@ class ToolAskServiceTest {
     @Test
     void callsUsePromptFilesOptionsAndTags() {
         givenModelAnswers(KRISTIINE_INTENT, "Kristiines on saadaval Akutrell.");
-        when(repository.findAvailable(null, "Kristiine", null)).thenReturn(List.of(akutrell));
+        when(repository.findAvailable(null, "Kristiine", null, null)).thenReturn(List.of(akutrell));
 
         toolAskService.ask(KRISTIINE_QUESTION);
 
@@ -204,11 +314,11 @@ class ToolAskServiceTest {
 
     private void assertAnswerIsReplaced(String unsafeAnswer) {
         givenModelAnswers(KRISTIINE_INTENT, unsafeAnswer);
-        when(repository.findAvailable(null, "Kristiine", null)).thenReturn(List.of(akutrell, muruniiduk));
+        when(repository.findAvailable(null, "Kristiine", null, null)).thenReturn(List.of(akutrell, muruniiduk));
 
         ToolAskResponse response = toolAskService.ask(KRISTIINE_QUESTION);
 
-        assertThat(response.answer()).isEqualTo("Leidsin järgmised saadaval tööriistad: Akutrell, Muruniiduk.");
+        assertThat(response.answer()).isEqualTo("Leidsin sulle järgmised saadaval tööriistad: Akutrell, Muruniiduk.");
         assertThat(response.tools()).containsExactly(akutrell, muruniiduk);
     }
 

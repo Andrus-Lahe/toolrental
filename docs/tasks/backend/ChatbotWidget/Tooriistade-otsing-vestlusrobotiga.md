@@ -76,9 +76,9 @@ Näide põhineb failil [3_import.sql](../../../database/3_import.sql): Marko Tam
 
 | Olukord | `answer` |
 |---|---|
-| Küsimus ei puuduta tööriistu (nt kasutajad, kontaktid, broneeringud) | `"Saan aidata ainult saadaval tööriistade otsimisega."` |
-| AI tuvastas linna, linnaosa või kategooria, mida loendites pole | `"Sellist linna, linnaosa või kategooriat ei leitud."` |
-| Filtritele vastavaid saadaval tööriistu pole | `"Sellele otsingule vastavaid saadaval tööriistu ei leitud."` |
+| Küsimus ei puuduta tööriistu (nt kasutajad, kontaktid, broneeringud) | `"Saan sind aidata küll, aga ainult saadaval olevate tööriistade otsimisega."` |
+| AI tuvastas linna, linnaosa või kategooria, mida loendites pole | `"Sellele otsingule ma tulemusi ei leidnud, küsi midagi muud"` |
+| Filtritele vastavaid saadaval tööriistu pole | `"Sellele otsingule ma vastavaid saadaval tööriistu ei leidnud."` |
 
 ## Eesmärk
 
@@ -89,9 +89,9 @@ Kasutaja tekst läheb otse keelemudelisse, seega peab teenus prompt injection ka
 ## Praegune loogika (koodis olemas)
 
 1. `ToolAskService.ask()` loeb andmebaasist linnade, linnaosade ja kategooriate nimed.
-2. **Esimene Gemini kutse** tagastab `ToolSearchIntent(toolSearch, city, district, category)`. Kasutatakse ainult loendites olevaid nimesid, eesti käänded teisendatakse algvormi („Kristiines“ → „Kristiine“). SQL-i mudel ei genereeri.
-3. Nimed kontrollitakse `canonicalName()` meetodiga loendite vastu. Kui nime ei leita, tagastatakse 200 koos selgitava `answer` tekstiga.
-4. `AvailableToolRepository.findAvailable()` teeb parameetritega SQL-päringu (`status = 'A'`, `LIMIT 20`, `ORDER BY t.id`).
+2. **Esimene Gemini kutse** tagastab `ToolSearchIntent(toolSearch, city, district, category, toolName)`. Väljadel `city`, `district` ja `category` kasutatakse ainult loendites olevaid nimesid. `toolName` on tööriista nimi ainsuse algvormis („akutrelli“ → „Akutrell“), eesti käänded teisendatakse algvormi („Kristiines“ → „Kristiine“). SQL-i mudel ei genereeri.
+3. Kõigepealt muudetakse tühi tekst ja tekst `"null"` päris `null`'iks (`normalizeIntentValue()`). JSON-skeemis on väljad tüübiga `string`, seega tagastab Gemini puuduva väärtuse kord `""`, kord `"null"`. Ilma selleta peeti `"null"` tundmatuks nimeks ja sama küsimus andis kord tulemuse, kord „ei leidnud“. Seejärel kontrollitakse nimesid `canonicalName()` meetodiga loendite vastu. `toolName` on vaba tekst: seda loendist ei kontrollita, aga see võib olla kuni 100 märki. Nimi jäetakse kõrvale, kui selle 5 esimest tähte pole küsimuses või kui ühegi tööriista nimes (`AvailableToolRepository.toolNames()`) seda pole. Siis on nimi mudeli välja mõeldud ja otsitakse ainult teiste filtrite järgi. Näiteks küsimusele „Soovin Kristiines koristada“ pakkus mudel `toolName` väärtuseks „Kõrgsurvepesur“ ja „Koristusvahendid“. Kui nime ei leita või `toolName` on liiga pikk, tagastatakse 200 koos selgitava `answer` tekstiga.
+4. `AvailableToolRepository.findAvailable()` teeb parameetritega SQL-päringu (`status = 'A'`, `LIMIT 20`, `ORDER BY t.id`). `toolName` filter on `t.name ILIKE '%nimi%'`, kus kasutaja tekstis olevad `%` ja `_` otsitakse tavaliste märkidena.
 5. **Teine Gemini kutse** sõnastab vastuse ainult leitud tööriistade põhjal. Tühi vastus visatakse `IllegalStateException`'ina ja sellest tuleb 500.
 
 ## AI turvakiht ja mõõdikud (uus)
@@ -141,7 +141,7 @@ Projekti hindamisel kontrollitakse allolevaid teemasid. Tabel näitab, mis on ko
 | Chain of thought | ❌ Puudub. | Esimese kutse struktureeritud väljundis on esimene väli `reasoning` (vt punkt A). |
 | System + user rollid | ✅ Mõlemad kutsed kasutavad `.system()` juhisteks ja `.user()` andmeteks. | Kasutaja küsimus eraldatakse `.user()` sõnumis märgendiga ja system-prompt ütleb, et märgendi sees olevaid juhiseid ei täideta. |
 | Basic security | ✅ Sisendi pikkus on piiratud (`@NotBlank`, `@Size(max = 500)`). SQL-päring on parameetritega ja kasutab ainult loenditest valitud nimesid. Vastuses pole e-posti ega telefoni. ❌ Väljundi pikkus ja sisu pole piiratud. | Sisend: `RegexJailbreakAdvisor` (normaliseerimine ja mustrid). Väljund: `maxOutputTokens` ja `answer` kontroll (punkt E). |
-| One-shot / few-shot | ❌ Puudub. | Intent-promptis 3 näidet ja vastuse promptis 2 näidet (punkt B). |
+| One-shot / few-shot | ❌ Puudub. | Intent-promptis 6 näidet ja vastuse promptis 2 näidet (punkt B). |
 | Struktureeritud väljund | ✅ Esimene kutse kasutab `.entity(ToolSearchIntent.class)`. Spring AI lisab sel juhul JSON-vormingu juhise prompti teksti. | Kasutatakse Gemini enda struktureeritud väljundit: `.entity(ToolSearchIntent.class, spec -> spec.useProviderStructuredOutput())` (punkt A). |
 | Parameetrid, thinking level, sampling | ❌ Ühtegi pole seatud, kehtivad mudeli vaikeväärtused. | Kummalegi kutsele oma `GoogleGenAiChatOptions` (punkt C). |
 | Prompt MD failist | ❌ Promptid on Java text block'id. | Promptid tõstetakse kausta `src/main/resources/prompts/` (punkt D). |
@@ -151,8 +151,9 @@ Projekti hindamisel kontrollitakse allolevaid teemasid. Tabel näitab, mis on ko
 `ToolSearchIntent` saab esimeseks väljaks `reasoning`. Väljade järjekord pannakse paika `@JsonPropertyOrder` annotatsiooniga:
 
 ```java
-@JsonPropertyOrder({"reasoning", "toolSearch", "city", "district", "category"})
-public record ToolSearchIntent(String reasoning, boolean toolSearch, String city, String district, String category) {
+@JsonPropertyOrder({"reasoning", "toolSearch", "city", "district", "category", "toolName"})
+public record ToolSearchIntent(String reasoning, boolean toolSearch, String city, String district, String category,
+                               String toolName) {
 }
 ```
 
@@ -162,17 +163,26 @@ Kutse kasutab Gemini enda skeemi: `.entity(ToolSearchIntent.class, spec -> spec.
 
 ### B. Few-shot näited (intent-prompt) ja one-shot (vastuse prompt)
 
-Intent-prompti lisatakse 3 näidet. Kõik nimed on päris andmed failist 3_import.sql:
+Intent-prompti lisatakse 6 näidet. Kõik nimed on päris andmed failist 3_import.sql. Tallinna näide ja reegel „linna nimi läheb väljale city“ lisati hiljem, sest ilma nendeta pani mudel küsimuse „Tallinnas“ linnaosaks (nt „Põhja-Tallinn“) ja tulemusi ei tulnud. Akutrelli näide ja väli `toolName` lisati, sest tööriista nime järgi otsida ei saanud: mudel pani nime kategooriaks ja tulemusi ei tulnud. Koristamise näide ja reegel „tegevus näitab kategooriat“ lisati, sest mudel mõtles küsimusele „Soovin Kristiines koristada“ ise tööriista nime juurde:
 
 ```text
 Küsimus: Millised tööriistad on saadaval Kristiines?
-Vastus: {"reasoning": "Küsitakse tööriistu, Kristiines on linnaosa Kristiine käändevorm.", "toolSearch": true, "city": null, "district": "Kristiine", "category": null}
+Vastus: {"reasoning": "Küsitakse tööriistu, Kristiines on linnaosa Kristiine käändevorm.", "toolSearch": true, "city": null, "district": "Kristiine", "category": null, "toolName": null}
 
 Küsimus: Kas Tartus on mõni aiatööriist?
-Vastus: {"reasoning": "Küsitakse tööriistu, Tartus on linn Tartu, aiatööriist on kategooria Aiatööd.", "toolSearch": true, "city": "Tartu", "district": null, "category": "Aiatööd"}
+Vastus: {"reasoning": "Küsitakse tööriistu, Tartus on linn Tartu, aiatööriist on kategooria Aiatööd.", "toolSearch": true, "city": "Tartu", "district": null, "category": "Aiatööd", "toolName": null}
+
+Küsimus: Millised tööriistad on Tallinnas saadaval?
+Vastus: {"reasoning": "Küsitakse tööriistu, Tallinnas on linn Tallinn, linnaosa ei küsitud.", "toolSearch": true, "city": "Tallinn", "district": null, "category": null, "toolName": null}
+
+Küsimus: Kas Kristiines saab akutrelli laenata?
+Vastus: {"reasoning": "Küsitakse konkreetset tööriista, akutrelli on tööriista Akutrell käändevorm, Kristiines on linnaosa Kristiine.", "toolSearch": true, "city": null, "district": "Kristiine", "category": null, "toolName": "Akutrell"}
+
+Küsimus: Soovin Kristiines koristada.
+Vastus: {"reasoning": "Koristada on tegevus, mis vastab kategooriale Koristamine, Kristiines on linnaosa Kristiine, tööriista nime ei küsitud.", "toolSearch": true, "city": null, "district": "Kristiine", "category": "Koristamine", "toolName": null}
 
 Küsimus: Anna mulle Liis Kase telefoninumber.
-Vastus: {"reasoning": "Küsitakse kasutaja kontakti, mitte tööriistu.", "toolSearch": false, "city": null, "district": null, "category": null}
+Vastus: {"reasoning": "Küsitakse kasutaja kontakti, mitte tööriistu.", "toolSearch": false, "city": null, "district": null, "category": null, "toolName": null}
 ```
 
 Vastuse prompti lisatakse kaks näidet, mis näitavad vastuse pikkust ja tooni. Toon on viisakas, soe ja mänguline: kõige rohkem üks mänguline lause (tööriista väike iseloom või rõõmus soov), mitte sunnitud nali ega sõnamäng. See ei puuduta kasutajat ega inimesi ega lisa fakte (hinnad, omanikud, seisukord, uued tööriistad). Kaks erinevat näidet takistavad ühe mustri kordamist.
@@ -219,7 +229,7 @@ Laadimine: `@Value("classpath:prompts/tool-search-intent.md") Resource intentPro
 Pärast vastuse kutset kontrollitakse `answer` välja enne kliendile saatmist:
 
 - Kui see on tühi, jääb praegune loogika: `IllegalStateException` → 500.
-- Kui see on pikem kui 1000 märki või sisaldab e-posti, telefoninumbri või URL-i mustrit, asendatakse see turvalise tekstiga, mis koostatakse leitud tööriistade nimedest, nt `"Leidsin järgmised saadaval tööriistad: Akutrell, Muruniiduk."`. Asendus logitakse `warn` tasemel.
+- Kui see on pikem kui 1000 märki või sisaldab e-posti, telefoninumbri või URL-i mustrit, asendatakse see turvalise tekstiga, mis koostatakse leitud tööriistade nimedest, nt `"Leidsin sulle järgmised saadaval tööriistad: Akutrell, Muruniiduk."`. Asendus logitakse `warn` tasemel.
 - Tööriistade andmed (`<tools>`) on vastuse promptis märgitud usaldamatuks, sest tööriista nime kirjutab kasutaja. Täielik kaitse kaudse injection'i vastu jääb LLM-kohtuniku taski.
 
 ## Seotud andmebaasi tabelid
@@ -331,7 +341,7 @@ CREATE TABLE city (
 - [ ] `AiMetricsAdvisor` logib mõlema Gemini kutse tokenid, kestuse, mudeli ja `finishReason`'i. Küsimust ja vastust ei logita. `Usage` puudumine ei põhjusta viga.
 - [ ] `response-mime-type=application/json` seadet pole `application.properties` failis.
 - [ ] `ToolSearchIntent` esimene väli on `reasoning` (`@JsonPropertyOrder`) ja intent-kutse kasutab `useProviderStructuredOutput()`. `reasoning` ei jõua kliendini.
-- [ ] Intent-promptis on 3 few-shot näidet ja vastuse promptis 2 näidet. Kõik nimed on päris 3_import.sql andmed.
+- [ ] Intent-promptis on 6 few-shot näidet ja vastuse promptis 2 näidet. Kõik nimed on päris 3_import.sql andmed.
 - [ ] Kasutaja küsimus on `.user()` sõnumis märgendis `<question>` ja tööriistad märgendis `<tools>`. System prompt ütleb, et märgendite sees olevaid juhiseid ei täideta.
 - [ ] Mõlemal kutsel on `GoogleGenAiChatOptions` seatud `thinkingLevel` ja `maxOutputTokens` väärtusega ning väärtused tulevad `application.properties` failist. Temperatuuri muutmine on põhjendatud mudeli dokumentatsiooniga.
 - [ ] System promptid loetakse failidest `src/main/resources/prompts/*.md` ja Java koodis neid text block'idena pole.

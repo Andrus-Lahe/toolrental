@@ -30,7 +30,12 @@ public class AvailableToolRepository {
                 "SELECT category_name FROM tool_rental.category ORDER BY category_name", String.class);
     }
 
-    public List<AvailableTool> findAvailable(String city, String district, String category) {
+    public List<String> toolNames() {
+        return jdbcTemplate.getJdbcTemplate().queryForList(
+                "SELECT DISTINCT name FROM tool_rental.tool ORDER BY name", String.class);
+    }
+
+    public List<AvailableTool> findAvailable(String city, String district, String category, String toolName) {
         StringBuilder sql = new StringBuilder("""
                 SELECT t.id AS tool_id, t.name, c.category_name, ci.city_name, d.district_name
                 FROM tool_rental.tool t
@@ -55,6 +60,10 @@ public class AvailableToolRepository {
             sql.append(" AND c.category_name = :category");
             parameters.addValue("category", category);
         }
+        if (toolName != null) {
+            sql.append(" AND t.name ILIKE :toolName ESCAPE '\\'");
+            parameters.addValue("toolName", "%" + escapeLike(toolName) + "%");
+        }
         sql.append(" ORDER BY t.id LIMIT 20");
 
         return jdbcTemplate.query(sql.toString(), parameters, (rs, rowNum) -> new AvailableTool(
@@ -63,5 +72,10 @@ public class AvailableToolRepository {
                 rs.getString("category_name"),
                 rs.getString("city_name"),
                 rs.getString("district_name")));
+    }
+
+    // Kasutaja tekstis olevad % ja _ otsitakse tavaliste märkidena, mitte LIKE mustrina.
+    private String escapeLike(String value) {
+        return value.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_");
     }
 }

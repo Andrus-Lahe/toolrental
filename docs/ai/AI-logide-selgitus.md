@@ -139,10 +139,10 @@ Seda päringut teeb SQL, mitte AI. Gemini andis ainult filtrite väärtused ja n
 | `LEFT JOIN profile p ON p.user_id = t.owner_id` | Tööriista omaniku profiil |
 | `LEFT JOIN location l` → `district d` → `city ci` | Omaniku aadressist linnaosa ja linn. Tööriista asukoht on omaniku asukoht. |
 | `WHERE t.status = 'A'` | Ainult saadaval tööriistad, `U` (kasutusest väljas) jäetakse välja |
-| `AND ci.city_name = 'Tallinn' AND d.district_name = 'Kristiine' AND c.category_name = 'Koristamine'` | Gemini tuvastatud filtrid. Iga filter lisatakse ainult siis, kui see leiti. |
+| `AND ci.city_name = 'Tallinn' AND d.district_name = 'Kristiine' AND c.category_name = 'Koristamine'` | Gemini tuvastatud filtrid. Iga filter lisatakse ainult siis, kui see leiti. Tööriista nime korral lisandub `AND t.name ILIKE '%Akutrell%'`. |
 | `ORDER BY t.id LIMIT 20` | Järjestus ID järgi, kuni 20 tulemust |
 
-**Väärtused on päringus näha, aga SQL-süsti ohtu pole.** Koodis on päring parameetritega (`:city`, `:district`, `:category`). P6Spy paneb logisse ainult loetavuse huvides tegelikud väärtused. Andmebaasi läheb päring koos eraldi parameetritega, seega kasutaja tekst ei saa SQL-i muuta.
+**Väärtused on päringus näha, aga SQL-süsti ohtu pole.** Koodis on päring parameetritega (`:city`, `:district`, `:category`, `:toolName`). P6Spy paneb logisse ainult loetavuse huvides tegelikud väärtused. Andmebaasi läheb päring koos eraldi parameetritega, seega kasutaja tekst ei saa SQL-i muuta.
 
 `3_import.sql` andmetel vastab sellele tingimusele üks tööriist: Survepesur (`toolId=6`, Marko Tamm, Kristiine).
 
@@ -155,6 +155,23 @@ Gemini sai küsimuse ja leitud tööriistad märgendis `<tools>` ning sõnastas 
 `ToolAskResponse`, milles on `answer` ja `tools` list (andmebaasist, mitte AI-lt). Frontend kuvab need vestlusaknas.
 
 **Kokku:** 4 SQL-päringut ja 2 Gemini kutset, umbes 980 tokenit (649 + 65 + 333 + 50) ja AI-osa kestus umbes 1,7 sekundit (991 + 684 ms). `finishReason=STOP` mõlemal kutsel tähendab, et kumbki vastus ei jäänud tokenipiiri tõttu poolikuks.
+
+## `Tool search intent` rida (debug)
+
+Rida tuleb ainult siis, kui `ToolAskService` logitase on `DEBUG` (`logging.level.ee.toolrental.service.ToolAskService=DEBUG` failis `application.properties`). See näitab, mida Gemini esimene kutse küsimusest tuvastas:
+
+```text
+Tool search intent: reasoning=Küsitakse koristamist Kristiines. city="Tallinn" district="Kristiine" category="Koristamine" toolName="null"
+```
+
+| Väli | Tähendus |
+|---|---|
+| `reasoning` | Mudeli põhjendus (chain of thought), kliendile seda ei saadeta |
+| `city="Tallinn"` | Jutumärkides on Gemini antud tekst |
+| `toolName="null"` või `toolName=""` | Gemini andis puuduva väärtuse tekstina. Kood muudab selle päris `null`'iks (`normalizeIntentValue()`), seega filtrit ei lisata. |
+| `toolName=null` (ilma jutumärkideta) | Väli puudus Gemini vastusest täiesti |
+
+Samal tasemel võivad tulla ka read `Tool name not found in question, ignored` ja `Tool name not found in database, ignored`. Need tähendavad, et Gemini pakutud tööriista nime ei olnud küsimuses või andmebaasis ning otsing tehti ilma selleta.
 
 ## Kiirülevaade: mida logist otsida
 

@@ -43,7 +43,7 @@ Kirjaklambri (faili lisamise) ikooni **ei ole**, sest backend võtab vastu ainul
    - kasutaja sõnum lisatakse loendisse, väli tühjendatakse, `isSending = true`, kuvatakse ootamise olek ja saatmisnupp keelatakse;
    - tehakse päring `POST /api/ai/ask` kujul `{ "question": "<küsimus>" }`;
    - korraga on käimas ainult üks päring.
-6. **200 vastus:** ootamise olek asendatakse roboti mulliga (`answer`) ja selle all kuvatakse `tools` loend. Kui `tools` on `[]`, kuvatakse ainult tekst. Ka „Saan aidata ainult saadaval tööriistade otsimisega.“ ja teised 200 erijuhud on tavalised vastused, mitte vead.
+6. **200 vastus:** ootamise olek asendatakse roboti mulliga (`answer`) ja selle all kuvatakse `tools` loend. Kui `tools` on `[]`, kuvatakse ainult tekst. Ka „Saan sind aidata küll, aga ainult saadaval olevate tööriistade otsimisega.“ ja teised 200 erijuhud on tavalised vastused, mitte vead.
 7. **Tööriista nimele vajutus:** `NavigationService.navigateToToolDetail(this.$router, tool.toolId)`. Aken jääb avatuks ja vestlus säilib, sest komponent on `App.vue`'s, mitte vaate sees.
 8. **Veateated** (vt tabel allpool) kuvatakse punase roboti mullina vestluses. Kasutaja küsimus jääb loendisse. Sisestusväli on kohe uuesti kasutatav, et ta saaks küsimust parandada.
 9. **401 vestluse ajal** (sessioon aegus): kuvatakse backendi `message` ja kutsutakse `loadSession()`, mis muudab oleku `guest`'iks. Selle tõttu aken sulgub ja päis näitab sisselogimise nuppu.
@@ -91,7 +91,7 @@ Päring kasutab sama origin'i sessiooniküpsist. Kasutaja ID-d ega muid välju b
 - `answer` on Gemini loodud tekst ja selle sõnastus muutub iga kord. Testides ära eelda täpset sõnastust.
 - `tools` on kuni 20 tööriista. Tühi tulemus on `[]`, mitte `null`.
 - `city` ja `district` võivad olla `null` (omanikul pole asukohta).
-- 200 vastused ilma tööriistadeta: `"Saan aidata ainult saadaval tööriistade otsimisega."`, `"Sellist linna, linnaosa või kategooriat ei leitud."` ja `"Sellele otsingule vastavaid saadaval tööriistu ei leitud."`. Kõigil neil on `tools: []`.
+- 200 vastused ilma tööriistadeta: `"Saan sind aidata küll, aga ainult saadaval olevate tööriistade otsimisega."`, `"Sellele otsingule ma tulemusi ei leidnud, küsi midagi muud"` ja `"Sellele otsingule ma vastavaid saadaval tööriistu ei leidnud."`. Kõigil neil on `tools: []`.
 
 **Veateated:**
 
