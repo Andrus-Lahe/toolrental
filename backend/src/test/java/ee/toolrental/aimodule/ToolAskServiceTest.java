@@ -2,6 +2,7 @@ package ee.toolrental.aimodule;
 
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -15,6 +16,8 @@ import static org.mockito.Mockito.when;
 class ToolAskServiceTest {
 
     private static final String QUESTION = "mul muru pikk";
+    private final AiTokenUsageLogger tokenUsageLogger = new AiTokenUsageLogger(
+            new BigDecimal("0.30"), new BigDecimal("2.50"), new BigDecimal("0.03"), new BigDecimal("1.1206"));
 
     @Test
     void selectsMatchingDatabaseCandidatesAndAnswersWithTheirCounts() {
@@ -33,7 +36,7 @@ class ToolAskServiceTest {
         when(answerGenerator.generateAnswer(new ToolSearchSummary(QUESTION, List.of(mower.toAvailableTool()), 2, 1,
                 "Kristiine", "Aiatööd"))).thenReturn("Leidsin 2 sobivat tööriista; 1 on saadaval.");
 
-        ToolAskResponse response = new ToolAskService(repository, matcher, answerGenerator, sqlInjectionSurprise).ask(QUESTION);
+        ToolAskResponse response = new ToolAskService(repository, matcher, answerGenerator, sqlInjectionSurprise, tokenUsageLogger).ask(QUESTION);
 
         assertThat(response.tools()).containsExactly(mower.toAvailableTool());
         assertThat(response.answer()).contains("2", "1");
@@ -58,7 +61,7 @@ class ToolAskServiceTest {
         when(answerGenerator.generateAnswer(new ToolSearchSummary(toolName, List.of(mower.toAvailableTool()), 1, 1,
                 "Kristiine", "Aiatööd"))).thenReturn("Muruniiduk on saadaval.");
 
-        ToolAskResponse response = new ToolAskService(repository, matcher, answerGenerator, sqlInjectionSurprise).ask(toolName);
+        ToolAskResponse response = new ToolAskService(repository, matcher, answerGenerator, sqlInjectionSurprise, tokenUsageLogger).ask(toolName);
 
         assertThat(response.tools()).containsExactly(mower.toAvailableTool());
         verify(repository, never()).findVisibleTools();
