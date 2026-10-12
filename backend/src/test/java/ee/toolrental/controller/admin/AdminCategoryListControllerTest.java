@@ -5,7 +5,7 @@ import ee.toolrental.infrastructure.exception.InternalServerErrorException;
 import ee.toolrental.infrastructure.security.AppUserOidcService;
 import ee.toolrental.infrastructure.security.AppUserPrincipal;
 import ee.toolrental.infrastructure.security.SecurityConfig;
-import ee.toolrental.service.AdminCategoryListService;
+import ee.toolrental.service.admin.AdminCategoryListService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;

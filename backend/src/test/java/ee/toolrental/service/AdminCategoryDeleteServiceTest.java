@@ -5,6 +5,7 @@ import ee.toolrental.infrastructure.exception.InternalServerErrorException;
 import ee.toolrental.infrastructure.exception.PrimaryKeyNotFoundException;
 import ee.toolrental.persistence.category.AdminCategoryDeleteRepository;
 import ee.toolrental.persistence.category.Category;
+import ee.toolrental.service.admin.AdminCategoryDeleteService;
 import org.junit.jupiter.api.Test;
 import org.mockito.InOrder;
 import org.springframework.dao.DataAccessResourceFailureException;

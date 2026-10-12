@@ -2,7 +2,7 @@ package ee.toolrental.controller.admin;
 
 import ee.toolrental.controller.admin.dto.CategoryUpdateRequestDto;
 import ee.toolrental.infrastructure.error.ApiError;
-import ee.toolrental.service.AdminCategoryUpdateService;
+import ee.toolrental.service.admin.AdminCategoryUpdateService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

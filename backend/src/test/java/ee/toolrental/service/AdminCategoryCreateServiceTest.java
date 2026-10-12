@@ -5,6 +5,7 @@ import ee.toolrental.infrastructure.exception.ForbiddenException;
 import ee.toolrental.infrastructure.exception.InternalServerErrorException;
 import ee.toolrental.persistence.category.AdminCategoryCreateRepository;
 import ee.toolrental.persistence.category.Category;
+import ee.toolrental.service.admin.AdminCategoryCreateService;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.dao.DataIntegrityViolationException;

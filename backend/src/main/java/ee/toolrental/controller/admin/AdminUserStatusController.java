@@ -3,7 +3,7 @@ package ee.toolrental.controller.admin;
 import ee.toolrental.controller.admin.dto.UserStatusRequestDto;
 import ee.toolrental.infrastructure.error.ApiError;
 import ee.toolrental.infrastructure.security.AppUserPrincipal;
-import ee.toolrental.service.AdminUserStatusService;
+import ee.toolrental.service.admin.AdminUserStatusService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

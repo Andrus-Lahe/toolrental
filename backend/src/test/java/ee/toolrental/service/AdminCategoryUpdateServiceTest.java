@@ -6,6 +6,7 @@ import ee.toolrental.infrastructure.exception.InternalServerErrorException;
 import ee.toolrental.infrastructure.exception.PrimaryKeyNotFoundException;
 import ee.toolrental.persistence.category.AdminCategoryUpdateRepository;
 import ee.toolrental.persistence.category.Category;
+import ee.toolrental.service.admin.AdminCategoryUpdateService;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.DataIntegrityViolationException;

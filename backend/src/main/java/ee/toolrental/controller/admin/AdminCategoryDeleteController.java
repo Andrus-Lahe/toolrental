@@ -1,7 +1,7 @@
 package ee.toolrental.controller.admin;
 
 import ee.toolrental.infrastructure.error.ApiError;
-import ee.toolrental.service.AdminCategoryDeleteService;
+import ee.toolrental.service.admin.AdminCategoryDeleteService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;

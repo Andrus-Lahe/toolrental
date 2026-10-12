@@ -3,6 +3,7 @@ package ee.toolrental.service;
 import ee.toolrental.controller.admin.dto.AdminUserDto;
 import ee.toolrental.infrastructure.exception.InternalServerErrorException;
 import ee.toolrental.persistence.appuser.AdminUserRepository;
+import ee.toolrental.service.admin.AdminUserListService;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;
 

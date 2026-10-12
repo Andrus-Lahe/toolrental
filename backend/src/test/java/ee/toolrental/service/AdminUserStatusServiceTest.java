@@ -6,6 +6,7 @@ import ee.toolrental.infrastructure.exception.InternalServerErrorException;
 import ee.toolrental.infrastructure.exception.PrimaryKeyNotFoundException;
 import ee.toolrental.persistence.appuser.AppUser;
 import ee.toolrental.persistence.appuser.AppUserRepository;
+import ee.toolrental.service.admin.AdminUserStatusService;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;
 

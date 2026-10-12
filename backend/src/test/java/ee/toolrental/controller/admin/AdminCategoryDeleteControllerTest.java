@@ -6,7 +6,7 @@ import ee.toolrental.infrastructure.exception.PrimaryKeyNotFoundException;
 import ee.toolrental.infrastructure.security.AppUserOidcService;
 import ee.toolrental.infrastructure.security.AppUserPrincipal;
 import ee.toolrental.infrastructure.security.SecurityConfig;
-import ee.toolrental.service.AdminCategoryDeleteService;
+import ee.toolrental.service.admin.AdminCategoryDeleteService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;

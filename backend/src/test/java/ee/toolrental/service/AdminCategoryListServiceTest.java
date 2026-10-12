@@ -3,6 +3,7 @@ package ee.toolrental.service;
 import ee.toolrental.controller.admin.dto.AdminCategoryDto;
 import ee.toolrental.infrastructure.exception.InternalServerErrorException;
 import ee.toolrental.persistence.category.AdminCategoryRepository;
+import ee.toolrental.service.admin.AdminCategoryListService;
 import org.junit.jupiter.api.Test;
 import org.springframework.dao.DataAccessResourceFailureException;
 
