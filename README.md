@@ -11,3 +11,7 @@ docs/       Dokumentatsioon ja andmebaasiskriptid
 ```
 
 Backend ja frontend on eraldi arendatavad ja käivitatavad rakendused. Ehitus-, käivitus- ja testikäskude ning arhitektuuri kohta vaata `backend/CLAUDE.md` ja `frontend/CLAUDE.md`.
+
+## Windows
+
+Windowsi seadistamine ja käivitamine: [docs/WINDOWS.md](docs/WINDOWS.md).

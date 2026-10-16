@@ -29,14 +29,14 @@ PostgreSQL peab töötama `localhost`-is järgmiste seadetega:
 - Andmebaas: `vali_it`
 - Kasutajanimi: `postgres`
 - Parool: `student123`
-- Mugav DB url: `jdbc:postgresql://localhost:5432/vali_it`
+- Mugav DB url: `jdbc:postgresql://localhost:5433/vali_it`
 
 Käivita skriptid järjekorras kaustast `docs/database`:
-1. `1_reset_database.sql` — kustutab ja loob uuesti `minu_projekt` skeema
+1. `1_reset_database.sql` — kustutab ja loob uuesti `tool_rental` skeema
 2. `2_create.sql` — loob kõik tabelid
 3. `3_import.sql` — lisab algandmed
 
-Kõik tabelid asuvad `minu_projekt` skeemas.
+Kõik tabelid asuvad `tool_rental` skeemas.
 
 ## Käivitamine WSL-ist (Claude Code)
 
@@ -48,12 +48,12 @@ IntelliJ-s käivitades pole seda vaja. Kui backend käivitatakse WSL-i terminali
 export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64
 ```
 
-**Andmebaas:** WSL2 NAT-võrgurežiimis ei jõua `localhost:5432` Windowsis jooksva PostgreSQL-ini. Kasuta Windowsi hosti IP-d, mis on WSL-i vaikelüüs:
+**Andmebaas:** WSL2 NAT-võrgurežiimis ei jõua `localhost:5433` Windowsis jooksva PostgreSQL-ini. Kasuta Windowsi hosti IP-d, mis on WSL-i vaikelüüs:
 
 ```bash
 WIN_HOST=$(ip route show default | awk '{print $3}')   # nt 172.17.80.1
-pg_isready -h "$WIN_HOST" -p 5432                        # kontroll
-export SPRING_DATASOURCE_URL="jdbc:p6spy:postgresql://$WIN_HOST:5432/vali_it"
+pg_isready -h "$WIN_HOST" -p 5433                        # kontroll
+export SPRING_DATASOURCE_URL="jdbc:p6spy:postgresql://$WIN_HOST:5433/vali_it"
 ```
 
 **Google OAuth:** `GOOGLE_CLIENT_ID` ja `GOOGLE_CLIENT_SECRET` peavad olema keskkonnamuutujatena olemas. Õpilase masinas on need IntelliJ run-konfiguratsioonis (`.idea/workspace.xml`), mitte WSL-i keskkonnas. Ära kirjuta neid repositooriumi faili ega väljundisse.

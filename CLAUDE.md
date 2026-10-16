@@ -24,7 +24,7 @@ Claude Code terminal jookseb WSL2 Ubuntu sees, mitte Windowsi peal — Windowsi 
 - `java` (OpenJDK 21) — backendi jaoks
 - `node`, `npm` (NVM kaudu paigaldatud, eraldi versioon Windowsi Node'ist)
 - `gh` (GitHub CLI)
-- `psql` — **ainult klient**, andmebaasi server ise jookseb Windowsis (port 5432). WSL2 NAT-võrgurežiimis ei ole `localhost:5432` WSL-ist kättesaadav. Kasuta Windowsi hosti IP-d, mille annab `ip route show default | awk '{print $3}'` (nt `172.17.80.1`). Backendi käivitamist WSL-ist kirjeldab backend/CLAUDE.md jaotis „Käivitamine WSL-ist“.
+- `psql` klient on WSL-is olemas. Aktiivne Windowsi projekt kasutab Windowsi PostgreSQL 17 serverit pordil 5433 (andmebaas `vali_it`, skeem `tool_rental`). Windowsi port 5432 kuulub PostgreSQL 18 serverile. WSL-i `localhost:5432` server ja `/home/student/projects/toolrental` koopia on eraldi keskkond. Windowsi projekti käivitamine: `docs/WINDOWS.md`.
 - Docker **puudub** WSL-i seest natiivselt (ainult Windows Docker Desktopi kaudu, kui õpilane on selle käsitsi sisse lülitanud)
 
 ## docs/ kausta struktuur
